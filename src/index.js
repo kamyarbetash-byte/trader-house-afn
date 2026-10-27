@@ -91,7 +91,13 @@ const json = (d, s = 200) => new Response(JSON.stringify(d), {
 });
 
 export default {
-  async scheduled(_ev, env, ctx) { ctx.waitUntil(collect(env)); },
+  async scheduled(_ev, env, ctx) {
+    ctx.waitUntil((async () => {
+      try { await setMeta(env.DB, "lastTick", Math.floor(Date.now() / 1000)); } catch (e) {}
+      try { await collect(env); await setMeta(env.DB, "lastError", ""); }
+      catch (e) { try { await setMeta(env.DB, "lastError", new Date().toISOString() + " " + (e && e.stack || e)); } catch (_) {} }
+    })());
+  },
 
   async fetch(req, env) {
     const url = new URL(req.url);
