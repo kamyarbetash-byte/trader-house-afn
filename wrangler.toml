@@ -5,10 +5,7 @@ compatibility_date = "2025-06-01"
 [triggers]
 crons = ["* * * * *"]
 
-[[durable_objects.bindings]]
-name = "STORE"
-class_name = "RateStore"
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["RateStore"]
+[[d1_databases]]
+binding = "DB"
+database_name = "trader-house-afn"
+database_id = "531899b0-ebfb-4d1e-9cc2-eb08b7217051"
