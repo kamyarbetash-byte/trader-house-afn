@@ -1,0 +1,14 @@
+name = "trader-house-afn"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[durable_objects.bindings]]
+name = "STORE"
+class_name = "RateStore"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateStore"]

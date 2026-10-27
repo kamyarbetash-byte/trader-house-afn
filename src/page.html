@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>نرخ زنده‌ی دالر به افغانی | Trader House</title>
+<meta name="description" content="چارت کندل‌استیک زنده‌ی نرخ دالر به افغانی در سرای شهزاده‌ی کابل، مزارشریف، کندهار، ننگرهار و غزنی — Trader House">
+<meta property="og:title" content="نرخ زنده‌ی دالر به افغانی — Trader House">
+<meta property="og:description" content="اولین چارت کندل‌استیک زنده‌ی بازار ارز افغانستان، به تفکیک ولایت">
+<meta name="theme-color" content="#0E1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: trading desk — brand bar, city strip with live prices, price header, timeframe bar, chart */
+:root{
+  --bg:#F3F1EC; --surface:#FFFFFF; --ink:#151A26; --muted:#5D6475; --line:#E2DED4;
+  --gold:#A57C12; --gold-soft:#F4E8C6; --up:#138A63; --down:#C93A52; --grid:#ECE8DF;
+  --f-display:"Lalezar","Vazirmatn",system-ui,sans-serif;
+  --f-body:"Vazirmatn",Tahoma,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0E1220; --surface:#151B2D; --ink:#EDEBE4; --muted:#9AA2B5; --line:#252D44;
+  --gold:#E2B847; --gold-soft:#2A2614; --up:#2BC08F; --down:#F0607A; --grid:#1C2338; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:18px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px}
+.logo svg{width:38px;height:38px;flex:none}
+.logo b{font-family:var(--f-mono);font-size:15px;letter-spacing:.06em}
+.logo small{display:block;font-size:12px;color:var(--muted)}
+.live{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--up);animation:pulse 2s infinite}
+.live.stale i{background:var(--muted);animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--up) 60%,transparent)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}}
+.cities{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.city{font:inherit;text-align:right;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.city[aria-pressed="true"]{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.city .n{font-weight:700;font-size:14px}
+.city .p{font-family:var(--f-mono);font-weight:700;font-size:17px;direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+.city .d{font-family:var(--f-mono);font-size:12px;color:var(--muted);direction:ltr;text-align:right}
+.city .d.up{color:var(--up)} .city .d.down{color:var(--down)}
+.hero{display:grid;grid-template-columns:1fr auto;gap:12px 20px;align-items:end}
+.pair{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,6vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+.pair span{color:var(--gold)}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+.price{direction:ltr;text-align:left}
+.now{font-family:var(--f-mono);font-weight:700;font-size:clamp(30px,7vw,48px);line-height:1;font-variant-numeric:tabular-nums}
+.unit{font-size:14px;color:var(--muted);margin-left:6px}
+.chg{display:inline-block;margin-top:6px;font-family:var(--f-mono);font-size:14px;padding:2px 10px;border-radius:6px;background:var(--grid)}
+.chg.up{color:var(--up)} .chg.down{color:var(--down)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:0}
+.stat{padding:10px 14px;border-inline-start:1px solid var(--line);min-width:0}
+.stat:first-child{border-inline-start:0}
+.stat dt{font-size:12px;color:var(--muted)}
+.stat dd{margin:0;font-family:var(--f-mono);font-weight:700;font-size:16px;direction:ltr;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);max-width:100%;overflow-x:auto}
+.seg button{font:500 14px var(--f-body);color:var(--muted);background:none;border:0;padding:7px 13px;cursor:pointer;white-space:nowrap}
+.seg button+button{border-inline-start:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--gold-soft);color:var(--gold);font-weight:700}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.toggle{font:500 14px var(--f-body);color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 13px;cursor:pointer}
+.toggle[aria-pressed="true"]{color:var(--gold);border-color:var(--gold)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.chartbox{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+#chart{direction:ltr;height:min(62vh,540px);min-height:340px;width:100%}
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:24px;color:var(--muted);background:var(--surface)}
+.empty strong{font-family:var(--f-display);font-weight:400;font-size:24px;color:var(--ink)}
+.watermark{position:absolute;bottom:34px;left:18px;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;color:var(--muted);opacity:.55;pointer-events:none;direction:ltr}
+.note{font-size:13px;color:var(--muted);margin:0;max-width:72ch}
+.note a,footer a{color:var(--gold)}
+footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:640px){
+  .hero{grid-template-columns:1fr}.price{text-align:right}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat:nth-child(3){border-inline-start:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}
+  .cities{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="9" fill="none" stroke="var(--gold)" stroke-width="2"/><path d="M8 20 L20 9 L32 20" fill="none" stroke="var(--gold)" stroke-width="2.4" stroke-linejoin="round"/><rect x="13" y="22" width="3" height="9" fill="var(--up)"/><line x1="14.5" y1="19" x2="14.5" y2="33" stroke="var(--up)" stroke-width="1.2"/><rect x="18.5" y="24" width="3" height="6" fill="var(--down)"/><line x1="20" y1="21.5" x2="20" y2="32" stroke="var(--down)" stroke-width="1.2"/><rect x="24" y="19" width="3" height="10" fill="var(--up)"/><line x1="25.5" y1="17" x2="25.5" y2="31" stroke="var(--up)" stroke-width="1.2"/></svg>
+      <div><b>TRADER HOUSE</b><small>چارت زنده‌ی بازار ارز افغانستان</small></div>
+    </div>
+    <span class="live" id="live"><i></i><span id="updated">در حال بارگذاری…</span></span>
+  </header>
+
+  <nav class="cities" id="cities" aria-label="ولایت"></nav>
+
+  <section class="hero">
+    <div>
+      <h1 class="pair">دالر <span>/</span> افغانی</h1>
+      <p class="sub" id="sub">USD/AFN · سرای شهزاده‌ی کابل · وقت کابل</p>
+    </div>
+    <div class="price">
+      <div><span class="now" id="now">—</span><span class="unit">AFN</span></div>
+      <span class="chg" id="chg">—</span>
+    </div>
+  </section>
+
+  <dl class="stats">
+    <div class="stat"><dt>بلندترین امروز</dt><dd id="hi">—</dd></div>
+    <div class="stat"><dt>پایین‌ترین امروز</dt><dd id="lo">—</dd></div>
+    <div class="stat"><dt>بسته‌شدن دیروز</dt><dd id="prev">—</dd></div>
+    <div class="stat"><dt>نرخ‌های امروز</dt><dd id="count">—</dd></div>
+  </dl>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="تایم‌فریم" id="tfs">
+      <button type="button" data-tf="300">۵ دقیقه</button>
+      <button type="button" data-tf="900">۱۵ دقیقه</button>
+      <button type="button" data-tf="3600" aria-pressed="true">۱ ساعت</button>
+      <button type="button" data-tf="14400">۴ ساعت</button>
+      <button type="button" data-tf="86400">روزانه</button>
+    </div>
+    <div class="opts">
+      <button type="button" class="toggle" id="dealBtn" aria-pressed="false">فقط معاملات انجام‌شده</button>
+      <button type="button" class="toggle" id="maBtn" aria-pressed="false">میانگین متحرک ۲۰</button>
+    </div>
+  </div>
+
+  <div class="chartbox">
+    <div id="chart"></div>
+    <div class="watermark">TRADER HOUSE · USD/AFN</div>
+    <div class="empty" id="empty"><strong>در حال جمع‌آوری نرخ‌ها</strong><span>سیستم هر دقیقه نرخ‌های تازه را از بازار می‌خواند. چند دقیقه‌ی دیگر سر بزنید.</span></div>
+  </div>
+
+  <p class="note">هر کندل از نرخ‌های اعلام‌شده و معاملات انجام‌شده در همان بازه ساخته می‌شود (میانه‌ی خرید و فروش). باز شدن هر کندل همان بسته شدن کندل قبلی است. صفحه هر ۳۰ ثانیه خودکار به‌روز می‌شود. منبع نرخ‌ها: کانال تلگرام <a href="https://t.me/kabul_dollar" target="_blank" rel="noopener">@kabul_dollar</a>.</p>
+
+  <footer><span>تحلیل و چارت: Trader House</span><span id="foot">—</span></footer>
+</div>
+
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+(function(){
+  const CITIES=[["kabul","کابل"],["mazar","مزارشریف"],["kandahar","کندهار"],["jalalabad","ننگرهار"],["ghazni","غزنی"],["herat","هرات"],["khost","خوست"]];
+  const KABUL=16200;
+  const $=id=>document.getElementById(id);
+  const en=n=>Number(n).toFixed(2);
+  const tfmt=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Kabul',hour:'2-digit',minute:'2-digit'});
+  const dfmt=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Kabul',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const fa=n=>Number(n).toLocaleString('fa-IR');
+  const dayKey=t=>Math.floor((t+KABUL)/86400);
+
+  let city='kabul', tf=3600, dealsOnly=false, showMA=false;
+  const data={};       // city -> [[ts,price,isDeal],...]
+  let summary=null;
+
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  let chart,candles,ma;
+  function theme(){return{layout:{background:{type:'solid',color:css('--surface')},textColor:css('--muted'),fontFamily:'JetBrains Mono, monospace'},
+    grid:{vertLines:{color:css('--grid')},horzLines:{color:css('--grid')}},rightPriceScale:{borderColor:css('--line')},
+    timeScale:{borderColor:css('--line'),timeVisible:true,secondsVisible:false},crosshair:{mode:0}}}
+  function colors(){const u=css('--up'),d=css('--down');return{upColor:u,downColor:d,wickUpColor:u,wickDownColor:d,borderVisible:false}}
+  if(window.LightweightCharts){
+    chart=LightweightCharts.createChart($('chart'),Object.assign({autoSize:true},theme()));
+    candles=chart.addCandlestickSeries(Object.assign({priceFormat:{type:'price',precision:2,minMove:0.01}},colors()));
+    ma=chart.addLineSeries({color:css('--gold'),lineWidth:2,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
+    try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{chart.applyOptions(theme());candles.applyOptions(colors());ma.applyOptions({color:css('--gold')})})}catch(e){}
+  }
+
+  function series(){const t=data[city]||[];return dealsOnly?t.filter(x=>x[2]):t}
+  function build(){
+    const out=[];let last=null,cur=null;
+    for(const [t,p] of series()){
+      const b=Math.floor((t+KABUL)/tf)*tf;
+      if(!cur||cur.time!==b){if(cur){out.push(cur);last=cur.close}
+        const o=last==null?p:last;cur={time:b,open:o,high:Math.max(o,p),low:Math.min(o,p),close:p}}
+      else{cur.high=Math.max(cur.high,p);cur.low=Math.min(cur.low,p);cur.close=p}
+    }
+    if(cur)out.push(cur);return out;
+  }
+  function sma(d,n){const r=[];let s=0;for(let i=0;i<d.length;i++){s+=d[i].close;if(i>=n)s-=d[i-n].close;if(i>=n-1)r.push({time:d[i].time,value:+(s/n).toFixed(3)})}return r}
+
+  function renderChart(fit){
+    if(!chart)return;const d=build();
+    candles.setData(d);ma.setData(showMA?sma(d,20):[]);
+    if(fit)chart.timeScale().fitContent();
+    $('empty').hidden=d.length>0;
+  }
+  function renderStats(){
+    const t=data[city]||[];
+    const name=(CITIES.find(c=>c[0]===city)||[])[1];
+    $('sub').textContent='USD/AFN · '+(city==='kabul'?'سرای شهزاده‌ی کابل':'بازار '+name)+' · وقت کابل';
+    if(!t.length){['now','hi','lo','prev','count'].forEach(i=>$(i).textContent='—');$('chg').textContent='—';$('chg').className='chg';return}
+    const [lt,lp]=t[t.length-1];$('now').textContent=en(lp);
+    const today=dayKey(lt);const td=t.filter(x=>dayKey(x[0])===today).map(x=>x[1]);
+    const before=t.filter(x=>dayKey(x[0])<today);
+    $('hi').textContent=en(Math.max(...td));$('lo').textContent=en(Math.min(...td));$('count').textContent=fa(td.length);
+    const c=$('chg');
+    if(before.length){const pc=before[before.length-1][1];$('prev').textContent=en(pc);
+      const d=lp-pc,pct=d/pc*100;c.textContent=(d>=0?'+':'')+d.toFixed(2)+'  ('+(d>=0?'+':'')+pct.toFixed(2)+'%)';
+      c.className='chg '+(d>0?'up':d<0?'down':'')}
+    else{$('prev').textContent='—';c.textContent='—';c.className='chg'}
+  }
+  function renderCities(){
+    const nav=$('cities');nav.textContent='';
+    const latest={};(summary&&summary.latest||[]).forEach(r=>latest[r.city]=r);
+    const kab=latest.kabul&&latest.kabul.price;
+    CITIES.filter(([k])=>latest[k]||k==='kabul').forEach(([k,n])=>{
+      const b=document.createElement('button');b.type='button';b.className='city';b.setAttribute('aria-pressed',String(k===city));
+      const a=document.createElement('span');a.className='n';a.textContent=n;
+      const p=document.createElement('span');p.className='p';p.textContent=latest[k]?en(latest[k].price):'—';
+      const d=document.createElement('span');d.className='d';
+      if(k==='kabul'||!latest[k]||!kab)d.textContent=latest[k]?tfmt.format(new Date(latest[k].ts*1000)):'';
+      else{const x=latest[k].price-kab;d.textContent=(x>=0?'+':'')+x.toFixed(2)+' با کابل';d.classList.add(x>0?'up':x<0?'down':'x')}
+      b.append(a,p,d);b.addEventListener('click',()=>{city=k;renderCities();load(true)});nav.appendChild(b);
+    });
+  }
+  function renderLive(){
+    const last=summary&&summary.lastRun;const live=$('live');
+    const t=(data[city]||[]).slice(-1)[0];
+    if(t){$('updated').textContent='آخرین نرخ '+tfmt.format(new Date(t[0]*1000));$('foot').textContent='آخرین نرخ: '+dfmt.format(new Date(t[0]*1000))}
+    live.classList.toggle('stale',!last||Date.now()/1000-last>600);
+  }
+
+  async function getJSON(u){const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return r.json()}
+  async function load(fit){
+    try{
+      const have=data[city];const since=have&&have.length?have[have.length-1][0]+1:0;
+      const res=await getJSON('/api/ticks?city='+city+'&since='+since);
+      data[city]=(have&&since?have:[]).concat(res.ticks);
+      renderStats();renderChart(fit||!have);renderLive();
+    }catch(e){$('updated').textContent='اتصال برقرار نشد؛ دوباره تلاش می‌شود'}
+  }
+  async function loadSummary(){try{summary=await getJSON('/api/summary');renderCities();renderLive()}catch(e){}}
+
+  $('tfs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    document.querySelectorAll('#tfs button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));tf=+b.dataset.tf;renderChart(true)});
+  $('dealBtn').addEventListener('click',()=>{dealsOnly=!dealsOnly;$('dealBtn').setAttribute('aria-pressed',String(dealsOnly));renderChart(true)});
+  $('maBtn').addEventListener('click',()=>{showMA=!showMA;$('maBtn').setAttribute('aria-pressed',String(showMA));renderChart(false)});
+
+  renderCities();loadSummary();load(true);
+  setInterval(()=>{if(!document.hidden){load(false);loadSummary()}},30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){load(false);loadSummary()}});
+})();
+</script>
+</body>
+</html>
