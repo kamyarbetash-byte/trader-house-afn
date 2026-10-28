@@ -13,6 +13,62 @@ const BACKFILL_DAYS = 45;
 const KEEP_DAYS = 120;
 const UA = "Mozilla/5.0 (compatible; TraderHouseRates/1.0)";
 
+// News about the afghani, the dollar and Da Afghanistan Bank (auctions, rates, decisions).
+// Feeds are checked every 30 minutes; Telegram posts that mention an auction or the central bank are added as they arrive.
+const FEEDS = [
+  { src: "د افغانستان بانک", url: "https://dab.gov.af/rss.xml" },
+  { src: "د افغانستان بانک", url: "https://www.dab.gov.af/fa/rss.xml" },
+  { src: "پژواک", url: "https://pajhwok.com/tag/dab/feed/" },
+  { src: "پژواک", url: "https://pajhwok.com/tag/afghani/feed/" },
+];
+const NEWS_RE = /(لیلام|مزایده|بولی|افغانستان بانک|بانک مرکزی|DAB\b|Da Afghanistan Bank|central bank|auction|afghani|exchange rate|currency)/i;
+const TG_NEWS_RE = /(لیلام|مزایده|بولی|افغانستان بانک|بانک مرکزی)/;
+const NEWS_MAX = 40;
+
+const unxml = s => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "")
+  .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;|&#39;|&apos;/g, "'")
+  .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+function parseFeed(xml, src) {
+  const out = [];
+  const blocks = xml.match(/<item[\s>][\s\S]*?<\/item>/g) || xml.match(/<entry[\s>][\s\S]*?<\/entry>/g) || [];
+  for (const b of blocks) {
+    const g = tag => { const m = b.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`)); return m ? unxml(m[1]) : ""; };
+    const title = g("title");
+    let link = g("link"); if (!link) { const m = b.match(/<link[^>]*href="([^"]+)"/); link = m ? m[1] : ""; }
+    const ts = Math.floor(Date.parse(g("pubDate") || g("updated") || g("published") || g("dc:date")) / 1000);
+    if (!title || !/^https?:\/\//.test(link) || !isFinite(ts)) continue;
+    const desc = g("description") || g("summary");
+    if (!NEWS_RE.test(title + " " + desc)) continue;
+    out.push({ ts, src, title: title.slice(0, 220), link });
+  }
+  return out;
+}
+async function saveNews(db, add) {
+  if (!add.length) return;
+  let list = []; try { list = JSON.parse((await meta(db, "news")) || "[]"); } catch (e) {}
+  const have = new Set(list.map(n => n.link));
+  let changed = false;
+  for (const n of add) if (!have.has(n.link)) { list.push(n); have.add(n.link); changed = true; }
+  if (!changed) return;
+  list.sort((a, b) => b.ts - a.ts);
+  await setMeta(db, "news", JSON.stringify(list.slice(0, NEWS_MAX)));
+}
+async function collectNews(db) {
+  const found = [], status = [];
+  for (const f of FEEDS) {
+    try {
+      const r = await fetch(f.url, { headers: { "user-agent": UA, accept: "application/rss+xml, application/xml, text/xml" }, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) { status.push(`${f.url} ${r.status}`); continue; }
+      const items = parseFeed(await r.text(), f.src);
+      status.push(`${f.url} ok ${items.length}`);
+      found.push(...items);
+    } catch (e) { status.push(`${f.url} ${e && e.name || "error"}`); }
+  }
+  await saveNews(db, found);
+  await setMeta(db, "newsAt", Math.floor(Date.now() / 1000));
+  await setMeta(db, "newsStatus", status.join(" | "));
+}
+
 const meta = async (db, k) => (await db.prepare("SELECT v FROM meta WHERE k=?").bind(k).first("v")) ?? null;
 const setMeta = (db, k, v) => db.prepare("INSERT OR REPLACE INTO meta(k,v) VALUES(?,?)").bind(k, String(v)).run();
 const mkey = (idx, name) => (idx === 0 ? name : `${name}:${CHANNELS[idx].name}`);
@@ -42,15 +98,18 @@ async function ingest(db, idx, list) {
   const base = idx * SPAN;
   const uids = list.map(m => base + m.id);
   const seen = new Set((await db.prepare(`SELECT id FROM msgs WHERE id IN (${uids.map(() => "?").join(",")})`).bind(...uids).all()).results.map(r => r.id));
-  const stmts = [], ticks = [];
+  const stmts = [], ticks = [], news = [];
   for (const m of list) {
     const uid = base + m.id;
     if (seen.has(uid)) continue;
     stmts.push(db.prepare("INSERT OR IGNORE INTO msgs VALUES(?,?,?)").bind(uid, m.ts, m.text));
     const p = parsePost(m.text, CHANNELS[idx].city);
     if (p) { stmts.push(tickStmt(db, uid, m.ts, p)); ticks.push({ city: p.city, ts: m.ts, price: p.price, deal: p.kind === "deal" ? 1 : 0 }); }
+    else if (m.text.length > 25 && TG_NEWS_RE.test(m.text) && m.ts > Date.now() / 1000 - 30 * 86400)
+      news.push({ ts: m.ts, src: "@" + CHANNELS[idx].name, title: m.text.replace(/\s+/g, " ").slice(0, 220), link: `https://t.me/${CHANNELS[idx].name}/${m.id}` });
   }
   if (stmts.length) await db.batch(stmts);
+  if (news.length) await saveNews(db, news);
   return ticks;
 }
 
@@ -155,7 +214,11 @@ async function collect(env) {
     catch (e) { errors.push(`${CHANNELS[i].name}: ${e && e.message || e}`); }
   }
   await updateSnapshots(db, all);
-  await setMeta(db, "lastRun", Math.floor(Date.now() / 1000));
+  const now = Math.floor(Date.now() / 1000);
+  if (now - (+(await meta(db, "newsAt")) || 0) >= 1800) {
+    try { await collectNews(db); } catch (e) { errors.push("news: " + (e && e.message || e)); }
+  }
+  await setMeta(db, "lastRun", now);
   if (errors.length) await setMeta(db, "lastError", new Date().toISOString() + " " + errors.join(" | "));
 }
 
@@ -194,6 +257,8 @@ export default {
     const db = env.DB;
     try {
       if (url.pathname === "/api/history") return json(await cached("history", 30000, () => history(db)), 30);
+      if (url.pathname === "/api/news")
+        return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]") })), 120);
       if (url.pathname === "/api/updates") {
         // Recent ticks for all cities. `since` is rounded to the minute so viewers share cache entries.
         const now = Math.floor(Date.now() / 1000);
