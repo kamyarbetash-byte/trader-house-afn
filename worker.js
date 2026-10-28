@@ -122,7 +122,12 @@ async function reparseIfNeeded(db) {
   await setMeta(db, "parser", PARSER_VERSION);
 }
 
-const bounds = db => db.prepare("SELECT MIN(id) AS minId, MAX(id) AS maxId, MIN(ts) AS minTs, COUNT(*) AS n FROM msgs").first();
+// Cheap lookups only: MIN/MAX on the primary key read one row each.
+const bounds = async db => {
+  const r = await db.prepare("SELECT MIN(id) AS minId, MAX(id) AS maxId FROM msgs").first();
+  const minTs = r.minId ? await db.prepare("SELECT ts FROM msgs WHERE id=?").bind(r.minId).first("ts") : null;
+  return { minId: r.minId, maxId: r.maxId, minTs };
+};
 
 async function fetchPage(before) {
   const url = `https://t.me/s/${CHANNEL}` + (before ? `?before=${before}` : "");
@@ -130,31 +135,47 @@ async function fetchPage(before) {
   if (!res.ok) throw new Error(`telegram ${res.status}`);
   return parsePage(await res.text(), CHANNEL);
 }
+const minId = list => Math.min(...list.map(m => m.id));
+const maxId = list => Math.max(...list.map(m => m.id));
 
 async function collect(env) {
   const db = env.DB;
   await reparseIfNeeded(db);
-  const before = await bounds(db);
-  const latest = await fetchPage();
-  await ingest(db, latest);
 
-  // Fill a gap if more than one page of posts arrived since the last run.
-  let low = latest.length ? Math.min(...latest.map(m => m.id)) : null;
-  for (let i = 0; i < 6 && before.maxId && low && low - 1 > before.maxId; i++) {
+  // cursor: every post up to this id has been read. gapTop/gapCeil: an unfinished catch-up.
+  let cursor = +(await meta(db, "cursor")) || (await bounds(db)).maxId || 0;
+  let gapTop = +(await meta(db, "gapTop")) || 0;
+  let gapCeil = +(await meta(db, "gapCeil")) || 0;
+
+  const latest = await fetchPage();
+  if (!latest.length) return;
+  await ingest(db, latest);
+  const top = Math.max(maxId(latest), gapCeil);
+
+  let low = gapTop || minId(latest), closed = !cursor || low - 1 <= cursor;
+  for (let i = 0; i < 10 && !closed; i++) {
     const page = await fetchPage(low);
-    if (!page.length) break;
+    if (!page.length || minId(page) >= low) { closed = true; break; }
     await ingest(db, page);
-    low = Math.min(...page.map(m => m.id));
+    low = minId(page);
+    closed = low - 1 <= cursor;
+  }
+  if (closed) {
+    if (cursor !== top) await setMeta(db, "cursor", top);
+    if (gapTop) { await setMeta(db, "gapTop", 0); await setMeta(db, "gapCeil", 0); }
+  } else {
+    await setMeta(db, "gapTop", low);
+    if (!gapCeil) await setMeta(db, "gapCeil", top);
   }
 
-  // Walk back through history until BACKFILL_DAYS is covered.
+  // One-time history walk (already finished on the live site).
   if ((await meta(db, "backfill")) !== "done") {
     const stopTs = Math.floor(Date.now() / 1000) - BACKFILL_DAYS * 86400;
     let b = await bounds(db);
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
       if (!b.minId || b.minTs < stopTs) { await setMeta(db, "backfill", "done"); break; }
       const page = await fetchPage(b.minId);
-      if (!page.length || Math.min(...page.map(m => m.id)) >= b.minId) { await setMeta(db, "backfill", "done"); break; }
+      if (!page.length || minId(page) >= b.minId) { await setMeta(db, "backfill", "done"); break; }
       await ingest(db, page);
       b = await bounds(db);
     }
@@ -162,12 +183,24 @@ async function collect(env) {
   await setMeta(db, "lastRun", Math.floor(Date.now() / 1000));
 }
 
+// Latest price per city: one indexed row per city.
 async function summary(db) {
-  const latest = (await db.prepare(`SELECT t.city, t.ts, t.price FROM ticks t
-    JOIN (SELECT city, MAX(ts) AS m FROM ticks GROUP BY city) x ON x.city=t.city AND x.m=t.ts`).all()).results;
-  const counts = (await db.prepare("SELECT city, COUNT(*) AS n FROM ticks GROUP BY city").all()).results;
-  const b = await bounds(db);
-  return { latest, counts, messages: b.n, since: b.minTs, backfillDone: (await meta(db, "backfill")) === "done", lastRun: +(await meta(db, "lastRun")) || null };
+  const latest = [];
+  for (const c of CITIES) {
+    const r = await db.prepare("SELECT ts, price FROM ticks WHERE city=? ORDER BY ts DESC LIMIT 1").bind(c.key).first();
+    if (r) latest.push({ city: c.key, ts: r.ts, price: r.price });
+  }
+  return { latest, lastRun: +(await meta(db, "lastRun")) || null };
+}
+
+// Short in-memory cache so many viewers don't each re-read the database.
+const memo = new Map();
+async function cached(key, ttl, fn) {
+  const hit = memo.get(key), now = Date.now();
+  if (hit && now - hit.t < ttl) return hit.v;
+  const v = await fn();
+  memo.set(key, { t: now, v });
+  return v;
 }
 
 const json = (d, s = 200) => new Response(JSON.stringify(d), {
@@ -177,8 +210,7 @@ const json = (d, s = 200) => new Response(JSON.stringify(d), {
 export default {
   async scheduled(_ev, env, ctx) {
     ctx.waitUntil((async () => {
-      try { await setMeta(env.DB, "lastTick", Math.floor(Date.now() / 1000)); } catch (e) {}
-      try { await collect(env); await setMeta(env.DB, "lastError", ""); }
+      try { await collect(env); }
       catch (e) { try { await setMeta(env.DB, "lastError", new Date().toISOString() + " " + (e && e.stack || e)); } catch (_) {} }
     })());
   },
@@ -189,10 +221,12 @@ export default {
       const city = url.searchParams.get("city") || "kabul";
       if (!CITIES.some(c => c.key === city)) return json({ error: "unknown city" }, 400);
       const since = +url.searchParams.get("since") || 0;
-      const rows = (await env.DB.prepare("SELECT ts, price, kind FROM ticks WHERE city=? AND ts>=? ORDER BY ts").bind(city, since).all()).results;
-      return json({ city, ticks: rows.map(r => [r.ts, r.price, r.kind === "deal" ? 1 : 0]) });
+      const load = async () => (await env.DB.prepare("SELECT ts, price, kind FROM ticks WHERE city=? AND ts>=? ORDER BY ts").bind(city, since).all())
+        .results.map(r => [r.ts, r.price, r.kind === "deal" ? 1 : 0]);
+      const ticks = since ? await load() : await cached("all:" + city, 60000, load);
+      return json({ city, ticks });
     }
-    if (url.pathname === "/api/summary") return json(await summary(env.DB));
+    if (url.pathname === "/api/summary") return json(await cached("summary", 20000, () => summary(env.DB)));
     if (url.pathname === "/" || url.pathname === "/index.html")
       return new Response(PAGE, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
     return new Response("Not found", { status: 404 });
