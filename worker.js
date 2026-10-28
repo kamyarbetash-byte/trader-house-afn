@@ -255,7 +255,7 @@ async function collectChannel(db, idx) {
   if ((await meta(db, mkey(idx, "backfill"))) !== "done") {
     const stopTs = Math.floor(Date.now() / 1000) - BACKFILL_DAYS * 86400;
     let b = await bounds(db, idx);
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 3; i++) {
       if (b.minId == null || b.minTs < stopTs) { await setMeta(db, mkey(idx, "backfill"), "done"); break; }
       const page = await fetchPage(ch, b.minId);
       if (!page.length || minId(page) >= b.minId) { await setMeta(db, mkey(idx, "backfill"), "done"); break; }
@@ -272,9 +272,11 @@ async function updateSnapshots(db, newTicks) {
   for (const t of newTicks) (byCity[t.city] ||= []).push([t.ts, +t.price.toFixed(3), t.deal]);
   const have = new Set((await db.prepare("SELECT city FROM snap").all()).results.map(r => r.city));
   const cutoff = Math.floor(Date.now() / 1000) - KEEP_DAYS * 86400;
+  let built = 0; // build at most one missing snapshot per run to keep each run light
   for (const c of CITIES) {
     let data;
     if (!have.has(c.key)) {
+      if (built++) continue;
       const rows = (await db.prepare("SELECT ts, price, kind FROM ticks WHERE city=? AND ts>=? ORDER BY ts").bind(c.key, cutoff).all()).results;
       if (!rows.length) continue;
       data = rows.map(r => [r.ts, +r.price.toFixed(3), r.kind === "deal" ? 1 : 0]);
