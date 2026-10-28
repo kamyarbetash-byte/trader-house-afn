@@ -171,7 +171,16 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{chart.applyOptions(theme());candles.applyOptions(colors());ma.applyOptions({color:css('--gold')})})}catch(e){}
   }
 
-  function series(){const t=data[city]||[];return dealsOnly?t.filter(x=>x[2]):t}
+  // Drop single bad prints (typos, other pairs): a tick more than 1.2% away from the median of the last 9 accepted ticks.
+  function clean(t){
+    const out=[],win=[];
+    for(const x of t){
+      if(win.length>=5){const s=[...win].sort((a,b)=>a-b),m=s[s.length>>1];if(Math.abs(x[1]-m)/m>0.012)continue}
+      out.push(x);win.push(x[1]);if(win.length>9)win.shift();
+    }
+    return out;
+  }
+  function series(){const t=clean(data[city]||[]);return dealsOnly?t.filter(x=>x[2]):t}
   function build(){
     const out=[];let last=null,cur=null;
     for(const [t,p] of series()){
@@ -191,7 +200,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     $('empty').hidden=d.length>0;
   }
   function renderStats(){
-    const t=data[city]||[];
+    const t=clean(data[city]||[]);
     const name=(CITIES.find(c=>c[0]===city)||[])[1];
     $('sub').textContent='USD/AFN · '+(city==='kabul'?'سرای شهزاده‌ی کابل':'بازار '+name)+' · وقت کابل';
     if(!t.length){['now','hi','lo','prev','count'].forEach(i=>$(i).textContent='—');$('chg').textContent='—';$('chg').className='chg';return}
@@ -208,8 +217,9 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function renderCities(){
     const nav=$('cities');nav.textContent='';
     const latest={};(summary&&summary.latest||[]).forEach(r=>latest[r.city]=r);
+    for(const k in data){const t=clean(data[k]);if(t.length&&(!latest[k]||latest[k].ts<t[t.length-1][0]))latest[k]={city:k,ts:t[t.length-1][0],price:t[t.length-1][1]}}
     const kab=latest.kabul&&latest.kabul.price;
-    CITIES.filter(([k])=>latest[k]||k==='kabul').forEach(([k,n])=>{
+    CITIES.filter(([k])=>latest[k]||k==='kabul'||!summary).forEach(([k,n])=>{
       const b=document.createElement('button');b.type='button';b.className='city';b.setAttribute('aria-pressed',String(k===city));
       const a=document.createElement('span');a.className='n';a.textContent=n;
       const p=document.createElement('span');p.className='p';p.textContent=latest[k]?en(latest[k].price):'—';
@@ -232,7 +242,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       const have=data[city];const since=have&&have.length?have[have.length-1][0]+1:0;
       const res=await getJSON('/api/ticks?city='+city+'&since='+since);
       data[city]=(have&&since?have:[]).concat(res.ticks);
-      renderStats();renderChart(fit||!have);renderLive();
+      renderStats();renderChart(fit||!have);renderLive();renderCities();
     }catch(e){$('updated').textContent='اتصال برقرار نشد؛ دوباره تلاش می‌شود'}
   }
   async function loadSummary(){try{summary=await getJSON('/api/summary');renderCities();renderLive()}catch(e){}}
