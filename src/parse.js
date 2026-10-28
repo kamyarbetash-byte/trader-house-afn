@@ -37,9 +37,9 @@ function cityOf(t) {
 }
 
 // Returns {city, kind:'quote'|'deal', buy, sell, price} or null.
-export function parsePost(raw) {
+export function parsePost(raw, defaultCity = null) {
   const t = normalize(raw);
-  const city = cityOf(t);
+  const city = cityOf(t) || defaultCity;
   if (!city) return null;
   const segs = t.split(/[\/\n|]+/).map(s => s.trim()).filter(Boolean);
   let nums = [];

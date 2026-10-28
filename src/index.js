@@ -1,112 +1,162 @@
 import { parsePage, parsePost, PARSER_VERSION, CITIES } from "./parse.js";
 import PAGE from "./page.html";
 
-const CHANNEL = "kabul_dollar";
+// Public Telegram channels read every minute. `city` is used when a post names no city.
+// Message ids are stored as idx * 1e9 + id so channels never collide (kabul_dollar keeps its raw ids).
+// To add a source, append it here and push; its history is backfilled automatically.
+const CHANNELS = [
+  { name: "kabul_dollar", city: null },
+  { name: "Mazar_Nerkh", city: "mazar" },
+];
+const SPAN = 1e9;
 const BACKFILL_DAYS = 45;
-const UA = "Mozilla/5.0 (compatible; TraderHouseRates/1.0; +https://t.me/kabul_dollar)";
+const KEEP_DAYS = 120;
+const UA = "Mozilla/5.0 (compatible; TraderHouseRates/1.0)";
 
 const meta = async (db, k) => (await db.prepare("SELECT v FROM meta WHERE k=?").bind(k).first("v")) ?? null;
 const setMeta = (db, k, v) => db.prepare("INSERT OR REPLACE INTO meta(k,v) VALUES(?,?)").bind(k, String(v)).run();
+const mkey = (idx, name) => (idx === 0 ? name : `${name}:${CHANNELS[idx].name}`);
+const chOf = uid => Math.floor(uid / SPAN);
 
-function tickStmt(db, m) {
-  const p = parsePost(m.text);
-  return p ? db.prepare("INSERT OR REPLACE INTO ticks VALUES(?,?,?,?,?,?,?)").bind(m.id, m.ts, p.city, p.kind, p.buy, p.sell, p.price) : null;
+async function ensureSchema(db) {
+  await db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS msgs(id INTEGER PRIMARY KEY, ts INTEGER, text TEXT)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS ticks(id INTEGER PRIMARY KEY, ts INTEGER, city TEXT, kind TEXT, buy REAL, sell REAL, price REAL)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS ticks_city_ts ON ticks(city, ts)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS ticks_ts ON ticks(ts)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS snap(city TEXT PRIMARY KEY, data TEXT)"),
+  ]);
 }
 
-// Store only messages not seen before (keeps daily writes low).
-async function ingest(db, list) {
-  if (!list.length) return 0;
-  const ids = list.map(m => m.id);
-  const seen = new Set((await db.prepare(`SELECT id FROM msgs WHERE id IN (${ids.map(() => "?").join(",")})`).bind(...ids).all()).results.map(r => r.id));
-  const fresh = list.filter(m => !seen.has(m.id));
-  if (!fresh.length) return 0;
-  const stmts = [];
-  for (const m of fresh) {
-    stmts.push(db.prepare("INSERT OR IGNORE INTO msgs VALUES(?,?,?)").bind(m.id, m.ts, m.text));
-    const t = tickStmt(db, m); if (t) stmts.push(t);
+function parseFor(uid, text) {
+  const ch = CHANNELS[chOf(uid)];
+  return parsePost(text, ch ? ch.city : null);
+}
+const tickStmt = (db, uid, ts, p) =>
+  db.prepare("INSERT OR REPLACE INTO ticks VALUES(?,?,?,?,?,?,?)").bind(uid, ts, p.city, p.kind, p.buy, p.sell, p.price);
+
+// Store only messages not seen before. Returns the new ticks so snapshots can be updated in memory.
+async function ingest(db, idx, list) {
+  if (!list.length) return [];
+  const base = idx * SPAN;
+  const uids = list.map(m => base + m.id);
+  const seen = new Set((await db.prepare(`SELECT id FROM msgs WHERE id IN (${uids.map(() => "?").join(",")})`).bind(...uids).all()).results.map(r => r.id));
+  const stmts = [], ticks = [];
+  for (const m of list) {
+    const uid = base + m.id;
+    if (seen.has(uid)) continue;
+    stmts.push(db.prepare("INSERT OR IGNORE INTO msgs VALUES(?,?,?)").bind(uid, m.ts, m.text));
+    const p = parsePost(m.text, CHANNELS[idx].city);
+    if (p) { stmts.push(tickStmt(db, uid, m.ts, p)); ticks.push({ city: p.city, ts: m.ts, price: p.price, deal: p.kind === "deal" ? 1 : 0 }); }
   }
-  await db.batch(stmts);
-  return fresh.length;
+  if (stmts.length) await db.batch(stmts);
+  return ticks;
 }
 
 async function reparseIfNeeded(db) {
   if ((await meta(db, "parser")) === String(PARSER_VERSION)) return;
   const rows = (await db.prepare("SELECT id, ts, text FROM msgs").all()).results;
-  const stmts = [db.prepare("DELETE FROM ticks")];
-  for (const m of rows) { const t = tickStmt(db, m); if (t) stmts.push(t); }
+  const stmts = [db.prepare("DELETE FROM ticks"), db.prepare("DELETE FROM snap")];
+  for (const m of rows) { const p = parseFor(m.id, m.text); if (p) stmts.push(tickStmt(db, m.id, m.ts, p)); }
   for (let i = 0; i < stmts.length; i += 500) await db.batch(stmts.slice(i, i + 500));
   await setMeta(db, "parser", PARSER_VERSION);
 }
 
-// Cheap lookups only: MIN/MAX on the primary key read one row each.
-const bounds = async db => {
-  const r = await db.prepare("SELECT MIN(id) AS minId, MAX(id) AS maxId FROM msgs").first();
-  const minTs = r.minId ? await db.prepare("SELECT ts FROM msgs WHERE id=?").bind(r.minId).first("ts") : null;
-  return { minId: r.minId, maxId: r.maxId, minTs };
-};
+// Primary-key range lookups: one or two row reads.
+async function bounds(db, idx) {
+  const lo = idx * SPAN, hi = lo + SPAN - 1;
+  const r = await db.prepare("SELECT MIN(id) AS minId, MAX(id) AS maxId FROM msgs WHERE id BETWEEN ? AND ?").bind(lo, hi).first();
+  const minTs = r.minId != null ? await db.prepare("SELECT ts FROM msgs WHERE id=?").bind(r.minId).first("ts") : null;
+  return { minId: r.minId != null ? r.minId - lo : null, maxId: r.maxId != null ? r.maxId - lo : null, minTs };
+}
 
-async function fetchPage(before) {
-  const url = `https://t.me/s/${CHANNEL}` + (before ? `?before=${before}` : "");
+async function fetchPage(channel, before) {
+  const url = `https://t.me/s/${channel}` + (before ? `?before=${before}` : "");
   const res = await fetch(url, { headers: { "user-agent": UA, "accept-language": "fa,en;q=0.8" } });
-  if (!res.ok) throw new Error(`telegram ${res.status}`);
-  return parsePage(await res.text(), CHANNEL);
+  if (!res.ok) throw new Error(`telegram ${channel} ${res.status}`);
+  return parsePage(await res.text(), channel);
 }
 const minId = list => Math.min(...list.map(m => m.id));
 const maxId = list => Math.max(...list.map(m => m.id));
 
-async function collect(env) {
-  const db = env.DB;
-  await reparseIfNeeded(db);
+async function collectChannel(db, idx) {
+  const ch = CHANNELS[idx].name, out = [];
+  const cursor = +(await meta(db, mkey(idx, "cursor"))) || (await bounds(db, idx)).maxId || 0;
+  const gapTop = +(await meta(db, mkey(idx, "gapTop"))) || 0;
+  const gapCeil = +(await meta(db, mkey(idx, "gapCeil"))) || 0;
 
-  // cursor: every post up to this id has been read. gapTop/gapCeil: an unfinished catch-up.
-  let cursor = +(await meta(db, "cursor")) || (await bounds(db)).maxId || 0;
-  let gapTop = +(await meta(db, "gapTop")) || 0;
-  let gapCeil = +(await meta(db, "gapCeil")) || 0;
-
-  const latest = await fetchPage();
-  if (!latest.length) return;
-  await ingest(db, latest);
+  const latest = await fetchPage(ch);
+  if (!latest.length) return out;
+  out.push(...await ingest(db, idx, latest));
   const top = Math.max(maxId(latest), gapCeil);
 
+  // Catch up on anything posted since the last successful run, across runs if needed.
   let low = gapTop || minId(latest), closed = !cursor || low - 1 <= cursor;
-  for (let i = 0; i < 10 && !closed; i++) {
-    const page = await fetchPage(low);
+  for (let i = 0; i < 8 && !closed; i++) {
+    const page = await fetchPage(ch, low);
     if (!page.length || minId(page) >= low) { closed = true; break; }
-    await ingest(db, page);
+    out.push(...await ingest(db, idx, page));
     low = minId(page);
     closed = low - 1 <= cursor;
   }
   if (closed) {
-    if (cursor !== top) await setMeta(db, "cursor", top);
-    if (gapTop) { await setMeta(db, "gapTop", 0); await setMeta(db, "gapCeil", 0); }
+    if (cursor !== top) await setMeta(db, mkey(idx, "cursor"), top);
+    if (gapTop) { await setMeta(db, mkey(idx, "gapTop"), 0); await setMeta(db, mkey(idx, "gapCeil"), 0); }
   } else {
-    await setMeta(db, "gapTop", low);
-    if (!gapCeil) await setMeta(db, "gapCeil", top);
+    await setMeta(db, mkey(idx, "gapTop"), low);
+    if (!gapCeil) await setMeta(db, mkey(idx, "gapCeil"), top);
   }
 
-  // One-time history walk (already finished on the live site).
-  if ((await meta(db, "backfill")) !== "done") {
+  // One-time history walk for a newly added channel.
+  if ((await meta(db, mkey(idx, "backfill"))) !== "done") {
     const stopTs = Math.floor(Date.now() / 1000) - BACKFILL_DAYS * 86400;
-    let b = await bounds(db);
-    for (let i = 0; i < 10; i++) {
-      if (!b.minId || b.minTs < stopTs) { await setMeta(db, "backfill", "done"); break; }
-      const page = await fetchPage(b.minId);
-      if (!page.length || minId(page) >= b.minId) { await setMeta(db, "backfill", "done"); break; }
-      await ingest(db, page);
-      b = await bounds(db);
+    let b = await bounds(db, idx);
+    for (let i = 0; i < 6; i++) {
+      if (b.minId == null || b.minTs < stopTs) { await setMeta(db, mkey(idx, "backfill"), "done"); break; }
+      const page = await fetchPage(ch, b.minId);
+      if (!page.length || minId(page) >= b.minId) { await setMeta(db, mkey(idx, "backfill"), "done"); break; }
+      out.push(...await ingest(db, idx, page));
+      b = await bounds(db, idx);
     }
   }
-  await setMeta(db, "lastRun", Math.floor(Date.now() / 1000));
+  return out;
 }
 
-// Latest price per city: one indexed row per city.
-async function summary(db) {
-  const latest = [];
+// One row per city holding its recent history, so a page load costs one row read per city.
+async function updateSnapshots(db, newTicks) {
+  const byCity = {};
+  for (const t of newTicks) (byCity[t.city] ||= []).push([t.ts, +t.price.toFixed(3), t.deal]);
+  const have = new Set((await db.prepare("SELECT city FROM snap").all()).results.map(r => r.city));
+  const cutoff = Math.floor(Date.now() / 1000) - KEEP_DAYS * 86400;
   for (const c of CITIES) {
-    const r = await db.prepare("SELECT ts, price FROM ticks WHERE city=? ORDER BY ts DESC LIMIT 1").bind(c.key).first();
-    if (r) latest.push({ city: c.key, ts: r.ts, price: r.price });
+    let data;
+    if (!have.has(c.key)) {
+      const rows = (await db.prepare("SELECT ts, price, kind FROM ticks WHERE city=? AND ts>=? ORDER BY ts").bind(c.key, cutoff).all()).results;
+      if (!rows.length) continue;
+      data = rows.map(r => [r.ts, +r.price.toFixed(3), r.kind === "deal" ? 1 : 0]);
+    } else if (byCity[c.key]) {
+      data = JSON.parse(await db.prepare("SELECT data FROM snap WHERE city=?").bind(c.key).first("data"));
+      data.push(...byCity[c.key]);
+      data.sort((a, b) => a[0] - b[0]);
+      data = data.filter(t => t[0] >= cutoff);
+    } else continue;
+    await db.prepare("INSERT OR REPLACE INTO snap(city, data) VALUES(?,?)").bind(c.key, JSON.stringify(data)).run();
   }
-  return { latest, lastRun: +(await meta(db, "lastRun")) || null };
+}
+
+async function collect(env) {
+  const db = env.DB;
+  await ensureSchema(db);
+  await reparseIfNeeded(db);
+  const all = [], errors = [];
+  for (let i = 0; i < CHANNELS.length; i++) {
+    try { all.push(...await collectChannel(db, i)); }
+    catch (e) { errors.push(`${CHANNELS[i].name}: ${e && e.message || e}`); }
+  }
+  await updateSnapshots(db, all);
+  await setMeta(db, "lastRun", Math.floor(Date.now() / 1000));
+  if (errors.length) await setMeta(db, "lastError", new Date().toISOString() + " " + errors.join(" | "));
 }
 
 // Short in-memory cache so many viewers don't each re-read the database.
@@ -116,11 +166,19 @@ async function cached(key, ttl, fn) {
   if (hit && now - hit.t < ttl) return hit.v;
   const v = await fn();
   memo.set(key, { t: now, v });
+  if (memo.size > 200) memo.delete(memo.keys().next().value);
   return v;
 }
 
-const json = (d, s = 200) => new Response(JSON.stringify(d), {
-  status: s, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=15", "access-control-allow-origin": "*" },
+async function history(db) {
+  const rows = (await db.prepare("SELECT city, data FROM snap").all()).results;
+  const series = {};
+  for (const r of rows) series[r.city] = JSON.parse(r.data);
+  return { series, lastRun: +(await meta(db, "lastRun")) || null };
+}
+
+const json = (d, maxAge = 15) => new Response(JSON.stringify(d), {
+  headers: { "content-type": "application/json; charset=utf-8", "cache-control": `public, max-age=${maxAge}`, "access-control-allow-origin": "*" },
 });
 
 export default {
@@ -133,18 +191,24 @@ export default {
 
   async fetch(req, env) {
     const url = new URL(req.url);
-    if (url.pathname === "/api/ticks") {
-      const city = url.searchParams.get("city") || "kabul";
-      if (!CITIES.some(c => c.key === city)) return json({ error: "unknown city" }, 400);
-      const since = +url.searchParams.get("since") || 0;
-      const load = async () => (await env.DB.prepare("SELECT ts, price, kind FROM ticks WHERE city=? AND ts>=? ORDER BY ts").bind(city, since).all())
-        .results.map(r => [r.ts, r.price, r.kind === "deal" ? 1 : 0]);
-      const ticks = since ? await load() : await cached("all:" + city, 60000, load);
-      return json({ city, ticks });
+    const db = env.DB;
+    try {
+      if (url.pathname === "/api/history") return json(await cached("history", 30000, () => history(db)), 30);
+      if (url.pathname === "/api/updates") {
+        // Recent ticks for all cities. `since` is rounded to the minute so viewers share cache entries.
+        const now = Math.floor(Date.now() / 1000);
+        const s = Math.max(Math.floor((+url.searchParams.get("since") || 0) / 60) * 60, now - 3 * 86400);
+        const ticks = await cached("upd:" + s, 15000, async () =>
+          (await db.prepare("SELECT city, ts, price, kind FROM ticks WHERE ts>? ORDER BY ts LIMIT 2000").bind(s).all())
+            .results.map(x => [x.city, x.ts, +x.price.toFixed(3), x.kind === "deal" ? 1 : 0]));
+        const lastRun = await cached("lastRun", 15000, async () => +(await meta(db, "lastRun")) || null);
+        return json({ ticks, lastRun });
+      }
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "unavailable" }), { status: 503, headers: { "content-type": "application/json" } });
     }
-    if (url.pathname === "/api/summary") return json(await cached("summary", 20000, () => summary(env.DB)));
     if (url.pathname === "/" || url.pathname === "/index.html")
-      return new Response(PAGE, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
+      return new Response(PAGE, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=120" } });
     return new Response("Not found", { status: 404 });
   },
 };
