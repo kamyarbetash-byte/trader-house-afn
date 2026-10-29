@@ -33,7 +33,9 @@ const FEEDS = [
 ];
 // General outlet feeds must name the topic in the headline; targeted searches may match in the summary.
 const NEWS_RE = /(Da Afghanistan Bank|\bDAB\b|central bank|\bafghanis?\b|\bAFN\b|auction|exchange rate|money ?changer|Sarai Shahzada|forex|د افغانستان بانک|افغانستان بانک|بانک مرکزی|لیلام|مزایده|افغانی|نرخ ارز|نرخ دالر|نرخ اسعار|اسعار|صرافی|صرافان|سرای شهزاده|ارزش پول)/i;
-const TG_NEWS_RE = /(لیلام|ليلام|مزایده|بولی|بانک|بانك)/;
+// Auction / central-bank posts in rate channels (e.g. «15ملیون سودا بانک به فردا اعلام شد»); ads are skipped.
+const TG_NEWS_RE = /(لیلام|ليلام|مزایده|سودا\s*بانک|سودای\s*بانک|بانک مرکزی|افغانستان بانک)/;
+const TG_AD_RE = /(تبلیغ|آموزش|ثبت نام|ثبت‌نام|تماس بگیرید|واتساپ|whatsapp|پاسپورت|جواز|رایگان|کورس)/i;
 const NEWS_MAX = 40;
 
 const unxml = s => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "")
@@ -131,7 +133,7 @@ async function ingest(db, idx, list) {
     const { quotes, summary } = parseAll(m.text, CHANNELS[idx].city);
     quotes.forEach((p, k) => { stmts.push(tickStmt(db, subId(uid, k), m.ts, p)); ticks.push({ city: p.city, ts: m.ts, price: p.price, deal: p.kind === "deal" ? 1 : 0 }); });
     if (summary && quotes.length >= 3 && (!boli || m.ts > boli.ts)) boli = { ts: m.ts, link: `https://t.me/${CHANNELS[idx].name}/${m.id}`, quotes };
-    if (!quotes.length && m.text.length > 25 && TG_NEWS_RE.test(m.text) && m.ts > Date.now() / 1000 - 30 * 86400)
+    if (!quotes.length && m.text.length > 25 && m.text.length < 600 && TG_NEWS_RE.test(m.text) && !TG_AD_RE.test(m.text) && m.ts > Date.now() / 1000 - 30 * 86400)
       news.push({ ts: m.ts, src: "@" + CHANNELS[idx].name, title: m.text.replace(/\s+/g, " ").slice(0, 220), link: `https://t.me/${CHANNELS[idx].name}/${m.id}` });
   }
   if (stmts.length) await db.batch(stmts);

@@ -654,15 +654,15 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     $('dAsk').textContent=m?en(m+SPREAD/2):'—';$('dBid').textContent=m?en(m-SPREAD/2):'—';
     const eq=acct.cash+(m?acct.usd*m:acct.cost);
     const pnl=eq-START;
-    $('dEq').textContent=fmtA(eq)+' ؋';
-    const p=$('dPnl');p.textContent=(pnl>=0?'+':'')+fmtA(pnl)+' ؋ ('+(pnl>=0?'+':'')+(pnl/START*100).toFixed(2)+'%)';p.className=cls(pnl);
+    $('dEq').textContent=fmtA(eq)+' AFN';
+    const p=$('dPnl');p.textContent=(pnl>=0?'+':'')+fmtA(pnl)+' AFN ('+(pnl>=0?'+':'')+(pnl/START*100).toFixed(2)+'%)';p.className=cls(pnl);
     const avg=acct.usd?acct.cost/acct.usd:0;
     $('dPos').textContent=acct.usd?((acct.usd>0?'+':'')+fmtA(acct.usd)+'$ @ '+en(avg)):'0';
-    $('dCash').textContent=fmtA(acct.cash)+' ؋';
+    $('dCash').textContent=fmtA(acct.cash)+' AFN';
     const ul=$('dHist');ul.textContent='';
     acct.trades.slice().reverse().slice(0,30).forEach(t=>{const li=document.createElement('li');
       const a=document.createElement('span');a.className='side '+(t.side==='buy'?'up':'down');a.textContent=(t.side==='buy'?'خرید ':'فروش ')+fmtA(t.qty)+'$';
-      const b=document.createElement('span');b.className='m';b.textContent='@ '+en(t.price)+(t.pnl!=null&&t.pnl!==0?'  '+(t.pnl>=0?'+':'')+fmtA(t.pnl)+' ؋':'');if(t.pnl)b.classList.add(cls(t.pnl));
+      const b=document.createElement('span');b.className='m';b.textContent='@ '+en(t.price)+(t.pnl!=null&&t.pnl!==0?'  '+(t.pnl>=0?'+':'')+fmtA(t.pnl)+' AFN':'');if(t.pnl)b.classList.add(cls(t.pnl));
       const c=document.createElement('span');c.className='ntime';c.textContent=(NAMES[t.key]||'')+' · '+dfmt.format(new Date(t.ts*1000));
       li.append(a,b,c);ul.appendChild(li)});
     renderMarkers();
@@ -695,7 +695,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     if(acct.trades.length>200)acct.trades=acct.trades.slice(-200);
     store.set('th-demo',acct);
     const stale=Date.now()/1000-lastTs()>3*3600;
-    msg.textContent=(side==='buy'?'خرید ':'فروش ')+fmtA(qty)+' دالر با نرخ '+en(price)+' انجام شد'+(realized?(' · سود/زیان: '+(realized>=0?'+':'')+fmtA(realized)+' ؋'):'')+(stale?' · توجه: بازار الان بسته است و آخرین نرخ قدیمی است.':'');
+    msg.textContent=(side==='buy'?'خرید ':'فروش ')+fmtA(qty)+' دالر با نرخ '+en(price)+' انجام شد'+(realized?(' · سود/زیان: '+(realized>=0?'+':'')+fmtA(realized)+' AFN'):'')+(stale?' · توجه: بازار الان بسته است و آخرین نرخ قدیمی است.':'');
     msg.className='dmsg '+(stale?'warn':'ok');
     renderDemo();
   }
