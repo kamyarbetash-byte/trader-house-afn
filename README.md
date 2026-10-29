@@ -7,7 +7,8 @@ Live candlestick chart of the dollar-to-afghani open-market rate by province (Ka
 - **News:** Bing News searches and Afghan outlet feeds (Amu TV, Ariana News, KabulNow, Hasht-e Subh), filtered for Da Afghanistan Bank / afghani topics and checked every 30 min (Google News blocks Workers; DAB and Pajhwok publish no feeds) plus Telegram posts that mention an auction (لیلام), bid (بولی) or the central bank.
 - **Endpoints:** `/` chart page · `/api/history` all city series · `/api/updates?since=<unix>` recent ticks · `/api/news` latest news.
 - **بازار بولی board:** closing buy/sell of every market from the latest all-markets summary post.
-- **Demo trading:** a per-viewer practice account (1,000,000 AFN) that buys/sells USD at the live price, with P&L and trade markers on the chart.
+- **Demo trading inside the chart:** a compact SELL / amount / BUY bar on the chart (per-viewer practice account, 1,000,000 AFN); the open position is a price line whose label shows live P&L, with trade markers on the candles.
+- **Saraf calculator:** USD ⇄ AFN at the live buy/mid/sell rate (or a typed rate), with the result written out in Dari words.
 - **Page tools:** timeframes 5m–1D, MA20/MA50, Bollinger, RSI, deals-only; trend line, ray, horizontal/vertical line, rectangle, Fibonacci, measure (saved per viewer in the browser).
 
 Deploys automatically to Cloudflare on every push to `main` (Workers Builds).

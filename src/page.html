@@ -131,29 +131,34 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .btable .num{font-family:var(--f-mono);font-weight:700;direction:ltr;text-align:right}
 .btable .mk small{display:block;font-size:11.5px;color:var(--muted)}
 .bwrap{overflow-x:auto}
-/* Demo trading */
-.demo{border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));border-radius:14px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
-.acct{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.acct div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
-.acct dt{font-size:12px;color:var(--muted)}
-.acct dd{margin:0;font-family:var(--f-mono);font-weight:700;font-size:16px;direction:ltr;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.order{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
-.order label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
-.order input{font:700 18px var(--f-mono);direction:ltr;width:150px;max-width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
-.order .quick{display:flex;gap:6px;flex-wrap:wrap}
-.order .quick button{font:500 12.5px var(--f-mono);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 9px;cursor:pointer}
-.bbuy,.bsell{font:700 15px var(--f-body);border:0;border-radius:10px;padding:10px 20px;cursor:pointer;color:#fff;min-width:120px}
-.bbuy{background:var(--up)} .bsell{background:var(--down)}
-.bbuy small,.bsell small{display:block;font:500 12px var(--f-mono);opacity:.9}
-.dmsg{font-size:13px;min-height:1.3em;margin:0}
-.dmsg.err{color:var(--down)} .dmsg.ok{color:var(--up)} .dmsg.warn{color:var(--gold)}
-.hist{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto;border-top:1px solid var(--line)}
-.hist li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
-.hist .side{font-weight:700}
-.hist .m{font-family:var(--f-mono);direction:ltr}
-.dfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted)}
-.dfoot button{font:500 13px var(--f-body);background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer}
-@media (max-width:640px){.acct{grid-template-columns:repeat(2,minmax(0,1fr))}.bbuy,.bsell{flex:1}}
+/* In-chart trading bar */
+.tbar{position:absolute;top:8px;left:8px;z-index:9;display:flex;align-items:stretch;gap:0;direction:ltr;border-radius:9px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.25);font-family:var(--f-mono)}
+.tbar button{border:0;cursor:pointer;color:#fff;font:700 12.5px var(--f-mono);padding:4px 10px;line-height:1.15;text-align:left;min-width:64px}
+.tbar button small{display:block;font-weight:500;font-size:10.5px;opacity:.9}
+.tbar .ts{background:var(--down)} .tbar .tb{background:var(--up)}
+.tbar input{width:62px;border:0;background:var(--surface);color:var(--ink);font:700 13px var(--f-mono);text-align:center;padding:0 4px;border-inline:1px solid var(--line)}
+.tbar input:focus{outline:2px solid var(--gold);outline-offset:-2px}
+.tpos{position:absolute;top:50px;left:8px;z-index:9;direction:ltr;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px 4px 3px 9px;font:600 12px var(--f-mono);box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.tpos button{font:600 11.5px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:7px;padding:2px 8px;cursor:pointer}
+.tpos .bal{color:var(--muted);font-weight:500}
+.ttoast{direction:rtl;unicode-bidi:plaintext;position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:9;background:var(--ink);color:var(--bg);font-size:12.5px;padding:5px 12px;border-radius:999px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.legend{top:50px!important}
+.tpos:not([hidden])~.legend{top:86px!important}
+/* Saraf calculator */
+.calc{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:12px 16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px 18px;align-items:center}
+.calc h2{grid-column:1/-1;margin:0;font-family:var(--f-display);font-weight:400;font-size:21px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.calc h2 small{font-family:var(--f-body);font-size:12.5px;color:var(--muted)}
+.cin{display:flex;flex-direction:column;gap:8px;min-width:0}
+.crow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.crow label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px}
+.crow input{font:700 18px var(--f-mono);direction:ltr;width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.crow input:focus{outline:2px solid var(--gold);outline-offset:0}
+.cout{background:var(--gold-soft);border-radius:12px;padding:10px 14px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.cout .big{font:700 clamp(22px,4.5vw,30px) var(--f-mono);direction:ltr;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cout .words{font-size:14.5px;line-height:1.7;color:var(--ink);overflow-wrap:anywhere}
+.cout .meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.cout button{font:500 12px var(--f-body);border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));background:var(--surface);color:var(--ink);border-radius:8px;padding:3px 10px;cursor:pointer}
+@media (max-width:720px){.calc{grid-template-columns:1fr}.tbar button{min-width:54px;padding:3px 7px}.tbar input{width:52px}}
 /* News */
 .news{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .news h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -264,31 +269,43 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     <div style="position:relative">
       <div id="chart"></div>
       <canvas id="ov"></canvas>
+      <div class="tbar" id="tbar" role="group" aria-label="معامله‌ی دیمو">
+        <button type="button" class="ts" id="tSell" title="فروش دالر (دیمو)">SELL<small id="tBid">—</small></button>
+        <input id="tQty" inputmode="decimal" autocomplete="off" value="1000" aria-label="مقدار به دالر" title="مقدار به دالر">
+        <button type="button" class="tb" id="tBuy" title="خرید دالر (دیمو)">BUY<small id="tAsk">—</small></button>
+      </div>
+      <div class="tpos" id="tpos" hidden><span id="tPosTxt"></span><span class="bal" id="tBal"></span><button type="button" id="tClose">بستن</button><button type="button" id="tReset" title="شروع دوباره‌ی حساب دیمو">↺</button></div>
       <div class="legend" id="legend"></div>
       <div class="hint" id="hint" hidden></div>
+      <div class="ttoast" id="tToast" hidden></div>
       <div class="watermark">RAAHBAR · USD/AFN</div>
     </div>
     <div id="rsiBox" hidden><span class="paneTag">RSI 14</span><div id="rsi"></div></div>
     <div class="empty" id="empty"><strong>در حال بارگذاری نرخ‌ها</strong><span id="emptyMsg">چند لحظه صبر کنید.</span></div>
   </div>
 
-  <section class="demo" id="demo" aria-labelledby="demoH">
-    <h2 id="demoH">معامله‌ی دیمو <small>حساب تمرینی با ۱٬۰۰۰٬۰۰۰ افغانی؛ پول واقعی در کار نیست</small></h2>
-    <dl class="acct">
-      <div><dt>ارزش کل حساب</dt><dd id="dEq">—</dd></div>
-      <div><dt>سود / زیان</dt><dd id="dPnl">—</dd></div>
-      <div><dt>پوزیشن دالر</dt><dd id="dPos">—</dd></div>
-      <div><dt>افغانی نقد</dt><dd id="dCash">—</dd></div>
-    </dl>
-    <form class="order" id="dForm" novalidate>
-      <label for="dAmt">مقدار (دالر)<input id="dAmt" inputmode="decimal" autocomplete="off" value="1000"></label>
-      <div class="quick" id="dQuick"><button type="button" data-v="100">100$</button><button type="button" data-v="1000">1K$</button><button type="button" data-v="5000">5K$</button><button type="button" data-v="close">بستن پوزیشن</button></div>
-      <button type="button" class="bbuy" id="dBuy">خرید دالر<small id="dAsk">—</small></button>
-      <button type="button" class="bsell" id="dSell">فروش دالر<small id="dBid">—</small></button>
-    </form>
-    <p class="dmsg" id="dMsg" role="status"></p>
-    <ul class="hist" id="dHist"></ul>
-    <div class="dfoot"><span id="dNote">معامله با آخرین نرخ چارتِ انتخاب‌شده انجام می‌شود (۰.۰۱ افغانی فاصله‌ی خرید و فروش). حساب در همین مرورگر ذخیره می‌شود.</span><button type="button" id="dReset">شروع دوباره</button></div>
+  <section class="calc" aria-labelledby="calcH">
+    <h2 id="calcH">ماشین حساب صرافی <small>تبدیل دالر و افغانی با نرخ زنده، همراه مبلغ به حروف</small></h2>
+    <div class="cin">
+      <div class="seg" role="group" aria-label="نوع تبدیل" id="cDir">
+        <button type="button" data-d="u2a" aria-pressed="true">دالر ← افغانی</button>
+        <button type="button" data-d="a2u">افغانی ← دالر</button>
+      </div>
+      <div class="crow">
+        <label for="cAmt"><span id="cAmtL">مبلغ (دالر)</span><input id="cAmt" inputmode="decimal" autocomplete="off" value="1000"></label>
+        <label for="cRate">نرخ<input id="cRate" inputmode="decimal" autocomplete="off"></label>
+      </div>
+      <div class="seg" role="group" aria-label="نرخ" id="cSide">
+        <button type="button" data-s="buy">نرخ خرید</button>
+        <button type="button" data-s="mid" aria-pressed="true">نرخ میانه</button>
+        <button type="button" data-s="sell">نرخ فروش</button>
+      </div>
+    </div>
+    <div class="cout" aria-live="polite">
+      <div class="big" id="cOut">—</div>
+      <div class="words" id="cWords">—</div>
+      <div class="meta"><span id="cMeta">—</span><button type="button" id="cCopy">کاپی</button></div>
+    </div>
   </section>
 
   <section class="news" aria-labelledby="newsH">
@@ -629,7 +646,8 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
 
   /* ---------- boli board ---------- */
   const MARKET={kabul:['کابل','سرای شهزاده'],mazar:['مزارشریف','کفایت مارکیت'],herat:['هرات','خراسان مارکیت'],kandahar:['قندهار','اخیر بازار'],jalalabad:['جلال‌آباد','اخیر بازار'],ghazni:['غزنی','اخیر بازار'],khost:['خوست','اخیر بازار']};
-  function renderBoli(b){
+  let lastBoli=null;
+  function renderBoli(b){lastBoli=b;try{renderCalc()}catch(e){}
     const box=$('boli');if(!b||!b.rows||!b.rows.length){box.hidden=true;return}
     box.hidden=false;const kab=b.rows.find(r=>r.city==='kabul');const body=$('boliBody');body.textContent='';
     $('boliSub').textContent='نرخ پایانی همه‌ی بولی‌ها · '+dfmt.format(new Date(b.ts*1000));
@@ -642,73 +660,104 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       tr.append(td0,td1,td2,td3);body.appendChild(tr)}
   }
 
-  /* ---------- demo trading ---------- */
+  /* ---------- demo trading (inside the chart) ---------- */
   const START=1000000, SPREAD=0.01;
   let acct=store.get('th-demo',null);
-  if(!acct||typeof acct.cash!=='number')acct={cash:START,usd:0,cost:0,trades:[]};
+  if(!acct||typeof acct.cash!=='number')acct={cash:START,usd:0,cost:0,key:null,trades:[]};
   const fmtA=n=>Math.round(n).toLocaleString('en-US');
-  function mid(){const t=series[sel]||[];return t.length?t[t.length-1][1]:null}
-  function lastTs(){const t=series[sel]||[];return t.length?t[t.length-1][0]:0}
+  function mid(k){const t=series[k||sel]||[];return t.length?t[t.length-1][1]:null}
+  function lastTs(k){const t=series[k||sel]||[];return t.length?t[t.length-1][0]:0}
+  let posLine=null,toastT=0;
+  function toast(msg){const t=$('tToast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,4000)}
   function renderDemo(){
     const m=mid();
-    $('dAsk').textContent=m?en(m+SPREAD/2):'—';$('dBid').textContent=m?en(m-SPREAD/2):'—';
-    const eq=acct.cash+(m?acct.usd*m:acct.cost);
-    const pnl=eq-START;
-    $('dEq').textContent=fmtA(eq)+' AFN';
-    const p=$('dPnl');p.textContent=(pnl>=0?'+':'')+fmtA(pnl)+' AFN ('+(pnl>=0?'+':'')+(pnl/START*100).toFixed(2)+'%)';p.className=cls(pnl);
-    const avg=acct.usd?acct.cost/acct.usd:0;
-    $('dPos').textContent=acct.usd?((acct.usd>0?'+':'')+fmtA(acct.usd)+'$ @ '+en(avg)):'0';
-    $('dCash').textContent=fmtA(acct.cash)+' AFN';
-    const ul=$('dHist');ul.textContent='';
-    acct.trades.slice().reverse().slice(0,30).forEach(t=>{const li=document.createElement('li');
-      const a=document.createElement('span');a.className='side '+(t.side==='buy'?'up':'down');a.textContent=(t.side==='buy'?'خرید ':'فروش ')+fmtA(t.qty)+'$';
-      const b=document.createElement('span');b.className='m';b.textContent='@ '+en(t.price)+(t.pnl!=null&&t.pnl!==0?'  '+(t.pnl>=0?'+':'')+fmtA(t.pnl)+' AFN':'');if(t.pnl)b.classList.add(cls(t.pnl));
-      const c=document.createElement('span');c.className='ntime';c.textContent=(NAMES[t.key]||'')+' · '+dfmt.format(new Date(t.ts*1000));
-      li.append(a,b,c);ul.appendChild(li)});
-    renderMarkers();
+    $('tBid').textContent=m?en(m-SPREAD/2):'—';$('tAsk').textContent=m?en(m+SPREAD/2):'—';
+    // the open position is valued on the market it was opened on
+    const pk=acct.key||sel,pm=mid(pk);
+    const box=$('tpos');
+    if(posLine&&candles){try{candles.removePriceLine(posLine)}catch(e){}posLine=null}
+    if(!acct.usd){box.hidden=true;renderMarkers();renderCalc();return}
+    const avg=acct.cost/acct.usd,pnl=pm?(pm-avg)*acct.usd:0,long=acct.usd>0;
+    const eq=acct.cash+(pm?acct.usd*pm:acct.cost);
+    box.hidden=false;
+    const t=$('tPosTxt');t.textContent=(long?'BUY ':'SELL ')+fmtA(Math.abs(acct.usd))+'$ @'+en(avg)+'  '+(pnl>=0?'+':'')+fmtA(pnl)+' AFN';t.className=cls(pnl);
+    $('tBal').textContent='Σ '+fmtA(eq);
+    if(candles&&pk===sel)posLine=candles.createPriceLine({price:avg,color:pnl>=0?css('--up'):css('--down'),lineWidth:1,lineStyle:2,axisLabelVisible:true,
+      title:(long?'B ':'S ')+fmtA(Math.abs(acct.usd))+'$ '+(pnl>=0?'+':'')+fmtA(pnl)});
+    renderMarkers();renderCalc();
   }
   function renderMarkers(){
     if(!candles)return;
-    const ms=acct.trades.filter(t=>t.key===sel).map(t=>{const b=Math.floor((t.ts+KABUL)/tf)*tf;
-      return{time:b,position:t.side==='buy'?'belowBar':'aboveBar',color:t.side==='buy'?css('--up'):css('--down'),shape:t.side==='buy'?'arrowUp':'arrowDown',text:(t.side==='buy'?'B ':'S ')+fmtA(t.qty)}});
     const have=new Set(bars.map(b=>b.time));
-    try{candles.setMarkers(ms.filter(m=>have.has(m.time)).sort((a,b)=>a.time-b.time))}catch(e){}
+    const ms=acct.trades.filter(t=>t.key===sel).map(t=>{const b=Math.floor((t.ts+KABUL)/tf)*tf;
+      return{time:b,position:t.side==='buy'?'belowBar':'aboveBar',color:t.side==='buy'?css('--up'):css('--down'),shape:t.side==='buy'?'arrowUp':'arrowDown',text:(t.side==='buy'?'B ':'S ')+fmtA(t.qty)}}).filter(m=>have.has(m.time));
+    try{candles.setMarkers(ms.sort((a,b)=>a.time-b.time))}catch(e){}
   }
   function trade(side,qty){
-    const m=mid(),msg=$('dMsg');
-    if(!m){msg.textContent='برای این بازار هنوز نرخی نیست.';msg.className='dmsg err';return}
-    if(!(qty>0)){msg.textContent='مقدار را به دالر وارد کنید، مثلاً 1000';msg.className='dmsg err';return}
-    const price=side==='buy'?m+SPREAD/2:m-SPREAD/2, signed=side==='buy'?qty:-qty;
-    let realized=0;
-    // closing part of an opposite position realizes profit at the average cost
-    if(acct.usd&&Math.sign(acct.usd)!==Math.sign(signed)){
+    if(acct.usd&&acct.key&&acct.key!==sel){toast('پوزیشن باز شما روی «'+NAMES[acct.key]+'» است؛ اول آن را ببندید.');return}
+    const m=mid();
+    if(!m){toast('برای این بازار هنوز نرخی نیست.');return}
+    if(!(qty>0)){toast('مقدار را به دالر بنویسید، مثلاً 1000');return}
+    const price=side==='buy'?m+SPREAD/2:m-SPREAD/2,dir=side==='buy'?1:-1;
+    const snap=JSON.stringify(acct);let realized=0;
+    if(acct.usd&&Math.sign(acct.usd)!==dir){
       const closeQty=Math.min(Math.abs(acct.usd),qty),avg=acct.cost/acct.usd;
       realized=(price-avg)*closeQty*Math.sign(acct.usd);
-      acct.cost-=avg*closeQty*Math.sign(acct.usd);acct.usd+=Math.sign(signed)*closeQty;
-      const rest=qty-closeQty;if(rest>0){acct.usd+=Math.sign(signed)*rest;acct.cost+=price*rest*Math.sign(signed)}
-    }else{acct.usd+=signed;acct.cost+=price*signed}
+      acct.cost-=avg*closeQty*Math.sign(acct.usd);acct.usd+=dir*closeQty;
+      const rest=qty-closeQty;if(rest>0){acct.usd+=dir*rest;acct.cost+=price*rest*dir}
+    }else{acct.usd+=dir*qty;acct.cost+=price*qty*dir}
     if(Math.abs(acct.usd)<1e-9){acct.usd=0;acct.cost=0}
-    acct.cash-=price*signed;
-    const eq=acct.cash+acct.usd*m;
-    if(eq<0){msg.textContent='موجودی کافی نیست.';msg.className='dmsg err';acct=store.get('th-demo',acct);return}
+    acct.cash-=price*qty*dir;
+    if(acct.cash+acct.usd*m<0||Math.abs(acct.usd*m)>(acct.cash+acct.usd*m)*20){acct=JSON.parse(snap);toast('موجودی حساب دیمو کافی نیست.');return}
+    acct.key=acct.usd?sel:null;
     acct.trades.push({side,qty,price:+price.toFixed(3),ts:Math.floor(Date.now()/1000),key:sel,pnl:realized?Math.round(realized):null});
     if(acct.trades.length>200)acct.trades=acct.trades.slice(-200);
     store.set('th-demo',acct);
     const stale=Date.now()/1000-lastTs()>3*3600;
-    msg.textContent=(side==='buy'?'خرید ':'فروش ')+fmtA(qty)+' دالر با نرخ '+en(price)+' انجام شد'+(realized?(' · سود/زیان: '+(realized>=0?'+':'')+fmtA(realized)+' AFN'):'')+(stale?' · توجه: بازار الان بسته است و آخرین نرخ قدیمی است.':'');
-    msg.className='dmsg '+(stale?'warn':'ok');
+    const L=x=>'\u2066'+x+'\u2069';
+    toast((side==='buy'?'خرید ':'فروش ')+L(fmtA(qty)+'$ @ '+en(price))+(realized?' · سود/زیان '+L((realized>=0?'+':'')+fmtA(realized)+' AFN'):'')+(stale?' · بازار بسته است':''));
     renderDemo();
   }
-  const amt=()=>parseFloat(String($('dAmt').value).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[,٬]/g,''));
-  $('dBuy').addEventListener('click',()=>trade('buy',amt()));
-  $('dSell').addEventListener('click',()=>trade('sell',amt()));
-  $('dForm').addEventListener('submit',e=>e.preventDefault());
-  $('dQuick').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-    if(b.dataset.v==='close'){if(!acct.usd){$('dMsg').textContent='پوزیشن بازی ندارید.';$('dMsg').className='dmsg warn';return}trade(acct.usd>0?'sell':'buy',Math.abs(acct.usd));return}
-    $('dAmt').value=b.dataset.v});
+  const num=v=>parseFloat(String(v).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/٫/g,'.').replace(/[,٬\s]/g,''));
+  $('tBuy').addEventListener('click',()=>trade('buy',num($('tQty').value)));
+  $('tSell').addEventListener('click',()=>trade('sell',num($('tQty').value)));
+  $('tClose').addEventListener('click',()=>{if(!acct.usd)return;const k=acct.key;if(k&&k!==sel)select(k);trade(acct.usd>0?'sell':'buy',Math.abs(acct.usd))});
   let resetArmed=false;
-  $('dReset').addEventListener('click',e=>{if(!resetArmed){resetArmed=true;e.currentTarget.textContent='مطمئن؟ دوباره بزنید';setTimeout(()=>{resetArmed=false;$('dReset').textContent='شروع دوباره'},3000);return}
-    resetArmed=false;$('dReset').textContent='شروع دوباره';acct={cash:START,usd:0,cost:0,trades:[]};store.set('th-demo',acct);$('dMsg').textContent='حساب دیمو از نو شروع شد.';$('dMsg').className='dmsg ok';renderDemo()});
+  $('tReset').addEventListener('click',e=>{if(!resetArmed){resetArmed=true;toast('برای شروع دوباره‌ی حساب دیمو، دوباره ↺ را بزنید');setTimeout(()=>resetArmed=false,3000);return}
+    resetArmed=false;acct={cash:START,usd:0,cost:0,key:null,trades:[]};store.set('th-demo',acct);toast('حساب دیمو از نو شروع شد: 1,000,000 AFN');renderDemo()});
+
+  /* ---------- saraf calculator ---------- */
+  const ONES=['','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه'],TEENS=['ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نزده'],
+    TENS=['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'],HUND=['','یکصد','دوصد','سه‌صد','چهارصد','پنجصد','ششصد','هفتصد','هشتصد','نهصد'],
+    SCALE=['','هزار','میلیون','میلیارد','تریلیون'];
+  function three(n){const p=[],h=Math.floor(n/100),r=n%100;if(h)p.push(HUND[h]);if(r>=10&&r<20)p.push(TEENS[r-10]);else{if(r>=20)p.push(TENS[Math.floor(r/10)]);if(r%10)p.push(ONES[r%10])}return p.join(' و ')}
+  function words(n){n=Math.floor(Math.abs(n));if(!n)return'صفر';const parts=[];let i=0;
+    while(n>0&&i<SCALE.length){const g=n%1000;if(g)parts.unshift(three(g)+(SCALE[i]?' '+SCALE[i]:''));n=Math.floor(n/1000);i++}return parts.join(' و ')}
+  function moneyWords(v,cur){if(!isFinite(v))return'—';
+    if(cur==='usd'){const d=Math.floor(v+1e-9),c=Math.round((v-d)*100);return words(d)+' دالر'+(c?' و '+words(c)+' سنت':'')}
+    return words(Math.round(v))+' افغانی'}
+  let cDir='u2a',cSide='mid',rateTouched=false;
+  function boliRow(k){return lastBoli&&lastBoli.rows?lastBoli.rows.find(r=>r.city===k):null}
+  function autoRate(){const k=sel==='avg'?'kabul':sel,m=mid(k)||mid(),b=boliRow(k);
+    if(cSide==='buy')return b&&Math.abs(b.buy-m)<0.5?b.buy:(m?m-SPREAD/2:null);
+    if(cSide==='sell')return b&&Math.abs(b.sell-m)<0.5?b.sell:(m?m+SPREAD/2:null);return m}
+  function renderCalc(){
+    if(!rateTouched){const r=autoRate();$('cRate').value=r?r.toFixed(2):''}
+    const a=num($('cAmt').value),r=num($('cRate').value);
+    $('cAmtL').textContent=cDir==='u2a'?'مبلغ (دالر)':'مبلغ (افغانی)';
+    if(!(a>=0)||!(r>0)){$('cOut').textContent='—';$('cWords').textContent='مبلغ و نرخ را بنویسید';$('cMeta').textContent='';return}
+    const out=cDir==='u2a'?a*r:a/r,cur=cDir==='u2a'?'afn':'usd';
+    $('cOut').textContent=(cur==='afn'?fmtA(out):out.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}))+(cur==='afn'?' AFN':' $');
+    $('cWords').textContent=moneyWords(out,cur);
+    $('cMeta').textContent=(rateTouched?'نرخ دستی':'نرخ '+({buy:'خرید',sell:'فروش',mid:'میانه'})[cSide]+' · '+(NAMES[sel==='avg'?'kabul':sel]||''))+' · '+moneyWords(a,cDir==='u2a'?'usd':'afn');
+  }
+  $('cAmt').addEventListener('input',renderCalc);
+  $('cRate').addEventListener('input',()=>{rateTouched=true;renderCalc()});
+  $('cDir').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cDir=b.dataset.d;document.querySelectorAll('#cDir button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderCalc()});
+  $('cSide').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cSide=b.dataset.s;rateTouched=false;document.querySelectorAll('#cSide button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderCalc()});
+  $('cCopy').addEventListener('click',async()=>{const txt=$('cOut').textContent+' — '+$('cWords').textContent;
+    try{await navigator.clipboard.writeText(txt);$('cCopy').textContent='کاپی شد'}catch(e){const rg=document.createRange();rg.selectNodeContents($('cWords'));const sl=getSelection();sl.removeAllRanges();sl.addRange(rg);$('cCopy').textContent='انتخاب شد'}
+    setTimeout(()=>$('cCopy').textContent='کاپی',1500)});
 
   /* ---------- day / night ---------- */
   function isDark(){const t=document.documentElement.getAttribute('data-theme');return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches}
