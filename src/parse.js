@@ -9,6 +9,9 @@ export const CITIES = [
   { key: "ghazni", fa: "غزنی", words: ["غزنی"] },
   { key: "herat", fa: "هرات", words: ["هرات"] },
   { key: "khost", fa: "خوست", words: ["خوست"] },
+  // Gold series (not cities): world ounce in USD, Herat melted 18k in AFN per gram.
+  { key: "xau", fa: "اونس طلا", words: [] },
+  { key: "g18herat", fa: "طلای ۱۸ عیار هرات", words: [] },
 ];
 
 const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹", AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
@@ -101,4 +104,17 @@ export function parseAll(raw, defaultCity = null) {
   }
   const p = parsePost(raw, defaultCity);
   return { quotes: p ? [p] : [], summary: false };
+}
+
+// Gold board posts (@herat_gold): "فی انس: 4023.80$" and "طلا 18 هرات: خرید: 6310؋ فروش: 6340؋"
+// (3-hourly posts say "نرخ داخلی: خرید: 6310؋ فروش: 6340؋"). Returns {ounce, buy18, sell18} or null.
+export function parseGold(raw) {
+  const t = normalize(raw).replace(/,/g, "");
+  const om = t.match(/انس\s*:?\s*(\d{3,5}(?:\.\d+)?)\s*\$/);
+  const gm = t.match(/(?:طلا\s*18\s*هرات|نرخ داخلی)\s*:?\s*خرید\s*:?\s*(\d{3,6})\D{0,12}?فروش\s*:?\s*(\d{3,6})/);
+  const ounce = om ? +om[1] : null;
+  const buy18 = gm ? +gm[1] : null, sell18 = gm ? +gm[2] : null;
+  const okO = ounce && ounce > 500 && ounce < 20000, okG = buy18 && sell18 && buy18 > 1000 && sell18 >= buy18 && sell18 - buy18 < buy18 * 0.05;
+  if (!okO && !okG) return null;
+  return { ounce: okO ? ounce : null, buy18: okG ? buy18 : null, sell18: okG ? sell18 : null };
 }

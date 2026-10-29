@@ -159,6 +159,23 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .cout .meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .cout button{font:500 12px var(--f-body);border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));background:var(--surface);color:var(--ink);border-radius:8px;padding:3px 10px;cursor:pointer}
 @media (max-width:720px){.calc{grid-template-columns:1fr}.tbar button{min-width:54px;padding:3px 7px}.tbar input{width:52px}}
+/* Gold */
+.gold{border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line));border-radius:14px;background:linear-gradient(175deg,var(--gold-soft),var(--surface) 38%);padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.gold h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:21px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;color:var(--gold)}
+.gold h2 small{font-family:var(--f-body);font-size:12.5px;color:var(--muted)}
+.gtop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gtop div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-width:0}
+.gtop dt{font-size:12px;color:var(--muted)}
+.gtop dd{margin:0;font:700 17px var(--f-mono);direction:ltr;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gtop dd small{font-size:11.5px;font-weight:500}
+.gbtns{display:flex;gap:8px;flex-wrap:wrap}
+.gcalc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:10px 16px;align-items:center;border-top:1px dashed var(--line);padding-top:10px}
+.gcalc h3{grid-column:1/-1;margin:0;font-size:15px}
+.gcalc select{font:600 15px var(--f-body);padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+.gbreak{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;color:var(--muted)}
+.gbreak b{font-family:var(--f-mono);color:var(--ink);direction:ltr;text-align:left}
+.gnote{font-size:12px;color:var(--muted);margin:0}
+@media (max-width:720px){.gtop{grid-template-columns:1fr 1fr}.gtop div:first-child{grid-column:1/-1}.gcalc{grid-template-columns:1fr}}
 /* News */
 .news{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .news h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -213,11 +230,11 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
 
   <section class="hero">
     <div>
-      <h1 class="pair">دالر <span>/</span> افغانی</h1>
+      <h1 class="pair"><b id="pairA" style="font-weight:inherit">دالر</b> <span>/</span> <b id="pairB" style="font-weight:inherit">افغانی</b></h1>
       <p class="subt" id="subt">—</p>
     </div>
     <div class="price">
-      <div><span class="now" id="now">—</span><span class="unit">AFN</span></div>
+      <div><span class="now" id="now">—</span><span class="unit" id="unitLbl">AFN</span></div>
       <span class="chg" id="chg">—</span>
     </div>
   </section>
@@ -284,6 +301,36 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     <div class="empty" id="empty"><strong>در حال بارگذاری نرخ‌ها</strong><span id="emptyMsg">چند لحظه صبر کنید.</span></div>
   </div>
 
+  <section class="gold" aria-labelledby="goldH">
+    <h2 id="goldH">طلا <small>نرخ جهانی و عیارهای مختلف، حساب‌شده با نرخ دالر کابل</small></h2>
+    <dl class="gtop">
+      <div><dt>اونس جهانی (۳۱.۱ گرام)</dt><dd id="gOz">—</dd></div>
+      <div><dt>نرخ دالر (کابل)</dt><dd id="gFx">—</dd></div>
+      <div><dt>۱۸ عیار آب‌شده‌ی هرات</dt><dd id="gH18">—</dd></div>
+    </dl>
+    <div class="bwrap"><table class="btable"><thead><tr><th>عیار</th><th>خلوص</th><th>هر گرام (افغانی)</th><th>هر مثقال (افغانی)</th><th>هر گرام (دالر)</th></tr></thead><tbody id="gBody"></tbody></table></div>
+    <div class="gbtns"><button type="button" class="chip" data-key="xau">چارت اونس جهانی</button><button type="button" class="chip" data-key="g18herat">چارت ۱۸ عیار هرات</button></div>
+    <div class="gcalc">
+      <h3>ماشین حساب طلا و زیورات</h3>
+      <div class="cin">
+        <div class="crow">
+          <label for="gW">وزن<input id="gW" inputmode="decimal" autocomplete="off" value="10"></label>
+          <label for="gU">واحد<select id="gU"><option value="1">گرام</option><option value="4.608">مثقال (۴.۶۰۸ گرام)</option><option value="11.664">تولا (۱۱.۶۶۴ گرام)</option></select></label>
+        </div>
+        <div class="crow">
+          <label for="gK">عیار<select id="gK"><option value="0.999">۲۴ عیار</option><option value="0.916">۲۲ عیار</option><option value="0.875">۲۱ عیار</option><option value="0.75" selected>۱۸ عیار</option><option value="0.625">۱۵ عیار</option><option value="0.585">۱۴ عیار</option></select></label>
+          <label for="gM">اجرت کارخانه (دالر فی گرام)<input id="gM" inputmode="decimal" autocomplete="off" value="2"></label>
+        </div>
+      </div>
+      <div class="cout" aria-live="polite">
+        <div class="big" id="gOut">—</div>
+        <div class="words" id="gWords">—</div>
+        <div class="gbreak"><span>ارزش طلا</span><b id="gV">—</b><span>اجرت کارخانه</span><b id="gMk">—</b><span>به دالر</span><b id="gUsd">—</b></div>
+      </div>
+    </div>
+    <p class="gnote">نرخ عیارها = (اونس ÷ ۳۱.۱۰۳۵) × خلوص × نرخ دالر کابل. زیورات آماده در بازار کابل معمولاً چند دالر در هر گرام بالاتر از ارزش خام طلا فروخته می‌شوند (اجرت، کشور سازنده و فایده‌ی فروشنده). اجرت را مطابق دکان خود تغییر دهید.</p>
+  </section>
+
   <section class="calc" aria-labelledby="calcH">
     <h2 id="calcH">ماشین حساب صرافی <small>تبدیل دالر و افغانی با نرخ زنده، همراه مبلغ به حروف</small></h2>
     <div class="cin">
@@ -326,7 +373,8 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   /* ---------- config ---------- */
   const MAIN=[["kabul","کابل","سرای شهزاده‌ی کابل"],["mazar","مزارشریف","بازار مزارشریف"],["herat","هرات","بازار هرات"],["kandahar","قندهار","بازار قندهار"]];
   const OTHER=[["jalalabad","ننگرهار"],["ghazni","غزنی"],["khost","خوست"]];
-  const NAMES=Object.fromEntries([...MAIN.map(m=>[m[0],m[1]]),...OTHER,["avg","میانگین بازار"]]);
+  const GOLD={xau:'اونس جهانی طلا',g18herat:'طلای ۱۸ عیار هرات'};
+  const NAMES=Object.fromEntries([...MAIN.map(m=>[m[0],m[1]]),...OTHER,["avg","میانگین بازار"],...Object.entries(GOLD)]);
   const KABUL=16200, STALE=6*3600;
   const $=id=>document.getElementById(id);
   const en=n=>Number(n).toFixed(2);
@@ -354,11 +402,16 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     return added;
   }
   // Drop single bad prints: more than 1.2% away from the median of the last 9 accepted ticks.
+  // A real move is accepted once three rejected prints in a row agree with each other.
   function clean(t){
-    const out=[],win=[];
+    const out=[],win=[];let rej=[];
     for(const x of t){
-      if(win.length>=5){const s=[...win].sort((a,b)=>a-b),m=s[s.length>>1];if(Math.abs(x[1]-m)/m>0.012)continue}
-      out.push(x);win.push(x[1]);if(win.length>9)win.shift();
+      if(win.length>=5){const s=[...win].sort((a,b)=>a-b),m=s[s.length>>1];
+        if(Math.abs(x[1]-m)/m>0.012){rej.push(x);
+          if(rej.length>=3){const r=rej.slice(-3),lo=Math.min(...r.map(y=>y[1])),hi=Math.max(...r.map(y=>y[1]));
+            if((hi-lo)/lo<0.004){for(const y of r){out.push(y);win.push(y[1])}while(win.length>9)win.shift();rej=[]}}
+          continue}}
+      rej=[];out.push(x);win.push(x[1]);if(win.length>9)win.shift();
     }
     return out;
   }
@@ -524,14 +577,18 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
 
   function renderHeader(){
     const st=statsOf(series[sel]);
-    const where=sel==='avg'?'میانگین بازار (کابل، مزار، هرات، قندهار)':(MAIN.find(m=>m[0]===sel)||[])[2]||('بازار '+NAMES[sel]);
-    $('subt').textContent='USD/AFN · '+where+' · وقت کابل';
+    const isGold=!!GOLD[sel];
+    $('pairA').textContent=isGold?'طلا':'دالر';$('pairB').textContent=sel==='xau'?'دالر':'افغانی';
+    $('unitLbl').textContent=sel==='xau'?'USD/oz':sel==='g18herat'?'AFN/g':'AFN';
+    $('tbar').hidden=isGold;
+    const where=sel==='xau'?'نرخ جهانی هر اونس (۳۱.۱ گرام)':sel==='g18herat'?'طلای آب‌شده‌ی ۱۸ عیار، بازار هرات، هر گرام':sel==='avg'?'میانگین بازار (کابل، مزار، هرات، قندهار)':(MAIN.find(m=>m[0]===sel)||[])[2]||('بازار '+NAMES[sel]);
+    $('subt').textContent=(sel==='xau'?'XAU/USD':sel==='g18herat'?'18K/AFN':'USD/AFN')+' · '+where+' · وقت کابل';
     const c=$('chg');
     if(!st){['now','hi','lo','prev','count'].forEach(i=>$(i).textContent='—');c.textContent='—';c.className='chg';return}
     $('now').textContent=en(st.price);$('hi').textContent=en(st.hi);$('lo').textContent=en(st.lo);
     $('prev').textContent=st.prev==null?'—':en(st.prev);$('count').textContent=fa(st.n);
     if(st.chg!=null){c.textContent=chgTxt(st.chg,st.prev);c.className='chg '+cls(st.chg)}else{c.textContent='—';c.className='chg'}
-    $('dealsBtn').disabled=sel==='avg';
+    $('dealsBtn').disabled=sel==='avg'||!!GOLD[sel];
   }
   function renderLive(){
     let newest=0;for(const k in series)if(series[k].length)newest=Math.max(newest,series[k][series[k].length-1][0]);
@@ -676,7 +733,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     const pk=acct.key||sel,pm=mid(pk);
     const box=$('tpos');
     if(posLine&&candles){try{candles.removePriceLine(posLine)}catch(e){}posLine=null}
-    if(!acct.usd){box.hidden=true;renderMarkers();renderCalc();return}
+    if(!acct.usd||GOLD[sel]){box.hidden=true;renderMarkers();renderCalc();try{renderGold()}catch(e){}return}
     const avg=acct.cost/acct.usd,pnl=pm?(pm-avg)*acct.usd:0,long=acct.usd>0;
     const eq=acct.cash+(pm?acct.usd*pm:acct.cost);
     box.hidden=false;
@@ -684,7 +741,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     $('tBal').textContent='Σ '+fmtA(eq);
     if(candles&&pk===sel)posLine=candles.createPriceLine({price:avg,color:pnl>=0?css('--up'):css('--down'),lineWidth:1,lineStyle:2,axisLabelVisible:true,
       title:(long?'B ':'S ')+fmtA(Math.abs(acct.usd))+'$ '+(pnl>=0?'+':'')+fmtA(pnl)});
-    renderMarkers();renderCalc();
+    renderMarkers();renderCalc();try{renderGold()}catch(e){}
   }
   function renderMarkers(){
     if(!candles)return;
@@ -759,6 +816,40 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     try{await navigator.clipboard.writeText(txt);$('cCopy').textContent='کاپی شد'}catch(e){const rg=document.createRange();rg.selectNodeContents($('cWords'));const sl=getSelection();sl.removeAllRanges();sl.addRange(rg);$('cCopy').textContent='انتخاب شد'}
     setTimeout(()=>$('cCopy').textContent='کاپی',1500)});
 
+  /* ---------- gold ---------- */
+  const KARATS=[['۲۴',0.999],['۲۲',0.916],['۲۱',0.875],['۱۸',0.75],['۱۵',0.625],['۱۴',0.585]],OZ=31.1035,MISQAL=4.608;
+  let goldMeta=null;
+  function fxKabul(){return mid('kabul')||mid('avg')}
+  function ounceNow(){return mid('xau')||(goldMeta&&goldMeta.ounce)||null}
+  function ago24(k){const t=series[k]||[];if(!t.length)return null;const lt=t[t.length-1][0];for(let i=t.length-1;i>=0;i--)if(t[i][0]<=lt-86400)return t[i][1];return null}
+  function renderGold(){
+    const oz=ounceNow(),fx=fxKabul();
+    const pct=(a,b)=>(a>=b?'+':'')+((a-b)/b*100).toFixed(2)+'%';
+    const o=$('gOz');o.textContent='';
+    if(oz){o.append('$'+oz.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));const p=ago24('xau');if(p){const sm=document.createElement('small');sm.textContent=' '+pct(oz,p);sm.className=cls(oz-p);o.append(sm)}}else o.textContent='—';
+    $('gFx').textContent=fx?en(fx):'—';
+    const h=$('gH18');h.textContent='';
+    if(goldMeta&&goldMeta.buy18){h.append(fmtA(goldMeta.buy18)+' / '+fmtA(goldMeta.sell18));
+      if(oz&&fx){const w=oz/OZ*0.75*fx,mm=(goldMeta.buy18+goldMeta.sell18)/2,sm=document.createElement('small');sm.textContent=' '+pct(mm,w)+' vs world';sm.className=cls(mm-w);h.append(sm)}}else h.textContent='—';
+    const body=$('gBody');body.textContent='';
+    for(const [k,p] of KARATS){const tr=document.createElement('tr');const g=oz&&fx?oz/OZ*p*fx:null;
+      [k+' عیار',(p*100).toFixed(1)+'%',g?fmtA(g):'—',g?fmtA(g*MISQAL):'—',oz?'$'+(oz/OZ*p).toFixed(2):'—'].forEach((v,i)=>{const td=document.createElement('td');td.textContent=v;if(i>=1)td.className='num';tr.appendChild(td)});
+      body.appendChild(tr)}
+    calcGold();
+  }
+  function calcGold(){
+    const oz=ounceNow(),fx=fxKabul(),w=num($('gW').value),u=+$('gU').value,p=+$('gK').value,mk=num($('gM').value)||0;
+    if(!oz||!fx||!(w>0)){$('gOut').textContent='—';$('gWords').textContent=oz?'وزن را بنویسید':'در انتظار نرخ جهانی طلا';['gV','gMk','gUsd'].forEach(i=>$(i).textContent='—');return}
+    const grams=w*u,valUsd=oz/OZ*p*grams,mkUsd=mk*grams,totUsd=valUsd+mkUsd,tot=totUsd*fx;
+    $('gOut').textContent=fmtA(tot)+' AFN';
+    $('gWords').textContent=moneyWords(tot,'afn');
+    $('gV').textContent=fmtA(valUsd*fx)+' AFN';$('gMk').textContent=fmtA(mkUsd*fx)+' AFN  ($'+mkUsd.toFixed(2)+')';
+    $('gUsd').textContent='$'+totUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'  ·  '+grams.toFixed(2)+' g';
+  }
+  ['gW','gM'].forEach(i=>$(i).addEventListener('input',calcGold));
+  ['gU','gK'].forEach(i=>$(i).addEventListener('change',calcGold));
+  document.querySelector('.gbtns').addEventListener('click',e=>{const b=e.target.closest('[data-key]');if(!b)return;select(b.dataset.key);$('box').scrollIntoView({behavior:'smooth',block:'start'})});
+
   /* ---------- day / night ---------- */
   function isDark(){const t=document.documentElement.getAttribute('data-theme');return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches}
   function syncTheme(){const d=isDark();document.documentElement.classList.toggle('is-dark',d);$('themeLbl').textContent=d?'حالت روز':'حالت شب';
@@ -773,7 +864,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     const m=t.match(/([\d۰-۹.]+)\s*(?:میلیون|million|mn|m\b)/i);if(!m||!/(لیلام|مزایده|auction)/i.test(t))return null;
     return fa(+m[1].replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))+' میلیون دالر'}
   async function loadNews(){
-    try{const r=await getJSON('/api/news');const list=r.news||[];renderBoli(r.boli);
+    try{const r=await getJSON('/api/news');const list=r.news||[];renderBoli(r.boli);if(r.gold){goldMeta=r.gold;try{renderGold()}catch(e){}}
       const ul=$('nlist');ul.textContent='';
       list.slice(0,12).forEach(n=>{const li=document.createElement('li');
         const s=document.createElement('span');s.className='nsrc';s.textContent=n.src;
@@ -795,6 +886,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     try{
       const h=await getJSON('/api/history');
       for(const c in h.series)addTicks(c,h.series[c]);
+      if(h.gold)goldMeta=h.gold;
       lastRun=h.lastRun;loaded=true;failed=false;
     }catch(e){failed=true;$('updated').textContent='اتصال برقرار نشد؛ دوباره تلاش می‌شود'}
     renderAll(true);
@@ -804,7 +896,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     try{
       const since=Math.max(0,newestTs()-600);
       const u=await getJSON('/api/updates?since='+since);
-      lastRun=u.lastRun;const changed={};
+      lastRun=u.lastRun;if(u.gold)goldMeta=u.gold;const changed={};
       for(const [c,t,p,d] of u.ticks)if(addTicks(c,[[t,p,d]]))changed[c]=1;
       if(Object.keys(changed).length){const r=chart&&chart.timeScale().getVisibleLogicalRange();recompute();renderPanels();renderHeader();renderChart(false);if(r)chart.timeScale().setVisibleLogicalRange(r)}
       renderLive();

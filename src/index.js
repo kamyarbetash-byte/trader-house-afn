@@ -1,4 +1,4 @@
-import { parsePage, parsePost, parseAll, PARSER_VERSION, CITIES } from "./parse.js";
+import { parsePage, parsePost, parseAll, parseGold, PARSER_VERSION, CITIES } from "./parse.js";
 import PAGE from "./page.html";
 
 // Public Telegram channels read every minute. `city` is used when a post names no city.
@@ -8,7 +8,7 @@ const CHANNELS = [
   { name: "kabul_dollar", city: null },            // Kabul plus Mazar, Kandahar, Nangarhar, Ghazni deals (~312k members)
   { name: "Mazar_Nerkh", city: "mazar" },          // Mazar-i-Sharif
   { name: "Exchange_Rate", city: null },           // Sarai Shahzada + every province, closing summary of all bid markets (~70k)
-  { name: "herat_gold", city: "herat", live: true }, // Herat; its newest post is edited every few seconds
+  { name: "herat_gold", city: "herat", live: true, gold: true }, // Herat dollar + world ounce + Herat melted 18k; newest post edited every few seconds
 ];
 const SPAN = 1e9;
 const BACKFILL_DAYS = 45;
@@ -118,6 +118,19 @@ async function saveBoli(db, ts, link, quotes) {
   await setMeta(db, "boli", JSON.stringify({ ts, link, rows: quotes.map(q => ({ city: q.city, buy: q.buy, sell: q.sell })) }));
 }
 
+// Gold board -> two series: "xau" (world ounce, USD) and "g18herat" (Herat melted 18k, AFN/gram, mid of buy/sell).
+function goldTicks(db, uid, ts, g) {
+  const stmts = [], ticks = [];
+  if (g.ounce) { stmts.push(tickStmt(db, subId(uid, 5), ts, { city: "xau", kind: "quote", buy: g.ounce, sell: g.ounce, price: g.ounce })); ticks.push({ city: "xau", ts, price: g.ounce, deal: 0 }); }
+  if (g.buy18) { const m = (g.buy18 + g.sell18) / 2; stmts.push(tickStmt(db, subId(uid, 6), ts, { city: "g18herat", kind: "quote", buy: g.buy18, sell: g.sell18, price: m })); ticks.push({ city: "g18herat", ts, price: m, deal: 0 }); }
+  return { stmts, ticks };
+}
+async function saveGold(db, ts, g) {
+  const prev = JSON.parse((await meta(db, "gold")) || "null") || {};
+  if (prev.ts && prev.ts > ts) return;
+  await setMeta(db, "gold", JSON.stringify({ ts, ounce: g.ounce || prev.ounce || null, buy18: g.buy18 || prev.buy18 || null, sell18: g.sell18 || prev.sell18 || null }));
+}
+
 // Store only messages not seen before. Returns the new ticks so snapshots can be updated in memory.
 async function ingest(db, idx, list) {
   if (!list.length) return [];
@@ -125,7 +138,7 @@ async function ingest(db, idx, list) {
   const uids = list.map(m => base + m.id);
   const seen = new Set((await db.prepare(`SELECT id FROM msgs WHERE id IN (${uids.map(() => "?").join(",")})`).bind(...uids).all()).results.map(r => r.id));
   const stmts = [], ticks = [], news = [];
-  let boli = null;
+  let boli = null, gold = null;
   for (const m of list) {
     const uid = base + m.id;
     if (seen.has(uid)) continue;
@@ -133,12 +146,14 @@ async function ingest(db, idx, list) {
     const { quotes, summary } = parseAll(m.text, CHANNELS[idx].city);
     quotes.forEach((p, k) => { stmts.push(tickStmt(db, subId(uid, k), m.ts, p)); ticks.push({ city: p.city, ts: m.ts, price: p.price, deal: p.kind === "deal" ? 1 : 0 }); });
     if (summary && quotes.length >= 3 && (!boli || m.ts > boli.ts)) boli = { ts: m.ts, link: `https://t.me/${CHANNELS[idx].name}/${m.id}`, quotes };
+    if (CHANNELS[idx].gold) { const g = parseGold(m.text); if (g) { const r = goldTicks(db, uid, m.ts, g); stmts.push(...r.stmts); ticks.push(...r.ticks); if (!gold || m.ts > gold.ts) gold = { ts: m.ts, g }; } }
     if (!quotes.length && m.text.length > 25 && m.text.length < 600 && TG_NEWS_RE.test(m.text) && !TG_AD_RE.test(m.text) && m.ts > Date.now() / 1000 - 30 * 86400)
       news.push({ ts: m.ts, src: "@" + CHANNELS[idx].name, title: m.text.replace(/\s+/g, " ").slice(0, 220), link: `https://t.me/${CHANNELS[idx].name}/${m.id}` });
   }
   if (stmts.length) await db.batch(stmts);
   if (news.length) await saveNews(db, news);
   if (boli) await saveBoli(db, boli.ts, boli.link, boli.quotes);
+  if (gold) await saveGold(db, gold.ts, gold.g);
   return ticks;
 }
 
@@ -146,14 +161,29 @@ async function ingest(db, idx, list) {
 async function liveTick(db, idx, latest) {
   const ch = CHANNELS[idx];
   const newest = latest.reduce((a, b) => (b.id > a.id ? b : a));
+  const out = [];
+  if (ch.gold) {
+    const g = parseGold(newest.text);
+    if (g) {
+      const gkey = mkey(idx, "liveGold"), gp = JSON.parse((await meta(db, gkey)) || "null");
+      if (!gp || gp.ounce !== g.ounce || gp.buy18 !== g.buy18 || gp.sell18 !== g.sell18) {
+        const now = Math.floor(Date.now() / 1000), r = goldTicks(db, idx * SPAN + 5e8 + Math.floor(now / 60), now, g);
+        if (r.stmts.length) await db.batch(r.stmts);
+        out.push(...r.ticks);
+        await setMeta(db, gkey, JSON.stringify(g));
+        await saveGold(db, now, g);
+      }
+    }
+  }
   const p = parsePost(newest.text, ch.city);
-  if (!p) return [];
+  if (!p) return out;
   const key = mkey(idx, "live"), prev = JSON.parse((await meta(db, key)) || "null");
-  if (prev && prev.price === p.price) return [];
+  if (prev && prev.price === p.price) return out;
   const now = Math.floor(Date.now() / 1000);
   await tickStmt(db, idx * SPAN + 5e8 + Math.floor(now / 60), now, p).run();
   await setMeta(db, key, JSON.stringify({ price: p.price, ts: now }));
-  return [{ city: p.city, ts: now, price: p.price, deal: 0 }];
+  out.push({ city: p.city, ts: now, price: p.price, deal: 0 });
+  return out;
 }
 
 async function reparseIfNeeded(db) {
@@ -250,10 +280,25 @@ async function updateSnapshots(db, newTicks) {
   }
 }
 
+// One-time: build gold ticks from gold-board messages stored before gold parsing existed.
+async function seedGold(db) {
+  if ((await meta(db, "goldSeed")) === "1") return;
+  const stmts = [];
+  for (let idx = 0; idx < CHANNELS.length; idx++) {
+    if (!CHANNELS[idx].gold) continue;
+    const rows = (await db.prepare("SELECT id, ts, text FROM msgs WHERE id BETWEEN ? AND ?").bind(idx * SPAN, idx * SPAN + SPAN - 1).all()).results;
+    for (const m of rows) { const g = parseGold(m.text); if (g) stmts.push(...goldTicks(db, m.id, m.ts, g).stmts); }
+  }
+  for (let i = 0; i < stmts.length; i += 200) await db.batch(stmts.slice(i, i + 200));
+  await db.prepare("DELETE FROM snap WHERE city IN ('xau','g18herat')").run();
+  await setMeta(db, "goldSeed", "1");
+}
+
 async function collect(env) {
   const db = env.DB;
   await ensureSchema(db);
   await reparseIfNeeded(db);
+  await seedGold(db);
   const all = [], errors = [];
   for (let i = 0; i < CHANNELS.length; i++) {
     try { all.push(...await collectChannel(db, i)); }
@@ -283,7 +328,7 @@ async function history(db) {
   const rows = (await db.prepare("SELECT city, data FROM snap").all()).results;
   const series = {};
   for (const r of rows) series[r.city] = JSON.parse(r.data);
-  return { series, lastRun: +(await meta(db, "lastRun")) || null };
+  return { series, lastRun: +(await meta(db, "lastRun")) || null, gold: JSON.parse((await meta(db, "gold")) || "null") };
 }
 
 const json = (d, maxAge = 15) => new Response(JSON.stringify(d), {
@@ -304,7 +349,7 @@ export default {
     try {
       if (url.pathname === "/api/history") return json(await cached("history", 30000, () => history(db)), 30);
       if (url.pathname === "/api/news")
-        return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]"), boli: JSON.parse((await meta(db, "boli")) || "null") })), 120);
+        return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]"), boli: JSON.parse((await meta(db, "boli")) || "null"), gold: JSON.parse((await meta(db, "gold")) || "null") })), 120);
       if (url.pathname === "/api/updates") {
         // Recent ticks for all cities. `since` is rounded to the minute so viewers share cache entries.
         const now = Math.floor(Date.now() / 1000);
@@ -313,7 +358,8 @@ export default {
           (await db.prepare("SELECT city, ts, price, kind FROM ticks WHERE ts>? ORDER BY ts LIMIT 2000").bind(s).all())
             .results.map(x => [x.city, x.ts, +x.price.toFixed(3), x.kind === "deal" ? 1 : 0]));
         const lastRun = await cached("lastRun", 15000, async () => +(await meta(db, "lastRun")) || null);
-        return json({ ticks, lastRun });
+        const gold = await cached("goldMeta", 15000, async () => JSON.parse((await meta(db, "gold")) || "null"));
+        return json({ ticks, lastRun, gold });
       }
     } catch (e) {
       return new Response(JSON.stringify({ error: "unavailable" }), { status: 503, headers: { "content-type": "application/json" } });

@@ -9,6 +9,7 @@ Live candlestick chart of the dollar-to-afghani open-market rate by province (Ka
 - **بازار بولی board:** closing buy/sell of every market from the latest all-markets summary post.
 - **Demo trading inside the chart:** a compact SELL / amount / BUY bar on the chart (per-viewer practice account, 1,000,000 AFN); the open position is a price line whose label shows live P&L, with trade markers on the candles.
 - **Saraf calculator:** USD ⇄ AFN at the live buy/mid/sell rate (or a typed rate), with the result written out in Dari words.
+- **Gold:** world ounce and Herat melted 18k from the @herat_gold board (series `xau`, `g18herat`, both chartable); karat table (24/22/21/18/15/14) per gram and misqal at the Kabul dollar rate; jewelry calculator (gram/misqal/tola, karat, making charge in USD per gram) with the total in words.
 - **Page tools:** timeframes 5m–1D, MA20/MA50, Bollinger, RSI, deals-only; trend line, ray, horizontal/vertical line, rectangle, Fibonacci, measure (saved per viewer in the browser).
 
 Deploys automatically to Cloudflare on every push to `main` (Workers Builds).
