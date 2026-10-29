@@ -15,12 +15,16 @@ const UA = "Mozilla/5.0 (compatible; TraderHouseRates/1.0)";
 
 // News about the afghani, the dollar and Da Afghanistan Bank (auctions, rates, decisions).
 // Feeds are checked every 30 minutes; Telegram posts that mention an auction or the central bank are added as they arrive.
-const GN = q => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}`;
+const BING = q => `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss`;
 const FEEDS = [
-  { src: "Google News", url: GN('"Da Afghanistan Bank" OR "Afghanistan central bank" OR "Afghan central bank" when:30d') + "&hl=en-US&gl=US&ceid=US:en" },
-  { src: "Google News", url: GN('afghani dollar exchange rate Afghanistan when:14d') + "&hl=en-US&gl=US&ceid=US:en" },
-  { src: "Google News", url: GN('"د افغانستان بانک" when:30d') + "&hl=fa&gl=IR&ceid=IR:fa" },
-  { src: "Google News", url: GN('افغانی دالر سرای شهزاده when:30d') + "&hl=fa&gl=IR&ceid=IR:fa" },
+  { src: "Bing News", url: BING('"Da Afghanistan Bank" OR "Afghan central bank" OR afghani') },
+  { src: "Bing News", url: BING('"د افغانستان بانک"') },
+  { src: "Bing News", url: BING('نرخ دالر افغانی') },
+  { src: "Amu TV", url: "https://amu.tv/feed/" },
+  { src: "Ariana News", url: "https://www.ariananews.af/feed/" },
+  { src: "KabulNow", url: "https://kabulnow.com/feed/" },
+  { src: "Hasht-e Subh", url: "https://8am.media/eng/feed/" },
+  { src: "Hasht-e Subh", url: "https://8am.media/fa/feed/" },
 ];
 const NEWS_RE = /(لیلام|مزایده|بولی|افغانستان بانک|بانک مرکزی|افغانی|سرای شهزاده|DAB\b|Da Afghanistan Bank|central bank|auction|afghani|exchange rate|currency)/i;
 const TG_NEWS_RE = /(لیلام|ليلام|مزایده|بولی|بانک|بانك)/;
@@ -40,7 +44,7 @@ function parseFeed(xml, src) {
     if (!title || !/^https?:\/\//.test(link) || !isFinite(ts)) continue;
     const desc = g("description") || g("summary");
     if (!NEWS_RE.test(title + " " + desc)) continue;
-    const outlet = g("source");
+    const outlet = g("source") || g("News:Source");
     const clean = outlet && title.endsWith(" - " + outlet) ? title.slice(0, -(outlet.length + 3)) : title;
     out.push({ ts, src: outlet || src, title: clean.slice(0, 220), link });
   }
@@ -59,15 +63,15 @@ async function saveNews(db, add) {
 }
 async function collectNews(db) {
   const found = [], status = [];
-  for (const f of FEEDS) {
+  await Promise.all(FEEDS.map(async f => {
     try {
-      const r = await fetch(f.url, { headers: { "user-agent": UA, accept: "application/rss+xml, application/xml, text/xml" }, signal: AbortSignal.timeout(8000) });
-      if (!r.ok) { status.push(`${f.url} ${r.status}`); continue; }
+      const r = await fetch(f.url, { headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36", accept: "application/rss+xml, application/xml, text/xml, */*" }, signal: AbortSignal.timeout(9000) });
+      if (!r.ok) { status.push(`${f.src} ${r.status}`); return; }
       const items = parseFeed(await r.text(), f.src);
-      status.push(`${f.url} ok ${items.length}`);
+      status.push(`${f.src} ok ${items.length}`);
       found.push(...items);
-    } catch (e) { status.push(`${f.url} ${e && e.name || "error"}`); }
-  }
+    } catch (e) { status.push(`${f.src} ${e && e.name || "error"}`); }
+  }));
   await saveNews(db, found);
   await setMeta(db, "newsAt", Math.floor(Date.now() / 1000));
   await setMeta(db, "newsStatus", status.join(" | "));
