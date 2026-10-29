@@ -306,7 +306,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     <dl class="gtop">
       <div><dt>اونس جهانی (۳۱.۱ گرام)</dt><dd id="gOz">—</dd></div>
       <div><dt>نرخ دالر (کابل)</dt><dd id="gFx">—</dd></div>
-      <div><dt>۱۸ عیار آب‌شده‌ی هرات</dt><dd id="gH18">—</dd></div>
+      <div><dt>۱۸ عیار آب‌شده‌ی هرات (فاصله با جهانی)</dt><dd id="gH18">—</dd></div>
     </dl>
     <div class="bwrap"><table class="btable"><thead><tr><th>عیار</th><th>خلوص</th><th>هر گرام (افغانی)</th><th>هر مثقال (افغانی)</th><th>هر گرام (دالر)</th></tr></thead><tbody id="gBody"></tbody></table></div>
     <div class="gbtns"><button type="button" class="chip" data-key="xau">چارت اونس جهانی</button><button type="button" class="chip" data-key="g18herat">چارت ۱۸ عیار هرات</button></div>
@@ -830,7 +830,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     $('gFx').textContent=fx?en(fx):'—';
     const h=$('gH18');h.textContent='';
     if(goldMeta&&goldMeta.buy18){h.append(fmtA(goldMeta.buy18)+' / '+fmtA(goldMeta.sell18));
-      if(oz&&fx){const w=oz/OZ*0.75*fx,mm=(goldMeta.buy18+goldMeta.sell18)/2,sm=document.createElement('small');sm.textContent=' '+pct(mm,w)+' vs world';sm.className=cls(mm-w);h.append(sm)}}else h.textContent='—';
+      if(oz&&fx){const w=oz/OZ*0.75*fx,mm=(goldMeta.buy18+goldMeta.sell18)/2,sm=document.createElement('small');sm.textContent=' '+pct(mm,w);sm.title='فاصله با نرخ جهانی';sm.className=cls(mm-w);h.append(sm)}}else h.textContent='—';
     const body=$('gBody');body.textContent='';
     for(const [k,p] of KARATS){const tr=document.createElement('tr');const g=oz&&fx?oz/OZ*p*fx:null;
       [k+' عیار',(p*100).toFixed(1)+'%',g?fmtA(g):'—',g?fmtA(g*MISQAL):'—',oz?'$'+(oz/OZ*p).toFixed(2):'—'].forEach((v,i)=>{const td=document.createElement('td');td.textContent=v;if(i>=1)td.className='num';tr.appendChild(td)});
