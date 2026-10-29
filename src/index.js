@@ -1,12 +1,14 @@
-import { parsePage, parsePost, PARSER_VERSION, CITIES } from "./parse.js";
+import { parsePage, parsePost, parseAll, PARSER_VERSION, CITIES } from "./parse.js";
 import PAGE from "./page.html";
 
 // Public Telegram channels read every minute. `city` is used when a post names no city.
 // Message ids are stored as idx * 1e9 + id so channels never collide (kabul_dollar keeps its raw ids).
 // To add a source, append it here and push; its history is backfilled automatically.
 const CHANNELS = [
-  { name: "kabul_dollar", city: null },
-  { name: "Mazar_Nerkh", city: "mazar" },
+  { name: "kabul_dollar", city: null },            // Kabul plus Mazar, Kandahar, Nangarhar, Ghazni deals (~312k members)
+  { name: "Mazar_Nerkh", city: "mazar" },          // Mazar-i-Sharif
+  { name: "Exchange_Rate", city: null },           // Sarai Shahzada + every province, closing summary of all bid markets (~70k)
+  { name: "herat_gold", city: "herat", live: true }, // Herat; its newest post is edited every few seconds
 ];
 const SPAN = 1e9;
 const BACKFILL_DAYS = 45;
@@ -100,10 +102,19 @@ async function ensureSchema(db) {
 
 function parseFor(uid, text) {
   const ch = CHANNELS[chOf(uid)];
-  return parsePost(text, ch ? ch.city : null);
+  return parseAll(text, ch ? ch.city : null);
 }
 const tickStmt = (db, uid, ts, p) =>
   db.prepare("INSERT OR REPLACE INTO ticks VALUES(?,?,?,?,?,?,?)").bind(uid, ts, p.city, p.kind, p.buy, p.sell, p.price);
+// One post can quote several markets; the k-th market gets id uid + k * 1e7 (ids stay inside the channel's range).
+const subId = (uid, k) => uid + k * 1e7;
+
+// Closing rates of every bid market (بولی), kept for the "بازار بولی" panel.
+async function saveBoli(db, ts, link, quotes) {
+  const prev = JSON.parse((await meta(db, "boli")) || "null");
+  if (prev && prev.ts >= ts) return;
+  await setMeta(db, "boli", JSON.stringify({ ts, link, rows: quotes.map(q => ({ city: q.city, buy: q.buy, sell: q.sell })) }));
+}
 
 // Store only messages not seen before. Returns the new ticks so snapshots can be updated in memory.
 async function ingest(db, idx, list) {
@@ -112,25 +123,42 @@ async function ingest(db, idx, list) {
   const uids = list.map(m => base + m.id);
   const seen = new Set((await db.prepare(`SELECT id FROM msgs WHERE id IN (${uids.map(() => "?").join(",")})`).bind(...uids).all()).results.map(r => r.id));
   const stmts = [], ticks = [], news = [];
+  let boli = null;
   for (const m of list) {
     const uid = base + m.id;
     if (seen.has(uid)) continue;
     stmts.push(db.prepare("INSERT OR IGNORE INTO msgs VALUES(?,?,?)").bind(uid, m.ts, m.text));
-    const p = parsePost(m.text, CHANNELS[idx].city);
-    if (p) { stmts.push(tickStmt(db, uid, m.ts, p)); ticks.push({ city: p.city, ts: m.ts, price: p.price, deal: p.kind === "deal" ? 1 : 0 }); }
-    else if (m.text.length > 25 && TG_NEWS_RE.test(m.text) && m.ts > Date.now() / 1000 - 30 * 86400)
+    const { quotes, summary } = parseAll(m.text, CHANNELS[idx].city);
+    quotes.forEach((p, k) => { stmts.push(tickStmt(db, subId(uid, k), m.ts, p)); ticks.push({ city: p.city, ts: m.ts, price: p.price, deal: p.kind === "deal" ? 1 : 0 }); });
+    if (summary && quotes.length >= 3 && (!boli || m.ts > boli.ts)) boli = { ts: m.ts, link: `https://t.me/${CHANNELS[idx].name}/${m.id}`, quotes };
+    if (!quotes.length && m.text.length > 25 && TG_NEWS_RE.test(m.text) && m.ts > Date.now() / 1000 - 30 * 86400)
       news.push({ ts: m.ts, src: "@" + CHANNELS[idx].name, title: m.text.replace(/\s+/g, " ").slice(0, 220), link: `https://t.me/${CHANNELS[idx].name}/${m.id}` });
   }
   if (stmts.length) await db.batch(stmts);
   if (news.length) await saveNews(db, news);
+  if (boli) await saveBoli(db, boli.ts, boli.link, boli.quotes);
   return ticks;
+}
+
+// For a channel whose newest post is edited in place (a live price board): record a tick whenever its price changes.
+async function liveTick(db, idx, latest) {
+  const ch = CHANNELS[idx];
+  const newest = latest.reduce((a, b) => (b.id > a.id ? b : a));
+  const p = parsePost(newest.text, ch.city);
+  if (!p) return [];
+  const key = mkey(idx, "live"), prev = JSON.parse((await meta(db, key)) || "null");
+  if (prev && prev.price === p.price) return [];
+  const now = Math.floor(Date.now() / 1000);
+  await tickStmt(db, idx * SPAN + 5e8 + Math.floor(now / 60), now, p).run();
+  await setMeta(db, key, JSON.stringify({ price: p.price, ts: now }));
+  return [{ city: p.city, ts: now, price: p.price, deal: 0 }];
 }
 
 async function reparseIfNeeded(db) {
   if ((await meta(db, "parser")) === String(PARSER_VERSION)) return;
   const rows = (await db.prepare("SELECT id, ts, text FROM msgs").all()).results;
   const stmts = [db.prepare("DELETE FROM ticks"), db.prepare("DELETE FROM snap")];
-  for (const m of rows) { const p = parseFor(m.id, m.text); if (p) stmts.push(tickStmt(db, m.id, m.ts, p)); }
+  for (const m of rows) parseFor(m.id, m.text).quotes.forEach((p, k) => stmts.push(tickStmt(db, subId(m.id, k), m.ts, p)));
   for (let i = 0; i < stmts.length; i += 500) await db.batch(stmts.slice(i, i + 500));
   await setMeta(db, "parser", PARSER_VERSION);
 }
@@ -161,6 +189,7 @@ async function collectChannel(db, idx) {
   const latest = await fetchPage(ch);
   if (!latest.length) return out;
   out.push(...await ingest(db, idx, latest));
+  if (CHANNELS[idx].live) out.push(...await liveTick(db, idx, latest));
   const top = Math.max(maxId(latest), gapCeil);
 
   // Catch up on anything posted since the last successful run, across runs if needed.
@@ -273,7 +302,7 @@ export default {
     try {
       if (url.pathname === "/api/history") return json(await cached("history", 30000, () => history(db)), 30);
       if (url.pathname === "/api/news")
-        return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]") })), 120);
+        return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]"), boli: JSON.parse((await meta(db, "boli")) || "null") })), 120);
       if (url.pathname === "/api/updates") {
         // Recent ticks for all cities. `since` is rounded to the minute so viewers share cache entries.
         const now = Math.floor(Date.now() / 1000);

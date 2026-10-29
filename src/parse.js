@@ -1,4 +1,4 @@
-// Parsing of Telegram web-preview pages and rate posts from @kabul_dollar.
+// Parsing of Telegram web-preview pages and USD/AFN rate posts.
 export const PARSER_VERSION = 1;
 
 export const CITIES = [
@@ -41,7 +41,7 @@ export function parsePost(raw, defaultCity = null) {
   const t = normalize(raw);
   const city = cityOf(t) || defaultCity;
   if (!city) return null;
-  const segs = t.split(/[\/\n|]+/).map(s => s.trim()).filter(Boolean);
+  const segs = t.split(/[\/\n]+/).map(s => s.trim()).filter(Boolean);
   let nums = [];
   for (let i = 0; i < segs.length && !nums.length; i++) {
     if (!isUsdAfn(segs[i])) continue;
@@ -80,4 +80,25 @@ export function parsePage(html, channel) {
     out.push({ id: +idm[1], ts, text: xm ? decode(xm[1]).trim() : "" });
   }
   return out;
+}
+
+// A post may hold several markets, each under its own "#city" header (closing summaries of all
+// bid markets, «آخرین معاملات تمام بولی های افغانستان»). Returns a list of quotes, one per market.
+const SUMMARY_RE = /(پایان ساعت کاری|تمام بولی|اخیر بازار|اخیری|اخیري)/;
+export function parseAll(raw, defaultCity = null) {
+  const t = normalize(raw);
+  const sections = t.split("#").map(x => x.trim()).filter(Boolean);
+  const cityParts = sections.filter(x => cityOf(x.slice(0, 40)));
+  if (cityParts.length >= 2) {
+    const out = [], seen = new Set();
+    for (const part of cityParts) {
+      const c = cityOf(part.slice(0, 40));
+      if (seen.has(c)) continue;
+      const p = parsePost(part, c);
+      if (p && p.city === c) { seen.add(c); out.push(p); }
+    }
+    if (out.length >= 2) return { quotes: out, summary: SUMMARY_RE.test(t) };
+  }
+  const p = parsePost(raw, defaultCity);
+  return { quotes: p ? [p] : [], summary: false };
 }
