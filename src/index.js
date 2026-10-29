@@ -20,6 +20,9 @@ const FEEDS = [
   { src: "Bing News", search: true, url: BING('"Da Afghanistan Bank" OR "Afghan central bank" OR afghani') },
   { src: "Bing News", search: true, url: BING('"د افغانستان بانک"') },
   { src: "Bing News", search: true, url: BING('نرخ دالر افغانی') },
+  { src: "Bing News", search: true, url: BING('Afghanistan central bank auction dollars') },
+  { src: "Bing News", search: true, url: BING('لیلام دالر د افغانستان بانک') },
+  { src: "Bing News", search: true, url: BING('ارزش افغانی در برابر دالر') },
   { src: "Amu TV", url: "https://amu.tv/feed/" },
   { src: "Ariana News", url: "https://www.ariananews.af/feed/" },
   { src: "KabulNow", url: "https://kabulnow.com/feed/" },
@@ -43,6 +46,7 @@ function parseFeed(xml, src, search = false) {
     let link = g("link"); if (!link) { const m = b.match(/<link[^>]*href="([^"]+)"/); link = m ? m[1] : ""; }
     const ts = Math.floor(Date.parse(g("pubDate") || g("updated") || g("published") || g("dc:date")) / 1000);
     if (!title || !/^https?:\/\//.test(link) || !isFinite(ts)) continue;
+    if (ts < Date.now() / 1000 - 45 * 86400) continue;
     const desc = g("description") || g("summary");
     if (!NEWS_RE.test(search ? title + " " + desc.slice(0, 400) : title)) continue;
     const outlet = g("source") || g("News:Source");
@@ -54,7 +58,7 @@ function parseFeed(xml, src, search = false) {
 async function saveNews(db, add) {
   if (!add.length) return;
   let list = []; try { list = JSON.parse((await meta(db, "news")) || "[]"); } catch (e) {}
-  const key = n => n.title.replace(/\W+/g, "").slice(0, 60).toLowerCase();
+  const key = n => n.title.replace(/[\s\p{P}\p{S}]+/gu, "").slice(0, 60).toLowerCase();
   const have = new Set(list.map(n => n.link)), haveT = new Set(list.map(key));
   let changed = false;
   for (const n of add) if (!have.has(n.link) && !haveT.has(key(n))) { list.push(n); have.add(n.link); haveT.add(key(n)); changed = true; }
