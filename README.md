@@ -4,7 +4,7 @@ Live candlestick chart of the dollar-to-afghani open-market rate by province (Ka
 
 - **Data sources:** public Telegram channels listed in `CHANNELS` in `src/index.js` (currently [@kabul_dollar](https://t.me/kabul_dollar) and [@Mazar_Nerkh](https://t.me/Mazar_Nerkh)), read once a minute from their web previews. Adding a channel there backfills ~45 days automatically.
 - **Runs on:** a Cloudflare Worker with a cron trigger (every minute) and a D1 database. Each city's history is kept in one `snap` row so a page load costs a handful of row reads.
-- **News:** Da Afghanistan Bank and Pajhwok feeds (checked every 30 min, filtered for afghani/dollar/auction topics) plus Telegram posts that mention an auction (لیلام), bid (بولی) or the central bank.
+- **News:** Google News searches about Da Afghanistan Bank and the afghani (checked every 30 min; DAB and Pajhwok no longer publish feeds) plus Telegram posts that mention an auction (لیلام), bid (بولی) or the central bank.
 - **Endpoints:** `/` chart page · `/api/history` all city series · `/api/updates?since=<unix>` recent ticks · `/api/news` latest news.
 - **Page tools:** timeframes 5m–1D, MA20/MA50, Bollinger, RSI, deals-only; trend line, ray, horizontal/vertical line, rectangle, Fibonacci, measure (saved per viewer in the browser).
 

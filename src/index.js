@@ -15,14 +15,15 @@ const UA = "Mozilla/5.0 (compatible; TraderHouseRates/1.0)";
 
 // News about the afghani, the dollar and Da Afghanistan Bank (auctions, rates, decisions).
 // Feeds are checked every 30 minutes; Telegram posts that mention an auction or the central bank are added as they arrive.
+const GN = q => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}`;
 const FEEDS = [
-  { src: "د افغانستان بانک", url: "https://dab.gov.af/rss.xml" },
-  { src: "د افغانستان بانک", url: "https://www.dab.gov.af/fa/rss.xml" },
-  { src: "پژواک", url: "https://pajhwok.com/tag/dab/feed/" },
-  { src: "پژواک", url: "https://pajhwok.com/tag/afghani/feed/" },
+  { src: "Google News", url: GN('"Da Afghanistan Bank" OR "Afghanistan central bank" OR "Afghan central bank" when:30d') + "&hl=en-US&gl=US&ceid=US:en" },
+  { src: "Google News", url: GN('afghani dollar exchange rate Afghanistan when:14d') + "&hl=en-US&gl=US&ceid=US:en" },
+  { src: "Google News", url: GN('"د افغانستان بانک" when:30d') + "&hl=fa&gl=IR&ceid=IR:fa" },
+  { src: "Google News", url: GN('افغانی دالر سرای شهزاده when:30d') + "&hl=fa&gl=IR&ceid=IR:fa" },
 ];
-const NEWS_RE = /(لیلام|مزایده|بولی|افغانستان بانک|بانک مرکزی|DAB\b|Da Afghanistan Bank|central bank|auction|afghani|exchange rate|currency)/i;
-const TG_NEWS_RE = /(لیلام|مزایده|بولی|افغانستان بانک|بانک مرکزی)/;
+const NEWS_RE = /(لیلام|مزایده|بولی|افغانستان بانک|بانک مرکزی|افغانی|سرای شهزاده|DAB\b|Da Afghanistan Bank|central bank|auction|afghani|exchange rate|currency)/i;
+const TG_NEWS_RE = /(لیلام|ليلام|مزایده|بولی|بانک|بانك)/;
 const NEWS_MAX = 40;
 
 const unxml = s => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "")
@@ -39,16 +40,19 @@ function parseFeed(xml, src) {
     if (!title || !/^https?:\/\//.test(link) || !isFinite(ts)) continue;
     const desc = g("description") || g("summary");
     if (!NEWS_RE.test(title + " " + desc)) continue;
-    out.push({ ts, src, title: title.slice(0, 220), link });
+    const outlet = g("source");
+    const clean = outlet && title.endsWith(" - " + outlet) ? title.slice(0, -(outlet.length + 3)) : title;
+    out.push({ ts, src: outlet || src, title: clean.slice(0, 220), link });
   }
   return out;
 }
 async function saveNews(db, add) {
   if (!add.length) return;
   let list = []; try { list = JSON.parse((await meta(db, "news")) || "[]"); } catch (e) {}
-  const have = new Set(list.map(n => n.link));
+  const key = n => n.title.replace(/\W+/g, "").slice(0, 60).toLowerCase();
+  const have = new Set(list.map(n => n.link)), haveT = new Set(list.map(key));
   let changed = false;
-  for (const n of add) if (!have.has(n.link)) { list.push(n); have.add(n.link); changed = true; }
+  for (const n of add) if (!have.has(n.link) && !haveT.has(key(n))) { list.push(n); have.add(n.link); haveT.add(key(n)); changed = true; }
   if (!changed) return;
   list.sort((a, b) => b.ts - a.ts);
   await setMeta(db, "news", JSON.stringify(list.slice(0, NEWS_MAX)));
