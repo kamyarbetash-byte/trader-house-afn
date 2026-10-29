@@ -27,7 +27,7 @@ const FEEDS = [
   { src: "Hasht-e Subh", url: "https://8am.media/fa/feed/" },
 ];
 // General outlet feeds must name the topic in the headline; targeted searches may match in the summary.
-const NEWS_RE = /(Da Afghanistan Bank|\bDAB\b|central bank|afghani|\bAFN\b|auction|exchange rate|money ?changer|Sarai Shahzada|forex|د افغانستان بانک|افغانستان بانک|بانک مرکزی|لیلام|مزایده|افغانی|نرخ ارز|نرخ دالر|نرخ اسعار|اسعار|صرافی|صرافان|سرای شهزاده|ارزش پول)/i;
+const NEWS_RE = /(Da Afghanistan Bank|\bDAB\b|central bank|\bafghanis?\b|\bAFN\b|auction|exchange rate|money ?changer|Sarai Shahzada|forex|د افغانستان بانک|افغانستان بانک|بانک مرکزی|لیلام|مزایده|افغانی|نرخ ارز|نرخ دالر|نرخ اسعار|اسعار|صرافی|صرافان|سرای شهزاده|ارزش پول)/i;
 const TG_NEWS_RE = /(لیلام|ليلام|مزایده|بولی|بانک|بانك)/;
 const NEWS_MAX = 40;
 
