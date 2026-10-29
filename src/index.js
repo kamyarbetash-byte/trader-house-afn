@@ -17,23 +17,24 @@ const UA = "Mozilla/5.0 (compatible; TraderHouseRates/1.0)";
 // Feeds are checked every 30 minutes; Telegram posts that mention an auction or the central bank are added as they arrive.
 const BING = q => `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss`;
 const FEEDS = [
-  { src: "Bing News", url: BING('"Da Afghanistan Bank" OR "Afghan central bank" OR afghani') },
-  { src: "Bing News", url: BING('"د افغانستان بانک"') },
-  { src: "Bing News", url: BING('نرخ دالر افغانی') },
+  { src: "Bing News", search: true, url: BING('"Da Afghanistan Bank" OR "Afghan central bank" OR afghani') },
+  { src: "Bing News", search: true, url: BING('"د افغانستان بانک"') },
+  { src: "Bing News", search: true, url: BING('نرخ دالر افغانی') },
   { src: "Amu TV", url: "https://amu.tv/feed/" },
   { src: "Ariana News", url: "https://www.ariananews.af/feed/" },
   { src: "KabulNow", url: "https://kabulnow.com/feed/" },
   { src: "Hasht-e Subh", url: "https://8am.media/eng/feed/" },
   { src: "Hasht-e Subh", url: "https://8am.media/fa/feed/" },
 ];
-const NEWS_RE = /(لیلام|مزایده|بولی|افغانستان بانک|بانک مرکزی|افغانی|سرای شهزاده|DAB\b|Da Afghanistan Bank|central bank|auction|afghani|exchange rate|currency)/i;
+// General outlet feeds must name the topic in the headline; targeted searches may match in the summary.
+const NEWS_RE = /(Da Afghanistan Bank|\bDAB\b|central bank|afghani|\bAFN\b|auction|exchange rate|money ?changer|Sarai Shahzada|forex|د افغانستان بانک|افغانستان بانک|بانک مرکزی|لیلام|مزایده|افغانی|نرخ ارز|نرخ دالر|نرخ اسعار|اسعار|صرافی|صرافان|سرای شهزاده|ارزش پول)/i;
 const TG_NEWS_RE = /(لیلام|ليلام|مزایده|بولی|بانک|بانك)/;
 const NEWS_MAX = 40;
 
 const unxml = s => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "")
   .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;|&#39;|&apos;/g, "'")
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
-function parseFeed(xml, src) {
+function parseFeed(xml, src, search = false) {
   const out = [];
   const blocks = xml.match(/<item[\s>][\s\S]*?<\/item>/g) || xml.match(/<entry[\s>][\s\S]*?<\/entry>/g) || [];
   for (const b of blocks) {
@@ -43,7 +44,7 @@ function parseFeed(xml, src) {
     const ts = Math.floor(Date.parse(g("pubDate") || g("updated") || g("published") || g("dc:date")) / 1000);
     if (!title || !/^https?:\/\//.test(link) || !isFinite(ts)) continue;
     const desc = g("description") || g("summary");
-    if (!NEWS_RE.test(title + " " + desc)) continue;
+    if (!NEWS_RE.test(search ? title + " " + desc.slice(0, 400) : title)) continue;
     const outlet = g("source") || g("News:Source");
     const clean = outlet && title.endsWith(" - " + outlet) ? title.slice(0, -(outlet.length + 3)) : title;
     out.push({ ts, src: outlet || src, title: clean.slice(0, 220), link });
@@ -67,7 +68,7 @@ async function collectNews(db) {
     try {
       const r = await fetch(f.url, { headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36", accept: "application/rss+xml, application/xml, text/xml, */*" }, signal: AbortSignal.timeout(9000) });
       if (!r.ok) { status.push(`${f.src} ${r.status}`); return; }
-      const items = parseFeed(await r.text(), f.src);
+      const items = parseFeed(await r.text(), f.src, !!f.search);
       status.push(`${f.src} ok ${items.length}`);
       found.push(...items);
     } catch (e) { status.push(`${f.src} ${e && e.name || "error"}`); }
