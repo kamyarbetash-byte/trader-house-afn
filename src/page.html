@@ -111,7 +111,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .paneTag{position:absolute;top:4px;left:10px;font-family:var(--f-mono);font-size:11px;color:var(--muted);z-index:6;pointer-events:none}
 .empty{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:24px;color:var(--muted);background:var(--surface);z-index:3}
 .empty strong{font-family:var(--f-display);font-weight:400;font-size:24px;color:var(--ink)}
-.watermark{position:absolute;z-index:3;bottom:34px;left:18px;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;color:var(--muted);opacity:.5;pointer-events:none;direction:ltr}
+.watermark{position:absolute;z-index:3;bottom:40px;right:80px;white-space:nowrap;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;color:var(--muted);opacity:.5;pointer-events:none;direction:ltr}
 .hint{position:absolute;top:8px;right:50%;transform:translateX(50%);background:var(--ink);color:var(--bg);font-size:12.5px;padding:4px 12px;border-radius:999px;z-index:7;pointer-events:none;white-space:nowrap}
 .legend{position:absolute;top:6px;left:10px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);z-index:6;pointer-events:none;direction:ltr;display:flex;gap:10px;flex-wrap:wrap}
 .legend i{display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:4px}
@@ -176,6 +176,70 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .gbreak b{font-family:var(--f-mono);color:var(--ink);direction:ltr;text-align:left}
 .gnote{font-size:12px;color:var(--muted);margin:0}
 @media (max-width:720px){.gtop{grid-template-columns:1fr 1fr}.gtop div:first-child{grid-column:1/-1}.gcalc{grid-template-columns:1fr}}
+/* Tabs: Dollar / Gold */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;display:flex;gap:6px;padding:6px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px}
+.tabs a{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 12px;border-radius:10px;text-decoration:none;color:var(--muted);font-weight:700;font-size:15px}
+.tabs a .ti{font-family:var(--f-mono);font-size:13px;border:1px solid currentColor;border-radius:6px;padding:0 5px;line-height:1.5}
+.tabs a[aria-selected="true"]{background:var(--gold-soft);color:var(--gold);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold) 50%,transparent)}
+.tabs a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:41;background:var(--bg)}
+.page{display:flex;flex-direction:column;gap:14px}
+.slot{display:contents}
+.chartArea{display:flex;flex-direction:column;gap:12px;width:100%;min-width:0}
+.chartArea>.chartbox,.cmain{width:100%}
+.joinBtn{font:700 13px var(--f-body);color:var(--bg);background:var(--gold);border-radius:999px;padding:5px 14px;text-decoration:none;white-space:nowrap}
+/* Chart: tool rail + chart */
+.cmain{display:flex;direction:ltr;align-items:stretch}
+.rail{flex:none;width:40px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 3px;border-right:1px solid var(--line);background:var(--surface);overflow-y:auto;scrollbar-width:none;max-height:min(62vh,540px)}
+.rail::-webkit-scrollbar{display:none}
+.rail button{width:32px;height:32px;flex:none;display:grid;place-items:center;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer;padding:0}
+.rail button svg{width:20px;height:20px}
+.rail button:hover{background:var(--grid);color:var(--ink)}
+.rail button[aria-pressed="true"]{background:var(--gold-soft);color:var(--gold);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold) 55%,transparent)}
+.rail button:disabled{opacity:.35;cursor:default;background:none}
+.rail button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.rsep{width:22px;height:1px;background:var(--line);margin:4px 0;flex:none}
+.cwrap{position:relative;flex:1;min-width:0}
+.zbar{position:absolute;left:8px;bottom:34px;z-index:9;display:flex;gap:4px}
+.zbar button{width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:color-mix(in srgb,var(--surface) 88%,transparent);color:var(--ink);cursor:pointer;padding:0}
+.zbar button svg{width:17px;height:17px}
+.zbar button:hover{border-color:var(--gold);color:var(--gold)}
+.zbar button[aria-pressed="true"]{color:var(--gold);border-color:var(--gold)}
+.txtIn{position:absolute;z-index:12;font:600 13px var(--f-body);direction:rtl;padding:4px 8px;border:1px solid var(--gold);border-radius:6px;background:var(--surface);color:var(--ink);width:180px;max-width:70%}
+.chartArea.tall #chart{height:min(82vh,820px)}
+.chartArea.tall .rail{max-height:min(82vh,820px)}
+.chartArea.fs{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:hidden;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) max(10px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 8px) max(10px,env(safe-area-inset-left,0px))}
+.chartArea.fs .stats,.chartArea.fs .hero .subt{display:none}
+.chartArea.fs .hero .pair{font-size:22px}.chartArea.fs .now{font-size:24px}
+.chartArea.fs .chartbox{flex:1;min-height:0;display:flex;flex-direction:column}
+.chartArea.fs .cmain{flex:1;min-height:0}
+.chartArea.fs .rail{max-height:none}
+.chartArea.fs #chart{height:100%;min-height:200px}
+body.noscroll{overflow:hidden}
+/* TradingView */
+.tvw{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:12px 12px 8px;display:flex;flex-direction:column;gap:8px}
+.tvw h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:21px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tvw h2 small{font-family:var(--f-body);font-size:12.5px;color:var(--muted)}
+#tvc{height:min(72vh,620px);min-height:420px;direction:ltr;border-radius:10px;overflow:hidden}
+.tvcopy{font-size:11.5px;color:var(--muted);direction:ltr;text-align:left}.tvcopy a{color:var(--muted)}
+/* Join */
+.join{border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line));border-radius:16px;background:linear-gradient(160deg,var(--gold-soft),var(--surface) 55%);padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px 20px;align-items:start;scroll-margin-top:80px}
+.join h2{margin:0 0 6px;font-family:var(--f-display);font-weight:400;font-size:24px;color:var(--gold)}
+.join p{margin:0 0 6px;max-width:60ch}
+.jpriv{font-size:12.5px;color:var(--muted)}
+.jform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.jform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);min-width:0}
+.jform input:not([type=checkbox]),.jform select{font:600 15px var(--f-body);padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+.jform input:focus,.jform select:focus{outline:2px solid var(--gold);outline-offset:0}
+.jform .jchk{grid-column:1/-1;flex-direction:row;align-items:center;gap:8px;font-size:13.5px;color:var(--ink)}
+.jform .jchk input{width:18px;height:18px;accent-color:var(--gold)}
+.jbtn{grid-column:1/-1;font:700 16px var(--f-body);border:0;border-radius:10px;padding:11px;background:var(--gold);color:var(--bg);cursor:pointer}
+.jbtn[disabled]{opacity:.55;cursor:wait}
+.jform .dmsg{grid-column:1/-1}
+.hp{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;border:0!important;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}
+.gbtns span{font-size:13px;color:var(--muted);align-self:center}
+@media (max-width:720px){.watermark{display:none}.gtop dd{font-size:15px;white-space:normal}.join{grid-template-columns:1fr}.jform{grid-template-columns:1fr}.rail{width:36px}.rail button{width:30px;height:30px}.zbar{bottom:30px}#tvc{height:70vh;min-height:380px}}
 /* News */
 .news{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .news h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -212,6 +276,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     </div>
     <div class="hdr-r">
       <span class="live stale" id="live"><i></i><span id="updated">در حال بارگذاری…</span></span>
+      <a class="joinBtn" href="#join" id="joinTop">عضویت رایگان</a>
       <button type="button" class="themeBtn" id="themeBtn" title="حالت روز / شب" aria-label="تغییر حالت روز و شب">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -220,6 +285,12 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     </div>
   </header>
 
+  <nav class="tabs" role="tablist" aria-label="بخش‌ها">
+    <a href="#usd" role="tab" id="tab-usd" data-page="usd"><span class="ti">$</span> دالر / افغانی</a>
+    <a href="#gold" role="tab" id="tab-gold" data-page="gold"><span class="ti">Au</span> طلا</a>
+  </nav>
+
+  <section class="page" id="pg-usd" data-page="usd" aria-label="دالر و افغانی">
   <section class="panels" id="panels" aria-label="نرخ ولایات"></section>
   <div class="others" id="others" hidden></div>
 
@@ -227,7 +298,92 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     <h2 id="boliH">بازار بولی <small id="boliSub">نرخ پایانی آخرین معاملات همه‌ی بولی‌های افغانستان</small></h2>
     <div class="bwrap"><table class="btable"><thead><tr><th>بازار</th><th>خرید</th><th>فروش</th><th>اختلاف با کابل</th></tr></thead><tbody id="boliBody"></tbody></table></div>
   </section>
+  <div class="others" id="others" hidden></div>
 
+  <section class="boli" id="boli" hidden aria-labelledby="boliH">
+    <h2 id="boliH">بازار بولی <small id="boliSub">نرخ پایانی آخرین معاملات همه‌ی بولی‌های افغانستان</small></h2>
+    <div class="bwrap"><table class="btable"><thead><tr><th>بازار</th><th>خرید</th><th>فروش</th><th>اختلاف با کابل</th></tr></thead><tbody id="boliBody"></tbody></table></div>
+  </section>
+  <div class="slot" id="slot-usd"></div>
+  <section class="calc" aria-labelledby="calcH">
+    <h2 id="calcH">ماشین حساب صرافی <small>تبدیل دالر و افغانی با نرخ زنده، همراه مبلغ به حروف</small></h2>
+    <div class="cin">
+      <div class="seg" role="group" aria-label="نوع تبدیل" id="cDir">
+        <button type="button" data-d="u2a" aria-pressed="true">دالر ← افغانی</button>
+        <button type="button" data-d="a2u">افغانی ← دالر</button>
+      </div>
+      <div class="crow">
+        <label for="cAmt"><span id="cAmtL">مبلغ (دالر)</span><input id="cAmt" inputmode="decimal" autocomplete="off" value="1000"></label>
+        <label for="cRate">نرخ<input id="cRate" inputmode="decimal" autocomplete="off"></label>
+      </div>
+      <div class="seg" role="group" aria-label="نرخ" id="cSide">
+        <button type="button" data-s="buy">نرخ خرید</button>
+        <button type="button" data-s="mid" aria-pressed="true">نرخ میانه</button>
+        <button type="button" data-s="sell">نرخ فروش</button>
+      </div>
+    </div>
+    <div class="cout" aria-live="polite">
+      <div class="big" id="cOut">—</div>
+      <div class="words" id="cWords">—</div>
+      <div class="meta"><span id="cMeta">—</span><button type="button" id="cCopy">کاپی</button></div>
+    </div>
+  </section>
+
+  <section class="news" aria-labelledby="newsH">
+    <h2 id="newsH">د افغانستان بانک و اخبار ارز <small>لیلام دالر، تصمیم‌های بانک مرکزی و خبرهای افغانی</small></h2>
+    <div class="auction" id="auction" hidden></div>
+    <ul class="nlist" id="nlist"></ul>
+    <p class="nempty" id="nempty">خبرهای د افغانستان بانک و افغانی از رسانه‌های افغانستان (Bing News، آمو، آریانا نیوز، کابل‌نو، هشت صبح) و کانال‌های صرافی جمع می‌شوند و هر ۳۰ دقیقه به‌روز می‌شوند.</p>
+  </section>
+  </section>
+
+  <section class="page" id="pg-gold" data-page="gold" hidden aria-labelledby="goldH">
+  <section class="gold">
+    <h2 id="goldH">طلا <small>نرخ جهانی و عیارهای مختلف، حساب‌شده با نرخ دالر کابل</small></h2>
+    <dl class="gtop">
+      <div><dt>اونس جهانی (۳۱.۱ گرام)</dt><dd id="gOz">—</dd></div>
+      <div><dt>نرخ دالر (کابل)</dt><dd id="gFx">—</dd></div>
+      <div><dt>۱۸ عیار آب‌شده‌ی هرات (فاصله با جهانی)</dt><dd id="gH18">—</dd></div>
+    </dl>
+    <div class="gbtns" role="group" aria-label="چارت طلا"><span>چارت:</span><button type="button" class="chip" data-key="xau">اونس جهانی</button><button type="button" class="chip" data-key="g18herat">۱۸ عیار هرات</button></div>
+  </section>
+  <div class="slot" id="slot-gold"></div>
+  <section class="gold">
+    <h2>نرخ عیارها <small>هر گرام و هر مثقال</small></h2>
+    <div class="bwrap"><table class="btable"><thead><tr><th>عیار</th><th>خلوص</th><th>هر گرام (افغانی)</th><th>هر مثقال (افغانی)</th><th>هر گرام (دالر)</th></tr></thead><tbody id="gBody"></tbody></table></div>
+    <div class="gcalc">
+      <h3>ماشین حساب طلا و زیورات</h3>
+      <div class="cin">
+        <div class="crow">
+          <label for="gW">وزن<input id="gW" inputmode="decimal" autocomplete="off" value="10"></label>
+          <label for="gU">واحد<select id="gU"><option value="1">گرام</option><option value="4.608">مثقال (۴.۶۰۸ گرام)</option><option value="11.664">تولا (۱۱.۶۶۴ گرام)</option></select></label>
+        </div>
+        <div class="crow">
+          <label for="gK">عیار<select id="gK"><option value="0.999">۲۴ عیار</option><option value="0.916">۲۲ عیار</option><option value="0.875">۲۱ عیار</option><option value="0.75" selected>۱۸ عیار</option><option value="0.625">۱۵ عیار</option><option value="0.585">۱۴ عیار</option></select></label>
+          <label for="gM">اجرت کارخانه (دالر فی گرام)<input id="gM" inputmode="decimal" autocomplete="off" value="2"></label>
+        </div>
+      </div>
+      <div class="cout" aria-live="polite">
+        <div class="big" id="gOut">—</div>
+        <div class="words" id="gWords">—</div>
+        <div class="gbreak"><span>ارزش طلا</span><b id="gV">—</b><span>اجرت کارخانه</span><b id="gMk">—</b><span>به دالر</span><b id="gUsd">—</b></div>
+      </div>
+    </div>
+    <p class="gnote">نرخ عیارها = (اونس ÷ ۳۱.۱۰۳۵) × خلوص × نرخ دالر کابل. زیورات آماده در بازار کابل معمولاً چند دالر در هر گرام بالاتر از ارزش خام طلا فروخته می‌شوند (اجرت، کشور سازنده و فایده‌ی فروشنده). اجرت را مطابق دکان خود تغییر دهید.</p>
+  </section>
+  <section class="tvw" aria-labelledby="tvH">
+    <h2 id="tvH">چارت حرفه‌ای طلا (TradingView) <small>اونس جهانی XAU/USD با همه‌ی ابزارهای تحلیل TradingView</small></h2>
+    <div class="tradingview-widget-container" id="tvc"><p class="nempty">چارت TradingView بارگذاری می‌شود…</p></div>
+    <div class="tvcopy"><a href="https://www.tradingview.com/symbols/XAUUSD/" rel="noopener nofollow" target="_blank">چارت XAUUSD از TradingView</a></div>
+  </section>
+  <section class="news" aria-labelledby="gnewsH">
+    <h2 id="gnewsH">اخبار مهم طلا <small>بازار جهانی طلا، اونس و بازار طلای افغانستان</small></h2>
+    <ul class="nlist" id="gnlist"></ul>
+    <p class="nempty" id="gnempty">خبرهای طلا از رسانه‌های جهانی و افغانستان جمع می‌شوند و هر ۳۰ دقیقه به‌روز می‌شوند.</p>
+  </section>
+  </section>
+
+  <div id="chartArea" class="chartArea">
   <section class="hero">
     <div>
       <h1 class="pair"><b id="pairA" style="font-weight:inherit">دالر</b> <span>/</span> <b id="pairB" style="font-weight:inherit">افغانی</b></h1>
@@ -264,107 +420,76 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     </div>
   </div>
 
-  <div class="bar">
-    <div class="seg tools" role="group" aria-label="ابزار ترسیم" id="tools">
-      <button type="button" class="t" data-tool="cursor" title="اشاره‌گر و انتخاب" aria-label="اشاره‌گر"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 3l14 8-6 2-2 6z"/></svg><span>اشاره‌گر</span></button>
-      <button type="button" class="t" data-tool="trend" title="خط روند" aria-label="خط روند"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19L20 5"/><circle cx="4" cy="19" r="2" fill="currentColor"/><circle cx="20" cy="5" r="2" fill="currentColor"/></svg><span>خط روند</span></button>
-      <button type="button" class="t" data-tool="ray" title="خط امتداددار" aria-label="خط امتداددار"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18L22 7"/><circle cx="4" cy="18" r="2" fill="currentColor"/><path d="M18 5l4 2-2 4"/></svg><span>امتداددار</span></button>
-      <button type="button" class="t" data-tool="hline" title="خط افقی (حمایت/مقاومت)" aria-label="خط افقی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12h20"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg><span>افقی</span></button>
-      <button type="button" class="t" data-tool="vline" title="خط عمودی" aria-label="خط عمودی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg><span>عمودی</span></button>
-      <button type="button" class="t" data-tool="rect" title="مستطیل (ناحیه)" aria-label="مستطیل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="12" rx="1"/></svg><span>مستطیل</span></button>
-      <button type="button" class="t" data-tool="fib" title="فیبوناچی اصلاحی" aria-label="فیبوناچی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h18M3 9h18M3 13h18M3 20h18"/><path d="M5 20L19 4" stroke-dasharray="2 2"/></svg><span>فیبوناچی</span></button>
-      <button type="button" class="t" data-tool="measure" title="اندازه‌گیری تغییر قیمت" aria-label="اندازه‌گیری"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg><span>اندازه‌گیری</span></button>
-    </div>
-    <div class="seg" role="group" aria-label="ویرایش ترسیم‌ها">
-      <button type="button" id="undoBtn" title="برگشت آخرین ترسیم" aria-label="برگشت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 010 12" transform="translate(0 -6)"/></svg></button>
-      <button type="button" id="delBtn" title="حذف ترسیمِ انتخاب‌شده" aria-label="حذف انتخاب‌شده" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
-      <button type="button" id="clearBtn" title="پاک کردن همه‌ی ترسیم‌ها" aria-label="پاک کردن همه">پاک کردن همه</button>
-    </div>
-  </div>
-
   <div class="chartbox" id="box">
-    <div style="position:relative">
-      <div id="chart"></div>
-      <canvas id="ov"></canvas>
-      <div class="tbar" id="tbar" role="group" aria-label="معامله‌ی دیمو">
+    <div class="cmain">
+      <div class="rail" id="rail" role="toolbar" aria-label="ابزار ترسیم">
+        <button type="button" data-tool="cursor" title="اشاره‌گر: انتخاب، جابه‌جا کردن و تغییر ترسیم‌ها" aria-label="اشاره‌گر: انتخاب، جابه‌جا کردن و تغییر ترسیم‌ها"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 8-6 2-2 6z"/></svg></button>
+        <button type="button" data-tool="trend" title="خط روند (دو کلیک)" aria-label="خط روند (دو کلیک)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/></svg></button>
+        <button type="button" data-tool="ray" title="خط امتداددار" aria-label="خط امتداددار"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18L21 6"/><circle cx="5" cy="18" r="2"/></svg></button>
+        <button type="button" data-tool="hline" title="خط افقی (حمایت / مقاومت)" aria-label="خط افقی (حمایت / مقاومت)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><circle cx="12" cy="12" r="2"/></svg></button>
+        <button type="button" data-tool="hray" title="خط افقی از یک نقطه به راست" aria-label="خط افقی از یک نقطه به راست"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h16"/><circle cx="6" cy="12" r="2"/></svg></button>
+        <button type="button" data-tool="vline" title="خط عمودی" aria-label="خط عمودی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><circle cx="12" cy="12" r="2"/></svg></button>
+        <button type="button" data-tool="rect" title="مستطیل (ناحیه‌ی عرضه / تقاضا)" aria-label="مستطیل (ناحیه‌ی عرضه / تقاضا)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
+        <button type="button" data-tool="fib" title="فیبوناچی اصلاحی" aria-label="فیبوناچی اصلاحی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M3 10h18M3 14h18M3 19h18"/></svg></button>
+        <button type="button" data-tool="measure" title="اندازه‌گیری تغییر قیمت و زمان" aria-label="اندازه‌گیری تغییر قیمت و زمان"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg></button>
+        <button type="button" data-tool="text" title="نوشتن متن روی چارت" aria-label="نوشتن متن روی چارت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></button>
+        <span class="rsep"></span>
+        <button type="button" data-act="magnet" id="magBtn" title="مگنت: چسبیدن به بلندی، پایینی، باز و بسته‌ی کندل" aria-label="مگنت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v9a6 6 0 0012 0V3h-4v9a2 2 0 01-4 0V3z"/><path d="M6 7h4M14 7h4"/></svg></button>
+        <button type="button" data-act="stay" id="stayBtn" title="حالت ترسیم پیوسته: ابزار بعد از هر ترسیم فعال بماند" aria-label="ترسیم پیوسته"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></button>
+        <button type="button" data-act="hide" id="hideBtn" title="پنهان / نمایش همه‌ی ترسیم‌ها" aria-label="پنهان کردن ترسیم‌ها"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <span class="rsep"></span>
+        <button type="button" data-act="undo" id="undoBtn" title="برگشت آخرین ترسیم" aria-label="برگشت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button>
+        <button type="button" data-act="del" id="delBtn" title="حذف ترسیمِ انتخاب‌شده (Delete)" aria-label="حذف انتخاب‌شده" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+        <button type="button" data-act="clear" id="clearBtn" title="پاک کردن همه‌ی ترسیم‌ها" aria-label="پاک کردن همه"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 17l9-12 5 4-9 12H6z"/></svg></button>
+      </div>
+      <div class="cwrap" id="cwrap">
+        <div id="chart"></div>
+        <canvas id="ov"></canvas>
+        <div class="tbar" id="tbar" role="group" aria-label="معامله‌ی دیمو">
         <button type="button" class="ts" id="tSell" title="فروش دالر (دیمو)">SELL<small id="tBid">—</small></button>
         <input id="tQty" inputmode="decimal" autocomplete="off" value="1000" aria-label="مقدار به دالر" title="مقدار به دالر">
         <button type="button" class="tb" id="tBuy" title="خرید دالر (دیمو)">BUY<small id="tAsk">—</small></button>
       </div>
-      <div class="tpos" id="tpos" hidden><span id="tPosTxt"></span><span class="bal" id="tBal"></span><button type="button" id="tClose">بستن</button><button type="button" id="tReset" title="شروع دوباره‌ی حساب دیمو">↺</button></div>
-      <div class="legend" id="legend"></div>
-      <div class="hint" id="hint" hidden></div>
-      <div class="ttoast" id="tToast" hidden></div>
-      <div class="watermark">RAAHBAR · USD/AFN</div>
+        <div class="tpos" id="tpos" hidden><span id="tPosTxt"></span><span class="bal" id="tBal"></span><button type="button" id="tClose">بستن</button><button type="button" id="tReset" title="شروع دوباره‌ی حساب دیمو">↺</button></div>
+        <div class="legend" id="legend"></div>
+        <div class="hint" id="hint" hidden></div>
+        <div class="ttoast" id="tToast" hidden></div>
+        <div class="zbar" id="zbar" role="group" aria-label="بزرگ‌نمایی چارت">
+          <button type="button" data-z="out" title="کوچک‌نمایی (دیدن کندل‌های بیشتر)" aria-label="کوچک‌نمایی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
+          <button type="button" data-z="in" title="بزرگ‌نمایی (دیدن جزئیات)" aria-label="بزرگ‌نمایی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg></button>
+          <button type="button" data-z="fit" title="نمایش همه‌ی چارت" aria-label="نمایش همه"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+          <button type="button" data-z="tall" id="tallBtn" title="بلندتر / کوتاه‌تر کردن چارت" aria-label="تغییر ارتفاع چارت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg></button>
+          <button type="button" data-z="fs" id="fsBtn" title="تمام صفحه" aria-label="تمام صفحه"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></button>
+        </div>
+        <div class="watermark">RAAHBAR · nerkh</div>
+      </div>
     </div>
     <div id="rsiBox" hidden><span class="paneTag">RSI 14</span><div id="rsi"></div></div>
     <div class="empty" id="empty"><strong>در حال بارگذاری نرخ‌ها</strong><span id="emptyMsg">چند لحظه صبر کنید.</span></div>
   </div>
+  </div>
 
-  <section class="gold" aria-labelledby="goldH">
-    <h2 id="goldH">طلا <small>نرخ جهانی و عیارهای مختلف، حساب‌شده با نرخ دالر کابل</small></h2>
-    <dl class="gtop">
-      <div><dt>اونس جهانی (۳۱.۱ گرام)</dt><dd id="gOz">—</dd></div>
-      <div><dt>نرخ دالر (کابل)</dt><dd id="gFx">—</dd></div>
-      <div><dt>۱۸ عیار آب‌شده‌ی هرات (فاصله با جهانی)</dt><dd id="gH18">—</dd></div>
-    </dl>
-    <div class="bwrap"><table class="btable"><thead><tr><th>عیار</th><th>خلوص</th><th>هر گرام (افغانی)</th><th>هر مثقال (افغانی)</th><th>هر گرام (دالر)</th></tr></thead><tbody id="gBody"></tbody></table></div>
-    <div class="gbtns"><button type="button" class="chip" data-key="xau">چارت اونس جهانی</button><button type="button" class="chip" data-key="g18herat">چارت ۱۸ عیار هرات</button></div>
-    <div class="gcalc">
-      <h3>ماشین حساب طلا و زیورات</h3>
-      <div class="cin">
-        <div class="crow">
-          <label for="gW">وزن<input id="gW" inputmode="decimal" autocomplete="off" value="10"></label>
-          <label for="gU">واحد<select id="gU"><option value="1">گرام</option><option value="4.608">مثقال (۴.۶۰۸ گرام)</option><option value="11.664">تولا (۱۱.۶۶۴ گرام)</option></select></label>
-        </div>
-        <div class="crow">
-          <label for="gK">عیار<select id="gK"><option value="0.999">۲۴ عیار</option><option value="0.916">۲۲ عیار</option><option value="0.875">۲۱ عیار</option><option value="0.75" selected>۱۸ عیار</option><option value="0.625">۱۵ عیار</option><option value="0.585">۱۴ عیار</option></select></label>
-          <label for="gM">اجرت کارخانه (دالر فی گرام)<input id="gM" inputmode="decimal" autocomplete="off" value="2"></label>
-        </div>
-      </div>
-      <div class="cout" aria-live="polite">
-        <div class="big" id="gOut">—</div>
-        <div class="words" id="gWords">—</div>
-        <div class="gbreak"><span>ارزش طلا</span><b id="gV">—</b><span>اجرت کارخانه</span><b id="gMk">—</b><span>به دالر</span><b id="gUsd">—</b></div>
-      </div>
+  <section class="join" id="join" aria-labelledby="joinH">
+    <div class="jtext">
+      <h2 id="joinH">عضویت رایگان راهبر</h2>
+      <p>اختیاری است. اعضا نرخ‌ها و خبرهای مهم دالر و طلا را زودتر دریافت می‌کنند و از امکانات تازه‌ی سایت باخبر می‌شوند.</p>
+      <p class="jpriv">شماره‌ی شما فقط برای فرستادن نرخ و خبرهای راهبر استفاده می‌شود و با هیچ‌کس شریک نمی‌شود.</p>
     </div>
-    <p class="gnote">نرخ عیارها = (اونس ÷ ۳۱.۱۰۳۵) × خلوص × نرخ دالر کابل. زیورات آماده در بازار کابل معمولاً چند دالر در هر گرام بالاتر از ارزش خام طلا فروخته می‌شوند (اجرت، کشور سازنده و فایده‌ی فروشنده). اجرت را مطابق دکان خود تغییر دهید.</p>
+    <form class="jform" id="joinForm" novalidate>
+      <label for="jName">نام<input id="jName" name="jName" autocomplete="name" maxlength="60" required></label>
+      <label for="jPhone">شماره‌ی تماس / واتساپ<input id="jPhone" name="jPhone" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xx xxx xxx" maxlength="20" required></label>
+      <label for="jCity">ولایت<select id="jCity" name="jCity"><option>کابل</option><option>هرات</option><option>بلخ / مزارشریف</option><option>قندهار</option><option>ننگرهار</option><option>غزنی</option><option>خوست</option><option>کندز</option><option>بدخشان</option><option>بامیان</option><option>ولایت دیگر</option><option>خارج از کشور</option></select></label>
+      <label for="jRole">کار شما<select id="jRole" name="jRole"><option>صراف</option><option>تاجر</option><option>زرگر</option><option>معامله‌گر / تحلیل‌گر</option><option>مردم عام</option><option>دیگر</option></select></label>
+      <label class="jchk" for="jWants"><input type="checkbox" id="jWants" name="jWants" checked> نرخ‌ها و خبرهای مهم را برایم بفرستید</label>
+      <input type="text" name="website" id="jWeb" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+      <button type="submit" class="jbtn" id="jBtn">ثبت عضویت</button>
+      <p class="dmsg" id="jMsg" role="status"></p>
+    </form>
   </section>
 
-  <section class="calc" aria-labelledby="calcH">
-    <h2 id="calcH">ماشین حساب صرافی <small>تبدیل دالر و افغانی با نرخ زنده، همراه مبلغ به حروف</small></h2>
-    <div class="cin">
-      <div class="seg" role="group" aria-label="نوع تبدیل" id="cDir">
-        <button type="button" data-d="u2a" aria-pressed="true">دالر ← افغانی</button>
-        <button type="button" data-d="a2u">افغانی ← دالر</button>
-      </div>
-      <div class="crow">
-        <label for="cAmt"><span id="cAmtL">مبلغ (دالر)</span><input id="cAmt" inputmode="decimal" autocomplete="off" value="1000"></label>
-        <label for="cRate">نرخ<input id="cRate" inputmode="decimal" autocomplete="off"></label>
-      </div>
-      <div class="seg" role="group" aria-label="نرخ" id="cSide">
-        <button type="button" data-s="buy">نرخ خرید</button>
-        <button type="button" data-s="mid" aria-pressed="true">نرخ میانه</button>
-        <button type="button" data-s="sell">نرخ فروش</button>
-      </div>
-    </div>
-    <div class="cout" aria-live="polite">
-      <div class="big" id="cOut">—</div>
-      <div class="words" id="cWords">—</div>
-      <div class="meta"><span id="cMeta">—</span><button type="button" id="cCopy">کاپی</button></div>
-    </div>
-  </section>
+  <p class="note">هر کندل از نرخ‌های اعلام‌شده و معاملات انجام‌شده در همان بازه ساخته می‌شود (میانه‌ی خرید و فروش). «میانگین بازار» میانگین آخرین نرخ کابل، مزارشریف، هرات و قندهار است (نرخ‌های قدیمی‌تر از ۶ ساعت حساب نمی‌شوند). ترسیم‌های شما فقط در همین مرورگر ذخیره می‌شوند. صفحه هر ۳۰ ثانیه خودکار به‌روز می‌شود. منبع اخبار: Bing News و رسانه‌های افغانستان. منبع نرخ‌ها: کانال‌های تلگرام <a href="https://t.me/kabul_dollar" target="_blank" rel="noopener">@kabul_dollar</a>، <a href="https://t.me/Exchange_Rate" target="_blank" rel="noopener">@Exchange_Rate</a>، <a href="https://t.me/Mazar_Nerkh" target="_blank" rel="noopener">@Mazar_Nerkh</a> و <a href="https://t.me/herat_gold" target="_blank" rel="noopener">@herat_gold</a>. چارت حرفه‌ای طلا از TradingView.</p>
 
-  <section class="news" aria-labelledby="newsH">
-    <h2 id="newsH">د افغانستان بانک و اخبار ارز <small>لیلام دالر، تصمیم‌های بانک مرکزی و خبرهای افغانی</small></h2>
-    <div class="auction" id="auction" hidden></div>
-    <ul class="nlist" id="nlist"></ul>
-    <p class="nempty" id="nempty">خبرهای د افغانستان بانک و افغانی از رسانه‌های افغانستان (Bing News، آمو، آریانا نیوز، کابل‌نو، هشت صبح) و کانال‌های صرافی جمع می‌شوند و هر ۳۰ دقیقه به‌روز می‌شوند.</p>
-  </section>
-
-  <p class="note">هر کندل از نرخ‌های اعلام‌شده و معاملات انجام‌شده در همان بازه ساخته می‌شود (میانه‌ی خرید و فروش). «میانگین بازار» میانگین آخرین نرخ کابل، مزارشریف، هرات و قندهار است (نرخ‌های قدیمی‌تر از ۶ ساعت حساب نمی‌شوند). ترسیم‌های شما فقط در همین مرورگر ذخیره می‌شوند. صفحه هر ۳۰ ثانیه خودکار به‌روز می‌شود. منبع اخبار: Bing News و رسانه‌های افغانستان. منبع نرخ‌ها: کانال‌های تلگرام <a href="https://t.me/kabul_dollar" target="_blank" rel="noopener">@kabul_dollar</a> و <a href="https://t.me/Mazar_Nerkh" target="_blank" rel="noopener">@Mazar_Nerkh</a>.</p>
-
-  <footer><span>تحلیل و چارت: راهبر · Raahbar</span><span id="foot">—</span></footer>
+  <footer><span>راهبر · Raahbar — نرخ زنده‌ی دالر و طلا برای همه‌ی افغانستان</span><span id="foot">—</span></footer>
 </div>
 
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
@@ -465,7 +590,6 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     chart.timeScale().subscribeVisibleLogicalRangeChange(r=>{schedule();if(syncing||!r||!ind.rsi)return;syncing=true;rsiChart.timeScale().setVisibleLogicalRange(r);syncing=false});
     rsiChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(syncing||!r)return;syncing=true;chart.timeScale().setVisibleLogicalRange(r);syncing=false});
     chart.subscribeCrosshairMove(schedule);
-    chart.subscribeClick(onChartClick);
     try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',retheme)}catch(e){}
   }
 
@@ -571,7 +695,9 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       for(const [k,n] of have){const st=statsOf(series[k]);const c=document.createElement('button');c.type='button';c.className='chip';c.dataset.key=k;c.setAttribute('aria-pressed',String(k===sel));
         c.append(n);const b=document.createElement('b');b.textContent=en(st.price);c.appendChild(b);O.appendChild(c)}}
   }
-  function select(k){if(k===sel)return;sel=k;store.set('th-sel',k);loadDraw();renderAll(true)}
+  const pageOf=k=>GOLD[k]?'gold':'usd';
+  let page=null;
+  function select(k){if(k===sel)return;sel=k;store.set('th-sel',k);store.set('th-sel-'+pageOf(k),k);if(page&&pageOf(k)!==page)showPage(pageOf(k));loadDraw();renderAll(true)}
   $('panels').addEventListener('click',e=>{const b=e.target.closest('[data-key]');if(b)select(b.dataset.key)});
   $('others').addEventListener('click',e=>{const b=e.target.closest('[data-key]');if(b)select(b.dataset.key)});
 
@@ -606,29 +732,37 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   $('inds').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const k=b.dataset.ind;ind[k]=!ind[k];store.set('th-ind',ind);syncButtons();renderChart(k==='deals')});
   syncButtons();
 
-  /* ---------- drawing tools ---------- */
-  const ov=$('ov'),og=ov.getContext('2d');
-  const D={tool:'cursor',items:[],pending:null,down:null,sel:-1};
-  const ONE={hline:1,vline:1};
-  const HINTS={trend:'نقطه‌ی اول را بزنید و بکشید',ray:'نقطه‌ی اول را بزنید و بکشید',hline:'روی سطح قیمت بزنید',vline:'روی زمان مورد نظر بزنید',rect:'گوشه‌ی اول را بزنید و بکشید',fib:'از کف به سقف (یا برعکس) بکشید',measure:'از نقطه‌ی شروع تا پایان بکشید'};
-  function loadDraw(){D.items=store.get('th-draw-'+sel,[]);D.sel=-1;D.pending=null;updDel()}
+  /* ---------- drawing tools (TradingView-style rail) ---------- */
+  const ov=$('ov'),og=ov.getContext('2d'),wrap=$('cwrap');
+  let txtEl=null;
+  const D={tool:'cursor',items:[],pending:null,down:null,sel:-1,drag:null,magnet:store.get('th-magnet',true),stay:store.get('th-stay',false),hide:false};
+  const ONE={hline:1,vline:1,hray:1,text:1};
+  const HINTS={trend:'نقطه‌ی اول را کلیک کنید، بعد نقطه‌ی دوم را',ray:'نقطه‌ی شروع را کلیک کنید، بعد جهت خط را',hline:'روی سطح قیمت کلیک کنید',hray:'روی نقطه‌ی شروع کلیک کنید',vline:'روی زمان مورد نظر کلیک کنید',
+    rect:'گوشه‌ی اول را کلیک کنید، بعد گوشه‌ی مقابل را',fib:'کف را کلیک کنید، بعد سقف را (یا برعکس)',measure:'نقطه‌ی شروع را کلیک کنید، بعد نقطه‌ی پایان را',text:'جای متن را روی چارت کلیک کنید'};
+  function loadDraw(){D.items=store.get('th-draw-'+sel,[]);D.sel=-1;D.pending=null;D.drag=null;updDel()}
   function saveDraw(){store.set('th-draw-'+sel,D.items)}
-  function setTool(t){D.tool=t;D.pending=null;D.down=null;ov.classList.toggle('on',t!=='cursor');
-    document.querySelectorAll('#tools button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===t)));
-    const h=$('hint');h.hidden=t==='cursor';h.textContent=HINTS[t]||'';schedule()}
-  function updDel(){$('delBtn').disabled=D.sel<0}
-  $('tools').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTool(D.tool===b.dataset.tool&&b.dataset.tool!=='cursor'?'cursor':b.dataset.tool)});
-  $('undoBtn').addEventListener('click',()=>{if(D.pending){D.pending=null}else if(D.items.length){D.items.pop();saveDraw()}D.sel=-1;updDel();schedule()});
-  $('delBtn').addEventListener('click',()=>{if(D.sel<0)return;D.items.splice(D.sel,1);D.sel=-1;saveDraw();updDel();schedule()});
+  function setTool(t){D.tool=t;D.pending=null;D.down=null;closeText();ov.classList.toggle('on',t!=='cursor');
+    document.querySelectorAll('#rail [data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===t)));
+    const h=$('hint');h.hidden=t==='cursor';h.textContent=HINTS[t]||'';wrap.style.cursor='';schedule()}
+  function updDel(){$('delBtn').disabled=D.sel<0;$('magBtn').setAttribute('aria-pressed',String(D.magnet));$('stayBtn').setAttribute('aria-pressed',String(D.stay));$('hideBtn').setAttribute('aria-pressed',String(D.hide))}
   let clearArmed=false;
-  $('clearBtn').addEventListener('click',e=>{if(!D.items.length)return;if(!clearArmed){clearArmed=true;e.currentTarget.textContent='مطمئن؟ دوباره بزنید';setTimeout(()=>{clearArmed=false;$('clearBtn').textContent='پاک کردن همه'},3000);return}
-    clearArmed=false;$('clearBtn').textContent='پاک کردن همه';D.items=[];D.sel=-1;saveDraw();updDel();schedule()});
-  document.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,textarea'))return;
-    if(e.key==='Escape'){setTool('cursor');D.sel=-1;updDel()}
-    if((e.key==='Delete'||e.key==='Backspace')&&D.sel>=0){D.items.splice(D.sel,1);D.sel=-1;saveDraw();updDel();schedule()}});
+  $('rail').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+    if(b.dataset.tool){const t=b.dataset.tool;if(D.hide){D.hide=false;updDel()}setTool(D.tool===t&&t!=='cursor'?'cursor':t);return}
+    const a=b.dataset.act;
+    if(a==='magnet'){D.magnet=!D.magnet;store.set('th-magnet',D.magnet);toast(D.magnet?'مگنت روشن شد: نقطه‌ها به کندل می‌چسبند':'مگنت خاموش شد')}
+    if(a==='stay'){D.stay=!D.stay;store.set('th-stay',D.stay);toast(D.stay?'ابزار بعد از هر ترسیم فعال می‌ماند':'ابزار بعد از هر ترسیم به اشاره‌گر برمی‌گردد')}
+    if(a==='hide'){D.hide=!D.hide;if(D.hide){setTool('cursor');D.sel=-1}toast(D.hide?'ترسیم‌ها پنهان شدند':'ترسیم‌ها نمایش داده می‌شوند')}
+    if(a==='undo'){if(D.pending){D.pending=null;setTool(D.tool)}else if(D.items.length){D.items.pop();saveDraw()}D.sel=-1}
+    if(a==='del'&&D.sel>=0){D.items.splice(D.sel,1);D.sel=-1;saveDraw()}
+    if(a==='clear'&&D.items.length){if(!clearArmed){clearArmed=true;toast('برای پاک کردن همه‌ی ترسیم‌ها دوباره بزنید');setTimeout(()=>clearArmed=false,3000);return}
+      clearArmed=false;D.items=[];D.sel=-1;saveDraw();toast('همه‌ی ترسیم‌ها پاک شد')}
+    updDel();schedule()});
+  document.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,textarea,select'))return;
+    if(e.key==='Escape'){if($('chartArea').classList.contains('fs'))toggleFs(false);setTool('cursor');D.sel=-1;updDel()}
+    if((e.key==='Delete'||e.key==='Backspace')&&D.sel>=0){e.preventDefault();D.items.splice(D.sel,1);D.sel=-1;saveDraw();updDel();schedule()}});
   setTool('cursor');loadDraw();
 
-  // time <-> logical index (works across timeframes because drawings are stored as time and price)
+  // time <-> logical index (drawings are stored as time and price, so they survive timeframe changes)
   function t2l(t){const b=bars,n=b.length;if(!n)return null;if(n===1||t<=b[0].time)return(t-b[0].time)/tf;
     if(t>=b[n-1].time)return n-1+(t-b[n-1].time)/tf;let lo=0,hi=n-1;while(hi-lo>1){const m=(lo+hi)>>1;if(b[m].time<=t)lo=m;else hi=m}
     return lo+(t-b[lo].time)/(b[hi].time-b[lo].time)}
@@ -636,70 +770,141 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     const i=Math.floor(l);return b[i].time+(l-i)*(b[i+1].time-b[i].time)}
   function X(t){const l=t2l(t);return l==null?null:chart.timeScale().logicalToCoordinate(l)}
   function Y(p){return candles.priceToCoordinate(p)}
-  function at(x,y){const l=chart.timeScale().coordinateToLogical(x),p=candles.coordinateToPrice(y);if(l==null||p==null)return null;return{t:l2t(l),p:+p.toFixed(3)}}
+  const dec=()=>sel==='xau'?2:GOLD[sel]?0:3;
+  function at(x,y){const l=chart.timeScale().coordinateToLogical(x),p=candles.coordinateToPrice(y);if(l==null||p==null)return null;return{t:l2t(l),p:+p.toFixed(dec()),l}}
+  // Magnet: snap to the nearest open/high/low/close of the bar under the pointer.
+  function snap(pt,y){if(!pt||!D.magnet||!bars.length)return pt;
+    const i=Math.max(0,Math.min(bars.length-1,Math.round(pt.l)));if(Math.abs(pt.l-i)>0.6)return pt;const b=bars[i];
+    let best=null,bd=16;for(const v of [b.high,b.low,b.open,b.close]){const yy=Y(v);if(yy==null)continue;const d=Math.abs(yy-y);if(d<bd){bd=d;best=v}}
+    return best==null?pt:{t:b.time,p:best,l:i}}
+  const pos=e=>{const r=wrap.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+  const strip=p=>({t:p.t,p:p.p});
 
   function size(){const c=$('chart'),dpr=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
     if(ov.width!==Math.round(w*dpr)||ov.height!==Math.round(h*dpr)){ov.width=Math.round(w*dpr);ov.height=Math.round(h*dpr);ov.style.width=w+'px';ov.style.height=h+'px'}
     return{w,h,dpr}}
-  function label(g,txt,x,y,bg,fg){g.font='600 11px JetBrains Mono, monospace';const w=g.measureText(txt).width+10;g.fillStyle=bg;g.fillRect(x,y-9,w,18);g.fillStyle=fg;g.textBaseline='alphabetic';g.fillText(txt,x+5,y+4);return w}
-  const labelW=(g,txt)=>{g.font='600 11px JetBrains Mono, monospace';return g.measureText(txt).width+10};
+  const FONT='600 11px JetBrains Mono, monospace',TFONT='700 13px Vazirmatn, Tahoma, sans-serif';
+  function label(g,txt,x,y,bg,fg){g.font=FONT;const w=g.measureText(txt).width+10;g.fillStyle=bg;g.fillRect(x,y-9,w,18);g.fillStyle=fg;g.textBaseline='alphabetic';g.fillText(txt,x+5,y+4);return w}
+  const labelW=(g,txt)=>{g.font=FONT;return g.measureText(txt).width+10};
+  const fmtP=p=>Number(p).toFixed(dec()===0?0:2);
   const FIB=[0,.236,.382,.5,.618,.786,1];
+  function geo(it){return{x1:X(it.a.t),y1:Y(it.a.p),x2:it.b?X(it.b.t):null,y2:it.b?Y(it.b.p):null}}
+  function textBox(it){const {x1,y1}=geo(it);if(x1==null||y1==null)return null;og.font=TFONT;const w=og.measureText(it.text||'').width+14;return{x:x1,y:y1-22,w,h:24}}
   function draw(){
     raf=0;if(!chart)return;
     const {w,h,dpr}=size();og.setTransform(dpr,0,0,dpr,0,0);og.clearRect(0,0,w,h);
+    if(D.hide)return;
     const pw=w-chart.priceScale('right').width(),ph=h-chart.timeScale().height();
     og.save();og.beginPath();og.rect(0,0,pw,ph);og.clip();
-    const gold=css('--gold'),ink=css('--ink'),bg=css('--surface'),up=css('--up'),dn=css('--down');
+    const gold=css('--gold'),bg=css('--surface'),ink=css('--ink'),up=css('--up'),dn=css('--down');
     const list=D.items.slice();if(D.pending&&D.pending.b)list.push(D.pending);
+    const dot=(x,y)=>{og.beginPath();og.arc(x,y,5,0,7);og.fillStyle=bg;og.fill();og.lineWidth=2;og.strokeStyle=gold;og.stroke()};
     list.forEach((it,i)=>{
       const selected=i===D.sel||it===D.pending;
       og.strokeStyle=gold;og.fillStyle=gold;og.lineWidth=selected?2.2:1.6;og.setLineDash([]);
-      const x1=X(it.a.t),y1=Y(it.a.p),x2=it.b?X(it.b.t):null,y2=it.b?Y(it.b.p):null;
-      if(it.type==='hline'){if(y1==null)return;og.beginPath();og.moveTo(0,y1);og.lineTo(pw,y1);og.stroke();label(og,en(it.a.p),pw-labelW(og,en(it.a.p))-4,y1,gold,bg);return}
-      if(it.type==='vline'){if(x1==null)return;og.beginPath();og.moveTo(x1,0);og.lineTo(x1,ph);og.stroke();return}
+      const {x1,y1,x2,y2}=geo(it);
+      if(it.type==='hline'){if(y1==null)return;og.beginPath();og.moveTo(0,y1);og.lineTo(pw,y1);og.stroke();label(og,fmtP(it.a.p),pw-labelW(og,fmtP(it.a.p))-4,y1,gold,bg);if(selected&&x1!=null)dot(Math.max(8,Math.min(pw-8,x1)),y1);return}
+      if(it.type==='hray'){if(y1==null||x1==null)return;og.beginPath();og.moveTo(x1,y1);og.lineTo(pw,y1);og.stroke();label(og,fmtP(it.a.p),pw-labelW(og,fmtP(it.a.p))-4,y1,gold,bg);if(selected)dot(x1,y1);return}
+      if(it.type==='vline'){if(x1==null)return;og.beginPath();og.moveTo(x1,0);og.lineTo(x1,ph);og.stroke();if(selected&&y1!=null)dot(x1,y1);return}
+      if(it.type==='text'){const bx=textBox(it);if(!bx)return;og.globalAlpha=.92;og.fillStyle=bg;og.fillRect(bx.x,bx.y,bx.w,bx.h);og.globalAlpha=1;og.strokeStyle=gold;og.lineWidth=selected?2:1;og.strokeRect(bx.x,bx.y,bx.w,bx.h);
+        og.fillStyle=ink;og.font=TFONT;og.textBaseline='middle';og.direction='rtl';og.textAlign='right';og.fillText(it.text,bx.x+bx.w-7,bx.y+bx.h/2+1);og.direction='ltr';og.textAlign='left';og.textBaseline='alphabetic';return}
       if(x1==null||y1==null||x2==null||y2==null)return;
       if(it.type==='trend'||it.type==='ray'){og.beginPath();og.moveTo(x1,y1);
-        if(it.type==='ray'&&(x2!==x1||y2!==y1)){const k=4000/Math.hypot(x2-x1,y2-y1);og.lineTo(x1+(x2-x1)*k,y1+(y2-y1)*k)}else og.lineTo(x2,y2);og.stroke();
-        if(selected){[[x1,y1],[x2,y2]].forEach(([x,y])=>{og.beginPath();og.arc(x,y,4,0,7);og.fillStyle=bg;og.fill();og.stroke()})}return}
-      if(it.type==='rect'){og.globalAlpha=.12;og.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));og.globalAlpha=1;og.strokeRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));return}
-      if(it.type==='fib'){const L=Math.min(x1,x2),hi=it.b.p,lo=it.a.p;
-        FIB.forEach(f=>{const p=hi-(hi-lo)*f,y=Y(p);if(y==null)return;og.globalAlpha=f===.5||f===.618?1:.75;og.beginPath();og.moveTo(L,y);og.lineTo(pw,y);og.stroke();og.globalAlpha=1;
-          og.font='600 11px JetBrains Mono, monospace';og.fillStyle=gold;og.fillText(f+' ('+en(p)+')',L+4,y-4)});
-        og.setLineDash([3,3]);og.globalAlpha=.6;og.beginPath();og.moveTo(x1,y1);og.lineTo(x2,y2);og.stroke();og.globalAlpha=1;og.setLineDash([]);return}
-      if(it.type==='measure'){const d=it.b.p-it.a.p,c=d>=0?up:dn;og.fillStyle=c;og.strokeStyle=c;og.globalAlpha=.14;
+        if(it.type==='ray'&&(x2!==x1||y2!==y1)){const k=4000/Math.hypot(x2-x1,y2-y1);og.lineTo(x1+(x2-x1)*k,y1+(y2-y1)*k)}else og.lineTo(x2,y2);og.stroke()}
+      else if(it.type==='rect'){og.globalAlpha=.12;og.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));og.globalAlpha=1;og.strokeRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1))}
+      else if(it.type==='fib'){const L=Math.min(x1,x2),hi=it.b.p,lo=it.a.p;
+        FIB.forEach(f=>{const p=hi-(hi-lo)*f,y=Y(p);if(y==null)return;og.globalAlpha=f===.5||f===.618?1:.7;og.beginPath();og.moveTo(L,y);og.lineTo(pw,y);og.stroke();og.globalAlpha=1;
+          og.font=FONT;og.fillStyle=gold;og.fillText(f+' ('+fmtP(p)+')',L+4,y-4)});
+        og.setLineDash([3,3]);og.globalAlpha=.6;og.beginPath();og.moveTo(x1,y1);og.lineTo(x2,y2);og.stroke();og.globalAlpha=1;og.setLineDash([])}
+      else if(it.type==='measure'){const d=it.b.p-it.a.p,c=d>=0?up:dn;og.fillStyle=c;og.strokeStyle=c;og.globalAlpha=.14;
         og.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));og.globalAlpha=1;og.lineWidth=1.4;
         og.beginPath();og.moveTo((x1+x2)/2,y1);og.lineTo((x1+x2)/2,y2);og.stroke();
         const nb=Math.round(Math.abs(t2l(it.b.t)-t2l(it.a.t)));
-        const txt=(d>=0?'+':'')+d.toFixed(2)+'  '+(d>=0?'+':'')+(d/it.a.p*100).toFixed(2)+'%  '+nb+' bars';
-        og.font='600 11px JetBrains Mono, monospace';const tw=og.measureText(txt).width+12;
+        const txt=(d>=0?'+':'')+d.toFixed(dec()===0?0:2)+'  '+(d>=0?'+':'')+(d/it.a.p*100).toFixed(2)+'%  '+nb+' bars';
+        og.font=FONT;const tw=og.measureText(txt).width+12;
         const lx=Math.max(4,Math.min(pw-tw-4,(x1+x2)/2-tw/2)),ly=d>=0?Math.min(y1,y2)-14:Math.max(y1,y2)+14;
-        label(og,txt,lx,Math.max(12,Math.min(ph-12,ly)),c,bg);return}
+        label(og,txt,lx,Math.max(12,Math.min(ph-12,ly)),c,bg)}
+      if(selected){dot(x1,y1);dot(x2,y2)}
     });
     og.restore();
   }
   function hit(x,y){
     const near=(px,py,ax,ay,bx,by)=>{const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy))};
-    for(let i=D.items.length-1;i>=0;i--){const it=D.items[i],x1=X(it.a.t),y1=Y(it.a.p),x2=it.b?X(it.b.t):null,y2=it.b?Y(it.b.p):null;
-      if(it.type==='hline'&&y1!=null&&Math.abs(y-y1)<7)return i;
-      if(it.type==='vline'&&x1!=null&&Math.abs(x-x1)<7)return i;
+    const T=8;
+    for(let i=D.items.length-1;i>=0;i--){const it=D.items[i],{x1,y1,x2,y2}=geo(it);
+      if(it.type==='hline'&&y1!=null&&Math.abs(y-y1)<T)return i;
+      if(it.type==='hray'&&y1!=null&&x1!=null&&x>=x1-T&&Math.abs(y-y1)<T)return i;
+      if(it.type==='vline'&&x1!=null&&Math.abs(x-x1)<T)return i;
+      if(it.type==='text'){const b=textBox(it);if(b&&x>=b.x-3&&x<=b.x+b.w+3&&y>=b.y-3&&y<=b.y+b.h+3)return i;continue}
       if(x1==null||y1==null||x2==null||y2==null)continue;
-      if(it.type==='trend'&&near(x,y,x1,y1,x2,y2)<7)return i;
-      if(it.type==='ray'){const k=4000/(Math.hypot(x2-x1,y2-y1)||1);if(near(x,y,x1,y1,x1+(x2-x1)*k,y1+(y2-y1)*k)<7)return i}
-      if((it.type==='rect'||it.type==='measure'||it.type==='fib')&&x>=Math.min(x1,x2)-5&&x<=(it.type==='fib'?99999:Math.max(x1,x2)+5)&&y>=Math.min(y1,y2)-5&&y<=Math.max(y1,y2)+5)return i}
+      if(it.type==='trend'&&near(x,y,x1,y1,x2,y2)<T)return i;
+      if(it.type==='ray'){const k=4000/(Math.hypot(x2-x1,y2-y1)||1);if(near(x,y,x1,y1,x1+(x2-x1)*k,y1+(y2-y1)*k)<T)return i}
+      if((it.type==='rect'||it.type==='measure'||it.type==='fib')&&x>=Math.min(x1,x2)-T&&x<=(it.type==='fib'?99999:Math.max(x1,x2)+T)&&y>=Math.min(y1,y2)-T&&y<=Math.max(y1,y2)+T)return i}
     return -1}
-  function onChartClick(p){if(D.tool!=='cursor'||!p.point)return;D.sel=hit(p.point.x,p.point.y);updDel();schedule()}
-  function commit(){const it=D.pending;D.pending=null;if(it&&it.b&&(it.a.t!==it.b.t||it.a.p!==it.b.p)){D.items.push({type:it.type,a:it.a,b:it.b});D.sel=D.items.length-1;saveDraw();updDel()}setTool('cursor')}
+  function handleAt(it,x,y){if(!it||!it.b)return null;const {x1,y1,x2,y2}=geo(it);
+    if(x2!=null&&y2!=null&&Math.hypot(x-x2,y-y2)<11)return 'b';if(x1!=null&&y1!=null&&Math.hypot(x-x1,y-y1)<11)return 'a';return null}
+  function onChartClick(){}
+  function add(it){D.items.push(it);D.sel=D.items.length-1;saveDraw();updDel();setTool(D.stay?D.tool:'cursor')}
+  function commit(){const it=D.pending;D.pending=null;D.down=null;if(it&&it.b&&(it.a.t!==it.b.t||it.a.p!==it.b.p))add({type:it.type,a:strip(it.a),b:strip(it.b)});else setTool(D.tool)}
+  // Text tool: a small input on the chart; Enter saves it.
+  function closeText(){if(txtEl){txtEl.remove();txtEl=null}}
+  function openText(x,y,pt){closeText();const i=document.createElement('input');i.className='txtIn';i.maxLength=80;i.placeholder='متن را بنویسید و Enter بزنید';
+    i.style.left=Math.max(4,Math.min(x,wrap.clientWidth-190))+'px';i.style.top=Math.max(4,y-34)+'px';wrap.appendChild(i);txtEl=i;i.focus();setTimeout(()=>{if(document.activeElement!==i)i.focus()},30);
+    let done=false;const fin=ok=>{if(done)return;done=true;const v=i.value.trim();closeText();if(ok&&v)add({type:'text',a:strip(pt),text:v});else setTool(D.stay?D.tool:'cursor')};
+    i.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')fin(true);if(e.key==='Escape')fin(false)});i.addEventListener('blur',()=>fin(true))}
+  // Drawing: click-click or press-drag-release, like TradingView.
   ov.addEventListener('pointerdown',e=>{
-    if(D.tool==='cursor')return;e.preventDefault();
-    const pt=at(e.offsetX,e.offsetY);if(!pt)return;
-    if(ONE[D.tool]){D.items.push({type:D.tool,a:pt});D.sel=D.items.length-1;saveDraw();updDel();setTool('cursor');return}
-    if(D.pending){D.pending.b=pt;commit();return}
-    D.pending={type:D.tool,a:pt,b:pt};D.down={x:e.offsetX,y:e.offsetY};
+    if(D.tool==='cursor')return;e.preventDefault();e.stopPropagation();
+    const {x,y}=pos(e);const pt=snap(at(x,y),y);if(!pt)return;
+    if(D.tool==='text'){openText(x,y,pt);return}
+    if(ONE[D.tool]){add({type:D.tool,a:strip(pt)});return}
+    if(D.pending){D.pending.b=strip(pt);commit();return}
+    D.pending={type:D.tool,a:strip(pt),b:strip(pt)};D.down={x,y};$('hint').textContent='حالا نقطه‌ی دوم را کلیک کنید';
     try{ov.setPointerCapture(e.pointerId)}catch(_){}schedule()});
-  ov.addEventListener('pointermove',e=>{if(!D.pending)return;const pt=at(e.offsetX,e.offsetY);if(pt){D.pending.b=pt;schedule()}});
-  ov.addEventListener('pointerup',e=>{if(!D.pending||!D.down)return;const moved=Math.hypot(e.offsetX-D.down.x,e.offsetY-D.down.y)>6;D.down=null;if(moved)commit();else $('hint').textContent='نقطه‌ی دوم را بزنید'});
+  ov.addEventListener('pointermove',e=>{if(!D.pending)return;const {x,y}=pos(e);const pt=snap(at(x,y),y);if(pt){D.pending.b=strip(pt);schedule()}});
+  ov.addEventListener('pointerup',e=>{if(!D.pending||!D.down)return;const {x,y}=pos(e);const moved=Math.hypot(x-D.down.x,y-D.down.y)>8;D.down=null;if(moved)commit()});
+  // Cursor mode: click a drawing to select it, drag it to move, drag its end points to reshape it.
+  wrap.addEventListener('pointerdown',e=>{
+    if(D.tool!=='cursor'||D.hide||e.target.closest('button,input,.tbar,.tpos,.zbar'))return;
+    const {x,y}=pos(e);let i=-1,key=null;
+    if(D.sel>=0){key=handleAt(D.items[D.sel],x,y);if(key)i=D.sel}
+    if(i<0)i=hit(x,y);
+    if(i<0){if(D.sel>=0){D.sel=-1;updDel();schedule()}return}
+    e.stopPropagation();e.preventDefault();
+    D.sel=i;updDel();
+    const start=at(x,y);if(!start){schedule();return}
+    D.drag={i,key,start,orig:JSON.parse(JSON.stringify(D.items[i])),moved:false};
+    try{wrap.setPointerCapture(e.pointerId)}catch(_){}
+    schedule()},true);
+  wrap.addEventListener('pointermove',e=>{
+    const {x,y}=pos(e);
+    if(D.drag){e.stopPropagation();const pt=at(x,y);if(!pt)return;D.drag.moved=true;
+      const it=D.items[D.drag.i],o=D.drag.orig;
+      if(D.drag.key){it[D.drag.key]=strip(snap(pt,y))}
+      else{const dl=pt.l-D.drag.start.l,dp=pt.p-D.drag.start.p,mv=q=>({t:l2t(t2l(q.t)+dl),p:+(q.p+dp).toFixed(dec())});
+        it.a=it.type==='hline'?{t:o.a.t,p:mv(o.a).p}:it.type==='vline'?{t:mv(o.a).t,p:o.a.p}:mv(o.a);if(o.b)it.b=mv(o.b)}
+      schedule();return}
+    if(D.tool==='cursor'&&!D.hide&&e.pointerType==='mouse'){const k=D.sel>=0&&handleAt(D.items[D.sel],x,y);wrap.style.cursor=k?'grab':hit(x,y)>=0?'move':''}
+  },true);
+  const endDrag=e=>{if(!D.drag)return;e.stopPropagation();const m=D.drag.moved;D.drag=null;if(m)saveDraw();schedule()};
+  wrap.addEventListener('pointerup',endDrag,true);wrap.addEventListener('pointercancel',endDrag,true);
+  ['mousedown','mousemove','touchstart'].forEach(t=>wrap.addEventListener(t,e=>{if(D.drag)e.stopPropagation()},{capture:true,passive:true}));
+  wrap.addEventListener('touchmove',e=>{if(D.drag){e.stopPropagation();e.preventDefault()}},{capture:true,passive:false});
   ['pointermove','wheel','touchmove','pointerup'].forEach(ev=>$('box').addEventListener(ev,schedule,{passive:true}));
   try{new ResizeObserver(schedule).observe($('chart'))}catch(e){window.addEventListener('resize',schedule)}
+
+  /* ---------- zoom, height, full screen ---------- */
+  function toggleFs(on){const a=$('chartArea'),v=on==null?!a.classList.contains('fs'):on;a.classList.toggle('fs',v);document.body.classList.toggle('noscroll',v);
+    $('fsBtn').setAttribute('aria-pressed',String(v));$('fsBtn').title=v?'خروج از تمام صفحه (Esc)':'تمام صفحه';setTimeout(schedule,60)}
+  if(store.get('th-tall',false))$('chartArea').classList.add('tall');
+  $('tallBtn').setAttribute('aria-pressed',String($('chartArea').classList.contains('tall')));
+  $('zbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!chart)return;const ts=chart.timeScale(),z=b.dataset.z;
+    if(z==='in'||z==='out'){const r=ts.getVisibleLogicalRange();if(!r)return;const span=(r.to-r.from)*(z==='in'?0.7:1.45);ts.setVisibleLogicalRange({from:r.to-span,to:r.to})}
+    if(z==='fit')ts.fitContent();
+    if(z==='tall'){const v=$('chartArea').classList.toggle('tall');store.set('th-tall',v);b.setAttribute('aria-pressed',String(v));setTimeout(schedule,60)}
+    if(z==='fs')toggleFs();
+    schedule()});
+
 
   /* ---------- boli board ---------- */
   const MARKET={kabul:['کابل','سرای شهزاده'],mazar:['مزارشریف','کفایت مارکیت'],herat:['هرات','خراسان مارکیت'],kandahar:['قندهار','اخیر بازار'],jalalabad:['جلال‌آباد','اخیر بازار'],ghazni:['غزنی','اخیر بازار'],khost:['خوست','اخیر بازار']};
@@ -848,13 +1053,14 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   }
   ['gW','gM'].forEach(i=>$(i).addEventListener('input',calcGold));
   ['gU','gK'].forEach(i=>$(i).addEventListener('change',calcGold));
-  document.querySelector('.gbtns').addEventListener('click',e=>{const b=e.target.closest('[data-key]');if(!b)return;select(b.dataset.key);$('box').scrollIntoView({behavior:'smooth',block:'start'})});
+  document.querySelector('.gbtns').addEventListener('click',e=>{const b=e.target.closest('[data-key]');if(!b)return;select(b.dataset.key);renderGoldChips()});
+  function renderGoldChips(){document.querySelectorAll('.gbtns [data-key]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.key===sel)))}
 
   /* ---------- day / night ---------- */
   function isDark(){const t=document.documentElement.getAttribute('data-theme');return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches}
   function syncTheme(){const d=isDark();document.documentElement.classList.toggle('is-dark',d);$('themeLbl').textContent=d?'حالت روز':'حالت شب';
     const m=document.querySelector('meta[name=theme-color]');if(m)m.content=d?'#0E1220':'#F3F1EC'}
-  $('themeBtn').addEventListener('click',()=>{const t=isDark()?'light':'dark';document.documentElement.setAttribute('data-theme',t);store.set('th-theme',t);syncTheme();retheme();renderPanels()});
+  $('themeBtn').addEventListener('click',()=>{const t=isDark()?'light':'dark';document.documentElement.setAttribute('data-theme',t);store.set('th-theme',t);syncTheme();retheme();renderPanels();if(tvLoaded)loadTV(true)});
   try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{syncTheme();renderPanels()})}catch(e){}
   syncTheme();
 
@@ -863,21 +1069,64 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function auctionInfo(n){const t=n.title;
     const m=t.match(/([\d۰-۹.]+)\s*(?:میلیون|million|mn|m\b)/i);if(!m||!/(لیلام|مزایده|auction)/i.test(t))return null;
     return fa(+m[1].replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))+' میلیون دالر'}
+  function renderList(ulId,emptyId,list,max){const ul=$(ulId);ul.textContent='';
+    list.slice(0,max).forEach(n=>{const li=document.createElement('li');
+      const s=document.createElement('span');s.className='nsrc';s.textContent=n.src;
+      const a=document.createElement('a');a.href=n.link;a.target='_blank';a.rel='noopener';a.textContent=n.title;
+      const t=document.createElement('span');t.className='ntime';t.textContent=ago(n.ts);
+      li.append(s,a,t);ul.appendChild(li)});
+    $(emptyId).hidden=list.length>0}
   async function loadNews(){
     try{const r=await getJSON('/api/news');const list=r.news||[];renderBoli(r.boli);if(r.gold){goldMeta=r.gold;try{renderGold()}catch(e){}}
-      const ul=$('nlist');ul.textContent='';
-      list.slice(0,12).forEach(n=>{const li=document.createElement('li');
-        const s=document.createElement('span');s.className='nsrc';s.textContent=n.src;
-        const a=document.createElement('a');a.href=n.link;a.target='_blank';a.rel='noopener';a.textContent=n.title;
-        const t=document.createElement('span');t.className='ntime';t.textContent=ago(n.ts);
-        li.append(s,a,t);ul.appendChild(li)});
-      $('nempty').hidden=list.length>0;
+      renderList('nlist','nempty',list,12);renderList('gnlist','gnempty',r.newsGold||[],15);
       const au=list.find(auctionInfo),box=$('auction');
       if(au){box.hidden=false;box.textContent='';const l=document.createElement('span');l.textContent='آخرین لیلام دالر د افغانستان بانک:';
         const b=document.createElement('b');b.textContent=auctionInfo(au);const t=document.createElement('span');t.className='ntime';t.textContent=ago(au.ts);box.append(l,b,t)}
       else box.hidden=true;
     }catch(e){}
   }
+
+  /* ---------- pages: dollar / gold ---------- */
+  function showPage(p,fromHash){
+    page=p;
+    document.querySelectorAll('.page').forEach(el=>el.hidden=el.dataset.page!==p);
+    document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-selected',String(a.dataset.page===p)));
+    $('slot-'+p).appendChild($('chartArea'));
+    if(pageOf(sel)!==p){const k=store.get('th-sel-'+p,p==='gold'?'xau':'avg');sel=NAMES[k]&&pageOf(k)===p?k:(p==='gold'?'xau':'avg');store.set('th-sel',sel);loadDraw();if(loaded)renderAll(true)}
+    if(p==='gold'){loadTV();renderGoldChips()}
+    document.title=(p==='gold'?'نرخ زنده‌ی طلا':'نرخ زنده‌ی دالر به افغانی')+' | راهبر';
+    if(!fromHash&&location.hash!=='#'+p){try{history.replaceState(null,'','#'+p)}catch(e){location.hash=p}}
+    setTimeout(schedule,60);
+  }
+  document.querySelector('.tabs').addEventListener('click',e=>{const a=e.target.closest('a[data-page]');if(!a)return;e.preventDefault();showPage(a.dataset.page);window.scrollTo({top:0,behavior:'smooth'})});
+  window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h==='usd'||h==='gold')showPage(h,true)});
+
+  /* ---------- TradingView gold chart (loaded when the gold page opens) ---------- */
+  let tvLoaded=false;
+  function loadTV(force){const box=$('tvc');if(!box||(tvLoaded&&!force))return;tvLoaded=true;box.textContent='';
+    const w=document.createElement('div');w.className='tradingview-widget-container__widget';w.style.height='100%';w.style.width='100%';box.appendChild(w);
+    const sc=document.createElement('script');sc.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';sc.async=true;
+    sc.text=JSON.stringify({autosize:true,symbol:'OANDA:XAUUSD',interval:'60',timezone:'Asia/Kabul',theme:isDark()?'dark':'light',style:'1',locale:'fa_IR',
+      allow_symbol_change:true,withdateranges:true,hide_side_toolbar:false,details:true,calendar:false,
+      watchlist:['OANDA:XAUUSD','OANDA:XAGUSD','TVC:DXY'],support_host:'https://www.tradingview.com'});
+    box.appendChild(sc)}
+
+  /* ---------- optional membership ---------- */
+  function joinedNote(){if(store.get('th-joined',0)){$('jBtn').textContent='به‌روز کردن معلومات عضویت';$('joinTop').textContent='عضو راهبر ✓'}}
+  joinedNote();
+  $('joinForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,msg=$('jMsg'),btn=$('jBtn');
+    const d={name:$('jName').value.trim(),phone:$('jPhone').value.trim(),city:$('jCity').value,role:$('jRole').value,wants:$('jWants').checked,website:$('jWeb').value};
+    const say=(t,k)=>{msg.textContent=t;msg.className='dmsg '+k};
+    if(d.name.length<2){say('لطفاً نام خود را بنویسید.','err');$('jName').focus();return}
+    const digits=d.phone.replace(/[۰-۹]/g,x=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/[\s\-().+]/g,'');
+    if(!/^\d{9,15}$/.test(digits)){say('شماره‌ی تماس درست نیست. مثال: 0700123456','err');$('jPhone').focus();return}
+    btn.disabled=true;say('در حال ثبت…','warn');
+    try{const r=await fetch('/api/join',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));
+      if(r.ok){say('عضویت شما ثبت شد. تشکر از همراهی شما با راهبر!','ok');store.set('th-joined',1);joinedNote()}
+      else say(j.error||'ثبت نشد؛ چند لحظه بعد دوباره امتحان کنید.','err')}
+    catch(err){say('اتصال برقرار نشد؛ دوباره امتحان کنید.','err')}
+    finally{btn.disabled=false}});
+  $('joinTop').addEventListener('click',e=>{e.preventDefault();$('join').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('jName').focus({preventScroll:true}),500)});
 
   /* ---------- data loading ---------- */
   async function getJSON(u){const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return r.json()}
@@ -902,6 +1151,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       renderLive();
     }catch(e){}
   }
+  {const h=location.hash.slice(1);showPage(h==='usd'||h==='gold'?h:pageOf(sel),true)}
   boot();loadNews();
   setInterval(()=>{if(!document.hidden)poll()},30000);
   setInterval(()=>{if(!document.hidden)loadNews()},300000);

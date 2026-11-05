@@ -31,6 +31,16 @@ const FEEDS = [
   { src: "Hasht-e Subh", url: "https://8am.media/eng/feed/" },
   { src: "Hasht-e Subh", url: "https://8am.media/fa/feed/" },
 ];
+// Gold news: world gold market and the Afghan gold market, kept in a separate list.
+const GOLD_FEEDS = [
+  { src: "Bing News", search: true, url: BING('gold price') },
+  { src: "Bing News", search: true, url: BING('XAUUSD gold ounce') },
+  { src: "Bing News", search: true, url: BING('قیمت جهانی طلا اونس') },
+  { src: "Bing News", search: true, url: BING('نرخ طلا افغانستان') },
+  { src: "Bing News", search: true, url: BING('طلا کابل زرگران') },
+];
+const GOLD_RE = /(\bgold\b|\bXAU|bullion|طلا|زرگر|اونس|سکه طلا)/i;
+const GOLD_NOT_RE = /(cup|medal|medalist|olympic|golden|gold coast|مدال|جام طلا|توپ طلا)/i;
 // General outlet feeds must name the topic in the headline; targeted searches may match in the summary.
 const NEWS_RE = /(Da Afghanistan Bank|\bDAB\b|central bank|\bafghanis?\b|\bAFN\b|auction|exchange rate|money ?changer|Sarai Shahzada|forex|د افغانستان بانک|افغانستان بانک|بانک مرکزی|لیلام|مزایده|افغانی|نرخ ارز|نرخ دالر|نرخ اسعار|اسعار|صرافی|صرافان|سرای شهزاده|ارزش پول)/i;
 // Auction / central-bank posts in rate channels (e.g. «15ملیون سودا بانک به فردا اعلام شد»); ads are skipped.
@@ -41,7 +51,7 @@ const NEWS_MAX = 40;
 const unxml = s => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "")
   .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;|&#39;|&apos;/g, "'")
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
-function parseFeed(xml, src, search = false) {
+function parseFeed(xml, src, search = false, re = NEWS_RE, notRe = null, maxDays = 45) {
   const out = [];
   const blocks = xml.match(/<item[\s>][\s\S]*?<\/item>/g) || xml.match(/<entry[\s>][\s\S]*?<\/entry>/g) || [];
   for (const b of blocks) {
@@ -50,38 +60,44 @@ function parseFeed(xml, src, search = false) {
     let link = g("link"); if (!link) { const m = b.match(/<link[^>]*href="([^"]+)"/); link = m ? m[1] : ""; }
     const ts = Math.floor(Date.parse(g("pubDate") || g("updated") || g("published") || g("dc:date")) / 1000);
     if (!title || !/^https?:\/\//.test(link) || !isFinite(ts)) continue;
-    if (ts < Date.now() / 1000 - 45 * 86400) continue;
+    if (ts < Date.now() / 1000 - maxDays * 86400) continue;
     const desc = g("description") || g("summary");
-    if (!NEWS_RE.test(search ? title + " " + desc.slice(0, 400) : title)) continue;
+    if (!re.test(search ? title + " " + desc.slice(0, 400) : title)) continue;
+    if (notRe && notRe.test(title)) continue;
     const outlet = g("source") || g("News:Source");
     const clean = outlet && title.endsWith(" - " + outlet) ? title.slice(0, -(outlet.length + 3)) : title;
     out.push({ ts, src: outlet || src, title: clean.slice(0, 220), link });
   }
   return out;
 }
-async function saveNews(db, add) {
+async function saveNews(db, add, mkey = "news") {
   if (!add.length) return;
-  let list = []; try { list = JSON.parse((await meta(db, "news")) || "[]"); } catch (e) {}
+  let list = []; try { list = JSON.parse((await meta(db, mkey)) || "[]"); } catch (e) {}
   const key = n => n.title.replace(/[\s\p{P}\p{S}]+/gu, "").slice(0, 60).toLowerCase();
   const have = new Set(list.map(n => n.link)), haveT = new Set(list.map(key));
   let changed = false;
   for (const n of add) if (!have.has(n.link) && !haveT.has(key(n))) { list.push(n); have.add(n.link); haveT.add(key(n)); changed = true; }
   if (!changed) return;
   list.sort((a, b) => b.ts - a.ts);
-  await setMeta(db, "news", JSON.stringify(list.slice(0, NEWS_MAX)));
+  await setMeta(db, mkey, JSON.stringify(list.slice(0, NEWS_MAX)));
 }
 async function collectNews(db) {
-  const found = [], status = [];
-  await Promise.all(FEEDS.map(async f => {
+  const found = [], foundGold = [], status = [];
+  const get = async (f, gold) => {
     try {
       const r = await fetch(f.url, { headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36", accept: "application/rss+xml, application/xml, text/xml, */*" }, signal: AbortSignal.timeout(9000) });
-      if (!r.ok) { status.push(`${f.src} ${r.status}`); return; }
-      const items = parseFeed(await r.text(), f.src, !!f.search);
-      status.push(`${f.src} ok ${items.length}`);
-      found.push(...items);
-    } catch (e) { status.push(`${f.src} ${e && e.name || "error"}`); }
-  }));
+      if (!r.ok) { status.push(`${gold ? "gold:" : ""}${f.src} ${r.status}`); return; }
+      const xml = await r.text();
+      if (!gold) { const items = parseFeed(xml, f.src, !!f.search); found.push(...items); status.push(`${f.src} ok ${items.length}`); }
+      // every feed also contributes gold headlines; gold searches only feed the gold list
+      const g = parseFeed(xml, f.src, gold && !!f.search, GOLD_RE, GOLD_NOT_RE, 10);
+      foundGold.push(...g);
+      if (gold) status.push(`gold:${f.src} ok ${g.length}`);
+    } catch (e) { status.push(`${gold ? "gold:" : ""}${f.src} ${e && e.name || "error"}`); }
+  };
+  await Promise.all([...FEEDS.map(f => get(f, false)), ...GOLD_FEEDS.map(f => get(f, true))]);
   await saveNews(db, found);
+  await saveNews(db, foundGold, "newsGold");
   await setMeta(db, "newsAt", Math.floor(Date.now() / 1000));
   await setMeta(db, "newsStatus", status.join(" | "));
 }
@@ -99,6 +115,7 @@ async function ensureSchema(db) {
     db.prepare("CREATE INDEX IF NOT EXISTS ticks_ts ON ticks(ts)"),
     db.prepare("CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT)"),
     db.prepare("CREATE TABLE IF NOT EXISTS snap(city TEXT PRIMARY KEY, data TEXT)"),
+    db.prepare(MEMBERS_SQL),
   ]);
 }
 
@@ -331,6 +348,56 @@ async function history(db) {
   return { series, lastRun: +(await meta(db, "lastRun")) || null, gold: JSON.parse((await meta(db, "gold")) || "null") };
 }
 
+// ---- Optional member registration ----
+const MEMBERS_SQL = "CREATE TABLE IF NOT EXISTS members(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, name TEXT, phone TEXT UNIQUE, city TEXT, role TEXT, wants INTEGER, iph TEXT)";
+const toLatin = s => String(s || "").replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+const clip = (s, n) => String(s || "").replace(/[\u0000-\u001f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, n);
+async function sha(s) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+async function join(req, db) {
+  const bad = (msg, status = 400) => new Response(JSON.stringify({ error: msg }), { status, headers: { "content-type": "application/json; charset=utf-8" } });
+  if (req.method !== "POST") return bad("method", 405);
+  let d; try { d = await req.json(); } catch (e) { return bad("درخواست نامعتبر است."); }
+  if (d.website) return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } }); // bots fill the hidden field
+  const name = clip(d.name, 60), city = clip(d.city, 40), role = clip(d.role, 40);
+  let phone = toLatin(d.phone).replace(/[\s\-().]/g, "");
+  if (phone.startsWith("00")) phone = "+" + phone.slice(2);
+  if (name.length < 2) return bad("لطفاً نام خود را بنویسید.");
+  if (!/^\+?\d{9,15}$/.test(phone)) return bad("شماره‌ی تماس درست نیست. مثال: 0700123456 یا ‎+93700123456");
+  await db.prepare(MEMBERS_SQL).run();
+  let salt = await meta(db, "salt");
+  if (!salt) { salt = crypto.randomUUID(); await setMeta(db, "salt", salt); }
+  const iph = (await sha((req.headers.get("cf-connecting-ip") || "") + salt)).slice(0, 16);
+  const now = Math.floor(Date.now() / 1000);
+  const recent = await db.prepare("SELECT COUNT(*) AS n FROM members WHERE iph=? AND ts>?").bind(iph, now - 3600).first("n");
+  if (recent >= 5) return bad("تعداد درخواست‌ها زیاد است؛ کمی بعد دوباره امتحان کنید.", 429);
+  await db.prepare("INSERT INTO members(ts,name,phone,city,role,wants,iph) VALUES(?,?,?,?,?,?,?) ON CONFLICT(phone) DO UPDATE SET name=excluded.name, city=excluded.city, role=excluded.role, wants=excluded.wants, ts=excluded.ts")
+    .bind(now, name, phone, city, role, d.wants ? 1 : 0, iph).run();
+  return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
+}
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+async function admin(url, db) {
+  const key = await meta(db, "adminKey"), given = url.searchParams.get("key") || "";
+  if (!key || given.length !== key.length || (await sha(given)) !== (await sha(key)))
+    return new Response("Not found", { status: 404 });
+  await db.prepare(MEMBERS_SQL).run();
+  const rows = (await db.prepare("SELECT ts,name,phone,city,role,wants FROM members ORDER BY ts DESC LIMIT 5000").all()).results;
+  const day = t => new Date((t + 16200) * 1000).toISOString().slice(0, 16).replace("T", " ");
+  if (url.pathname.endsWith(".csv")) {
+    const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+    const csv = "\ufeffdate,name,phone,province,role,wants_updates\n" + rows.map(r => [day(r.ts), r.name, r.phone, r.city, r.role, r.wants ? "yes" : "no"].map(q).join(",")).join("\n");
+    return new Response(csv, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": "attachment; filename=raahbar-members.csv", "cache-control": "no-store" } });
+  }
+  const tr = rows.map(r => `<tr><td>${esc(day(r.ts))}</td><td>${esc(r.name)}</td><td dir="ltr">${esc(r.phone)}</td><td>${esc(r.city)}</td><td>${esc(r.role)}</td><td>${r.wants ? "بلی" : "نخیر"}</td></tr>`).join("");
+  const html = `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>اعضای راهبر</title>
+<style>body{font-family:Tahoma,system-ui,sans-serif;margin:0;padding:16px;background:#0E1220;color:#EDEBE4}h1{font-size:20px;color:#E2B847}a{color:#E2B847}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #252D44;padding:7px 8px;text-align:right}th{color:#9AA2B5;font-weight:500}.w{overflow-x:auto}</style></head>
+<body><h1>اعضای راهبر: ${rows.length} نفر</h1><p><a href="/admin.csv?key=${encodeURIComponent(given)}">دانلود فایل اکسل (CSV)</a></p>
+<div class="w"><table><thead><tr><th>تاریخ (وقت کابل)</th><th>نام</th><th>شماره</th><th>ولایت</th><th>شغل</th><th>خبرها</th></tr></thead><tbody>${tr}</tbody></table></div></body></html>`;
+  return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" } });
+}
+
 const json = (d, maxAge = 15) => new Response(JSON.stringify(d), {
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": `public, max-age=${maxAge}`, "access-control-allow-origin": "*" },
 });
@@ -349,7 +416,9 @@ export default {
     try {
       if (url.pathname === "/api/history") return json(await cached("history", 30000, () => history(db)), 30);
       if (url.pathname === "/api/news")
-        return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]"), boli: JSON.parse((await meta(db, "boli")) || "null"), gold: JSON.parse((await meta(db, "gold")) || "null") })), 120);
+        return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]"), newsGold: JSON.parse((await meta(db, "newsGold")) || "[]"), boli: JSON.parse((await meta(db, "boli")) || "null"), gold: JSON.parse((await meta(db, "gold")) || "null") })), 120);
+      if (url.pathname === "/api/join") return await join(req, db);
+      if (url.pathname === "/admin" || url.pathname === "/admin.csv") return await admin(url, db);
       if (url.pathname === "/api/updates") {
         // Recent ticks for all cities. `since` is rounded to the minute so viewers share cache entries.
         const now = Math.floor(Date.now() / 1000);
