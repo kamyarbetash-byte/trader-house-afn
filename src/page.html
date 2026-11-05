@@ -625,7 +625,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',retheme)}catch(e){}
   }
 
-  // World gold: real 5m / 1h / 1D candles from the server, extended with the live ounce ticks.
+  // World gold: real 5m / 1h / 1D candles from the server.
   let xauData=null;
   function goldBars(){
     const src=tf<=900?{b:xauData.m5,s:300}:tf<86400?{b:xauData.h1,s:3600}:{b:xauData.d1,s:86400};
@@ -636,8 +636,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       if(!cur||cur.time!==b){if(cur)out.push(cur);cur={time:b,open:o,high:h,low:l,close:c}}
       else{cur.high=Math.max(cur.high,h);cur.low=Math.min(cur.low,l);cur.close=c}};
     for(const [t,o,h,l,c] of src.b){const O=conv(o,t),H=conv(h,t),L=conv(l,t),C=conv(c,t);if(O==null)continue;push(t,O,H,L,C)}
-    const end=src.b[src.b.length-1][0]+src.s;
-    for(const x of series.xau||[]){if(x[0]<end)continue;const v=conv(x[1],x[0]);if(v==null)continue;push(x[0],cur?cur.close:v,Math.max(v,cur?cur.close:v),Math.min(v,cur?cur.close:v),v)}
+    // Candles come from one source only (refreshed every 5 minutes), so they never jump between feeds.
     if(cur)out.push(cur);
     return out;
   }
@@ -1158,7 +1157,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   let xauAt=0;
   async function loadXau(){if(Date.now()-xauAt<240000)return;xauAt=Date.now();
     try{xauData=await getJSON('/api/xau');if(GOLD[sel]){const r=chart&&chart.timeScale().getVisibleLogicalRange();renderChart(!r);}}catch(e){xauAt=0}}
-  setInterval(()=>{if(!document.hidden&&page==='gold')loadXau()},300000);
+  setInterval(()=>{if(!document.hidden&&page==='gold')loadXau()},150000);
 
   /* ---------- all news page ---------- */
   const NEWS={usd:[],gold:[]};
