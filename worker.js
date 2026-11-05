@@ -516,6 +516,10 @@ async function sha(s) {
 async function join(req, db) {
   const bad = (msg, status = 400) => new Response(JSON.stringify({ error: msg }), { status, headers: { "content-type": "application/json; charset=utf-8" } });
   if (req.method !== "POST") return bad("method", 405);
+  // Only this site's own form may post here, and only small bodies.
+  const origin = req.headers.get("origin");
+  if (origin && origin !== new URL(req.url).origin) return bad("forbidden", 403);
+  if (+(req.headers.get("content-length") || 0) > 4096) return bad("too large", 413);
   let d; try { d = await req.json(); } catch (e) { return bad("درخواست نامعتبر است."); }
   if (d.website) return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } }); // bots fill the hidden field
   const name = clip(d.name, 60), city = clip(d.city, 40), role = clip(d.role, 40);
@@ -565,6 +569,31 @@ const json = (d, maxAge = 15) => new Response(JSON.stringify(d), {
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": `public, max-age=${maxAge}`, "access-control-allow-origin": "*" },
 });
 
+// Security headers on every response: no framing (clickjacking), no MIME sniffing, HTTPS only,
+// and a content policy that allows scripts only from this site and the pinned chart library.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://unpkg.com/lightweight-charts@4.1.3/",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "connect-src 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join("; ");
+function secure(res) {
+  const r = new Response(res.body, res);
+  r.headers.set("x-content-type-options", "nosniff");
+  r.headers.set("x-frame-options", "DENY");
+  r.headers.set("referrer-policy", "strict-origin-when-cross-origin");
+  r.headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
+  r.headers.set("permissions-policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  if ((r.headers.get("content-type") || "").startsWith("text/html")) r.headers.set("content-security-policy", CSP);
+  return r;
+}
+
 export default {
   async scheduled(_ev, env, ctx) {
     ctx.waitUntil((async () => {
@@ -573,7 +602,11 @@ export default {
     })());
   },
 
-  async fetch(req, env) {
+  async fetch(req, env) { return secure(await handle(req, env)); },
+};
+
+async function handle(req, env) {
+  {
     const url = new URL(req.url);
     const db = env.DB;
     try {
@@ -601,8 +634,10 @@ export default {
     } catch (e) {
       return new Response(JSON.stringify({ error: "unavailable" }), { status: 503, headers: { "content-type": "application/json" } });
     }
+    if (url.pathname === "/robots.txt")
+      return new Response("User-agent: *\nDisallow: /admin\nDisallow: /api/\n", { headers: { "content-type": "text/plain" } });
     if (url.pathname === "/" || url.pathname === "/index.html")
       return new Response(PAGE, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=120" } });
     return new Response("Not found", { status: 404 });
-  },
-};
+  }
+}
