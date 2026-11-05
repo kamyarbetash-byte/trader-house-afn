@@ -40,7 +40,8 @@ const GOLD_FEEDS = [
   { src: "Bing News", search: true, url: BING('طلا کابل زرگران') },
 ];
 const GOLD_RE = /(\bgold\b|\bXAU|bullion|طلا|زرگر|اونس|سکه طلا)/i;
-const GOLD_NOT_RE = /(cup|medal|medalist|olympic|golden|gold coast|مدال|جام طلا|توپ طلا)/i;
+// Iran's domestic coin/toman market and sports results are left out.
+const GOLD_NOT_RE = /(cup|medal|medalist|olympic|golden|gold coast|مدال|جام طلا|توپ طلا|تومان|سکه امامی|بهار آزادی|ریال|بورس|حراج سکه)/i;
 // General outlet feeds must name the topic in the headline; targeted searches may match in the summary.
 const NEWS_RE = /(Da Afghanistan Bank|\bDAB\b|central bank|\bafghanis?\b|\bAFN\b|auction|exchange rate|money ?changer|Sarai Shahzada|forex|د افغانستان بانک|افغانستان بانک|بانک مرکزی|لیلام|مزایده|افغانی|نرخ ارز|نرخ دالر|نرخ اسعار|اسعار|صرافی|صرافان|سرای شهزاده|ارزش پول)/i;
 // Auction / central-bank posts in rate channels (e.g. «15ملیون سودا بانک به فردا اعلام شد»); ads are skipped.
