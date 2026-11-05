@@ -324,6 +324,7 @@ async function collect(env) {
   }
   await updateSnapshots(db, all);
   const now = Math.floor(Date.now() / 1000);
+  try { await collectXau(db); } catch (e) { errors.push("xau: " + (e && e.message || e)); }
   if (now - (+(await meta(db, "newsAt")) || 0) >= 1800) {
     try { await collectNews(db); } catch (e) { errors.push("news: " + (e && e.message || e)); }
   }
@@ -349,8 +350,42 @@ async function history(db) {
   return { series, lastRun: +(await meta(db, "lastRun")) || null, gold: JSON.parse((await meta(db, "gold")) || "null") };
 }
 
+// ---- World gold candles (XAU/USD) from Yahoo Finance's chart API ----
+// 5-minute bars every 5 minutes, hourly every 30 minutes, daily every 6 hours. Kept in meta as [[t,o,h,l,c],...].
+const XAU_SETS = [["xau5m", "5m", "5d", 300], ["xau1h", "60m", "60d", 1800], ["xau1d", "1d", "2y", 21600]];
+const XAU_SYMBOLS = ["XAUUSD=X", "GC=F"];
+async function fetchXau(interval, range) {
+  for (const sym of XAU_SYMBOLS) {
+    try {
+      const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${interval}&range=${range}`,
+        { headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36", accept: "application/json" }, signal: AbortSignal.timeout(9000) });
+      if (!r.ok) continue;
+      const j = await r.json(), res = j && j.chart && j.chart.result && j.chart.result[0];
+      if (!res || !res.timestamp) continue;
+      const q = res.indicators.quote[0], out = [];
+      res.timestamp.forEach((t, i) => {
+        const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i];
+        if ([o, h, l, c].every(v => typeof v === "number" && v > 500)) out.push([t, +o.toFixed(2), +h.toFixed(2), +l.toFixed(2), +c.toFixed(2)]);
+      });
+      if (out.length > 5) return { sym, bars: out };
+    } catch (e) {}
+  }
+  return null;
+}
+async function collectXau(db) {
+  const now = Math.floor(Date.now() / 1000), status = [];
+  for (const [key, interval, range, every] of XAU_SETS) {
+    if (now - (+(await meta(db, key + "At")) || 0) < every - 30) continue;
+    const r = await fetchXau(interval, range);
+    await setMeta(db, key + "At", now);
+    if (r) { await setMeta(db, key, JSON.stringify(r.bars)); status.push(`${key} ${r.sym} ${r.bars.length}`); }
+    else status.push(`${key} failed`);
+  }
+  if (status.length) await setMeta(db, "xauStatus", new Date().toISOString() + " " + status.join(" | "));
+}
+
 // ---- Optional member registration ----
-const MEMBERS_SQL = "CREATE TABLE IF NOT EXISTS members(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, name TEXT, phone TEXT UNIQUE, city TEXT, role TEXT, wants INTEGER, iph TEXT)";
+const MEMBERS_SQL = "CREATE TABLE IF NOT EXISTS members(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, name TEXT, phone TEXT UNIQUE, city TEXT, role TEXT, wants INTEGER, iph TEXT, email TEXT, ads INTEGER)";
 const toLatin = s => String(s || "").replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
 const clip = (s, n) => String(s || "").replace(/[\u0000-\u001f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, n);
 async function sha(s) {
@@ -365,8 +400,11 @@ async function join(req, db) {
   const name = clip(d.name, 60), city = clip(d.city, 40), role = clip(d.role, 40);
   let phone = toLatin(d.phone).replace(/[\s\-().]/g, "");
   if (phone.startsWith("00")) phone = "+" + phone.slice(2);
+  const email = clip(d.email, 120).toLowerCase();
   if (name.length < 2) return bad("لطفاً نام خود را بنویسید.");
-  if (!/^\+?\d{9,15}$/.test(phone)) return bad("شماره‌ی تماس درست نیست. مثال: 0700123456 یا ‎+93700123456");
+  if (!phone && !email) return bad("لطفاً شماره‌ی تماس یا ایمیل خود را بنویسید.");
+  if (phone && !/^\+?\d{9,15}$/.test(phone)) return bad("شماره‌ی تماس درست نیست. مثال: 0700123456 یا ‎+93700123456");
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return bad("ایمیل درست نیست. مثال: name@gmail.com");
   await db.prepare(MEMBERS_SQL).run();
   let salt = await meta(db, "salt");
   if (!salt) { salt = crypto.randomUUID(); await setMeta(db, "salt", salt); }
@@ -374,8 +412,11 @@ async function join(req, db) {
   const now = Math.floor(Date.now() / 1000);
   const recent = await db.prepare("SELECT COUNT(*) AS n FROM members WHERE iph=? AND ts>?").bind(iph, now - 3600).first("n");
   if (recent >= 5) return bad("تعداد درخواست‌ها زیاد است؛ کمی بعد دوباره امتحان کنید.", 429);
-  await db.prepare("INSERT INTO members(ts,name,phone,city,role,wants,iph) VALUES(?,?,?,?,?,?,?) ON CONFLICT(phone) DO UPDATE SET name=excluded.name, city=excluded.city, role=excluded.role, wants=excluded.wants, ts=excluded.ts")
-    .bind(now, name, phone, city, role, d.wants ? 1 : 0, iph).run();
+  const prev = await db.prepare("SELECT id FROM members WHERE (phone IS NOT NULL AND phone=?) OR (email IS NOT NULL AND email=?) LIMIT 1").bind(phone || null, email || null).first("id");
+  if (prev) await db.prepare("UPDATE members SET ts=?, name=?, phone=COALESCE(?,phone), email=COALESCE(?,email), city=?, role=?, wants=?, ads=? WHERE id=?")
+    .bind(now, name, phone || null, email || null, city, role, d.wants ? 1 : 0, d.ads ? 1 : 0, prev).run();
+  else await db.prepare("INSERT INTO members(ts,name,phone,email,city,role,wants,ads,iph) VALUES(?,?,?,?,?,?,?,?,?)")
+    .bind(now, name, phone || null, email || null, city, role, d.wants ? 1 : 0, d.ads ? 1 : 0, iph).run();
   return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 }
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -384,18 +425,18 @@ async function admin(url, db) {
   if (!key || given.length !== key.length || (await sha(given)) !== (await sha(key)))
     return new Response("Not found", { status: 404 });
   await db.prepare(MEMBERS_SQL).run();
-  const rows = (await db.prepare("SELECT ts,name,phone,city,role,wants FROM members ORDER BY ts DESC LIMIT 5000").all()).results;
+  const rows = (await db.prepare("SELECT ts,name,phone,email,city,role,wants,ads FROM members ORDER BY ts DESC LIMIT 5000").all()).results;
   const day = t => new Date((t + 16200) * 1000).toISOString().slice(0, 16).replace("T", " ");
   if (url.pathname.endsWith(".csv")) {
     const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-    const csv = "\ufeffdate,name,phone,province,role,wants_updates\n" + rows.map(r => [day(r.ts), r.name, r.phone, r.city, r.role, r.wants ? "yes" : "no"].map(q).join(",")).join("\n");
+    const csv = "\ufeffdate,name,phone,email,province,role,wants_rates_news,accepts_ads\n" + rows.map(r => [day(r.ts), r.name, r.phone, r.email, r.city, r.role, r.wants ? "yes" : "no", r.ads ? "yes" : "no"].map(q).join(",")).join("\n");
     return new Response(csv, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": "attachment; filename=raahbar-members.csv", "cache-control": "no-store" } });
   }
-  const tr = rows.map(r => `<tr><td>${esc(day(r.ts))}</td><td>${esc(r.name)}</td><td dir="ltr">${esc(r.phone)}</td><td>${esc(r.city)}</td><td>${esc(r.role)}</td><td>${r.wants ? "بلی" : "نخیر"}</td></tr>`).join("");
+  const tr = rows.map(r => `<tr><td>${esc(day(r.ts))}</td><td>${esc(r.name)}</td><td dir="ltr">${esc(r.phone)}</td><td dir="ltr">${esc(r.email)}</td><td>${esc(r.city)}</td><td>${esc(r.role)}</td><td>${r.wants ? "بلی" : "نخیر"}</td><td>${r.ads ? "بلی" : "نخیر"}</td></tr>`).join("");
   const html = `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>اعضای راهبر</title>
 <style>body{font-family:Tahoma,system-ui,sans-serif;margin:0;padding:16px;background:#0E1220;color:#EDEBE4}h1{font-size:20px;color:#E2B847}a{color:#E2B847}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #252D44;padding:7px 8px;text-align:right}th{color:#9AA2B5;font-weight:500}.w{overflow-x:auto}</style></head>
 <body><h1>اعضای راهبر: ${rows.length} نفر</h1><p><a href="/admin.csv?key=${encodeURIComponent(given)}">دانلود فایل اکسل (CSV)</a></p>
-<div class="w"><table><thead><tr><th>تاریخ (وقت کابل)</th><th>نام</th><th>شماره</th><th>ولایت</th><th>شغل</th><th>خبرها</th></tr></thead><tbody>${tr}</tbody></table></div></body></html>`;
+<div class="w"><table><thead><tr><th>تاریخ (وقت کابل)</th><th>نام</th><th>شماره</th><th>ایمیل</th><th>ولایت</th><th>شغل</th><th>نرخ و خبر</th><th>اعلانات تجاری</th></tr></thead><tbody>${tr}</tbody></table></div></body></html>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" } });
 }
 
@@ -418,6 +459,11 @@ export default {
       if (url.pathname === "/api/history") return json(await cached("history", 30000, () => history(db)), 30);
       if (url.pathname === "/api/news")
         return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]"), newsGold: JSON.parse((await meta(db, "newsGold")) || "[]"), boli: JSON.parse((await meta(db, "boli")) || "null"), gold: JSON.parse((await meta(db, "gold")) || "null") })), 120);
+      if (url.pathname === "/api/xau")
+        return json(await cached("xau", 60000, async () => {
+          const g = async k => { try { return JSON.parse((await meta(db, k)) || "[]"); } catch (e) { return []; } };
+          return { m5: await g("xau5m"), h1: await g("xau1h"), d1: await g("xau1d") };
+        }), 60);
       if (url.pathname === "/api/join") return await join(req, db);
       if (url.pathname === "/admin" || url.pathname === "/admin.csv") return await admin(url, db);
       if (url.pathname === "/api/updates") {

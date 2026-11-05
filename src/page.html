@@ -77,6 +77,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 .pair{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,5.5vw,40px);line-height:1.1;margin:0;text-wrap:balance}
 .pair span{color:var(--gold)}
 .subt{color:var(--muted);font-size:13px;margin:4px 0 0}
+.dlbl{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 9px;margin-inline-start:4px;white-space:nowrap}.dlbl bdi{font-family:var(--f-mono);font-size:11px;opacity:.85}
 .price{direction:ltr;text-align:left}
 .now{font-family:var(--f-mono);font-weight:700;font-size:clamp(30px,7vw,46px);line-height:1;font-variant-numeric:tabular-nums}
 .unit{font-size:14px;color:var(--muted);margin-left:6px}
@@ -240,6 +241,15 @@ body.noscroll{overflow:hidden}
 .hp{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;border:0!important;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}
 .gbtns span{font-size:13px;color:var(--muted);align-self:center}
 @media (max-width:720px){.watermark{display:none}.gtop dd{font-size:15px;white-space:normal}.join{grid-template-columns:1fr}.jform{grid-template-columns:1fr}.rail{width:36px}.rail button{width:30px;height:30px}.zbar{bottom:30px}#tvc{height:70vh;min-height:380px}}
+.allBtn{align-self:flex-start;font:700 13.5px var(--f-body);color:var(--gold);text-decoration:none;border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line));border-radius:999px;padding:5px 14px}
+.allBtn:hover{background:var(--gold-soft)}
+.newsAll{position:fixed;inset:0;z-index:70;background:var(--bg);overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) max(16px,env(safe-area-inset-left,0px))}
+.newsAll[hidden]{display:none}
+.newsAll>*{width:100%;max-width:820px;margin-inline:auto}
+.nahead{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-12px;background:var(--bg);padding-block:6px;z-index:1}
+.nahead h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:24px}
+.naClose{font:700 14px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 14px;cursor:pointer}
 /* News */
 .news{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .news h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -333,6 +343,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     <h2 id="newsH">د افغانستان بانک و اخبار ارز <small>لیلام دالر، تصمیم‌های بانک مرکزی و خبرهای افغانی</small></h2>
     <div class="auction" id="auction" hidden></div>
     <ul class="nlist" id="nlist"></ul>
+    <a class="allBtn" href="#news-usd" data-allnews="usd" id="allUsd" hidden>همه‌ی اخبار ارز</a>
     <p class="nempty" id="nempty">خبرهای د افغانستان بانک و افغانی از رسانه‌های افغانستان (Bing News، آمو، آریانا نیوز، کابل‌نو، هشت صبح) و کانال‌های صرافی جمع می‌شوند و هر ۳۰ دقیقه به‌روز می‌شوند.</p>
   </section>
   </section>
@@ -345,7 +356,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       <div><dt>نرخ دالر (کابل)</dt><dd id="gFx">—</dd></div>
       <div><dt>۱۸ عیار آب‌شده‌ی هرات (فاصله با جهانی)</dt><dd id="gH18">—</dd></div>
     </dl>
-    <div class="gbtns" role="group" aria-label="چارت طلا"><span>چارت:</span><button type="button" class="chip" data-key="xau">اونس جهانی</button><button type="button" class="chip" data-key="g18herat">۱۸ عیار هرات</button></div>
+    <div class="gbtns" role="group" aria-label="چارت طلا"><span>چارت:</span><button type="button" class="chip" data-key="xau">اونس جهانی</button><button type="button" class="chip" data-key="g18">۱۸ عیار (افغانی فی گرام)</button></div>
   </section>
   <div class="slot" id="slot-gold"></div>
   <section class="gold">
@@ -371,14 +382,10 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     </div>
     <p class="gnote">نرخ عیارها = (اونس ÷ ۳۱.۱۰۳۵) × خلوص × نرخ دالر کابل. زیورات آماده در بازار کابل معمولاً چند دالر در هر گرام بالاتر از ارزش خام طلا فروخته می‌شوند (اجرت، کشور سازنده و فایده‌ی فروشنده). اجرت را مطابق دکان خود تغییر دهید.</p>
   </section>
-  <section class="tvw" aria-labelledby="tvH">
-    <h2 id="tvH">چارت حرفه‌ای طلا (TradingView) <small>اونس جهانی XAU/USD با همه‌ی ابزارهای تحلیل TradingView</small></h2>
-    <div class="tradingview-widget-container" id="tvc"><p class="nempty">چارت TradingView بارگذاری می‌شود…</p></div>
-    <div class="tvcopy"><a href="https://www.tradingview.com/symbols/XAUUSD/" rel="noopener nofollow" target="_blank">چارت XAUUSD از TradingView</a></div>
-  </section>
   <section class="news" aria-labelledby="gnewsH">
     <h2 id="gnewsH">اخبار مهم طلا <small>بازار جهانی طلا، اونس و بازار طلای افغانستان</small></h2>
     <ul class="nlist" id="gnlist"></ul>
+    <a class="allBtn" href="#news-gold" data-allnews="gold" id="allGold" hidden>همه‌ی اخبار طلا</a>
     <p class="nempty" id="gnempty">خبرهای طلا از رسانه‌های جهانی و افغانستان جمع می‌شوند و هر ۳۰ دقیقه به‌روز می‌شوند.</p>
   </section>
   </section>
@@ -387,7 +394,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   <section class="hero">
     <div>
       <h1 class="pair"><b id="pairA" style="font-weight:inherit">دالر</b> <span>/</span> <b id="pairB" style="font-weight:inherit">افغانی</b></h1>
-      <p class="subt" id="subt">—</p>
+      <p class="subt"><span id="subt">—</span> <span class="dlbl" id="dateLbl"></span></p>
     </div>
     <div class="price">
       <div><span class="now" id="now">—</span><span class="unit" id="unitLbl">AFN</span></div>
@@ -469,25 +476,37 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   </div>
   </div>
 
+  <section class="newsAll" id="newsAll" hidden aria-labelledby="naTitle">
+    <div class="nahead">
+      <h2 id="naTitle">همه‌ی اخبار</h2>
+      <button type="button" class="naClose" id="naClose" aria-label="بستن">✕ بستن</button>
+    </div>
+    <div class="seg" role="group" aria-label="نوع خبر" id="naTabs"><button type="button" data-cat="usd">ارز و د افغانستان بانک</button><button type="button" data-cat="gold">طلا</button></div>
+    <ul class="nlist" id="naList"></ul>
+    <p class="nempty" id="naEmpty" hidden>هنوز خبری نیست.</p>
+  </section>
+
   <section class="join" id="join" aria-labelledby="joinH">
     <div class="jtext">
       <h2 id="joinH">عضویت رایگان راهبر</h2>
       <p>اختیاری است. اعضا نرخ‌ها و خبرهای مهم دالر و طلا را زودتر دریافت می‌کنند و از امکانات تازه‌ی سایت باخبر می‌شوند.</p>
-      <p class="jpriv">شماره‌ی شما فقط برای فرستادن نرخ و خبرهای راهبر استفاده می‌شود و با هیچ‌کس شریک نمی‌شود.</p>
+      <p class="jpriv">شماره یا ایمیل خود را بنویسید (یکی کافی است). معلومات شما فقط برای فرستادن نرخ و خبرهای راهبر استفاده می‌شود و با هیچ‌کس شریک نمی‌شود. اعلانات تجاری فقط با اجازه‌ی شما فرستاده می‌شود و هر وقت بخواهید می‌توانید لغو کنید.</p>
     </div>
     <form class="jform" id="joinForm" novalidate>
       <label for="jName">نام<input id="jName" name="jName" autocomplete="name" maxlength="60" required></label>
-      <label for="jPhone">شماره‌ی تماس / واتساپ<input id="jPhone" name="jPhone" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xx xxx xxx" maxlength="20" required></label>
+      <label for="jPhone">شماره‌ی تماس / واتساپ (اختیاری)<input id="jPhone" name="jPhone" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xx xxx xxx" maxlength="20"></label>
+      <label for="jEmail">ایمیل (اختیاری)<input id="jEmail" name="jEmail" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="name@gmail.com" maxlength="120"></label>
       <label for="jCity">ولایت<select id="jCity" name="jCity"><option>کابل</option><option>هرات</option><option>بلخ / مزارشریف</option><option>قندهار</option><option>ننگرهار</option><option>غزنی</option><option>خوست</option><option>کندز</option><option>بدخشان</option><option>بامیان</option><option>ولایت دیگر</option><option>خارج از کشور</option></select></label>
       <label for="jRole">کار شما<select id="jRole" name="jRole"><option>صراف</option><option>تاجر</option><option>زرگر</option><option>معامله‌گر / تحلیل‌گر</option><option>مردم عام</option><option>دیگر</option></select></label>
       <label class="jchk" for="jWants"><input type="checkbox" id="jWants" name="jWants" checked> نرخ‌ها و خبرهای مهم را برایم بفرستید</label>
+      <label class="jchk" for="jAds"><input type="checkbox" id="jAds" name="jAds"> اعلانات و پیشنهادهای تجاری راهبر را هم دریافت می‌کنم</label>
       <input type="text" name="website" id="jWeb" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
       <button type="submit" class="jbtn" id="jBtn">ثبت عضویت</button>
       <p class="dmsg" id="jMsg" role="status"></p>
     </form>
   </section>
 
-  <p class="note">هر کندل از نرخ‌های اعلام‌شده و معاملات انجام‌شده در همان بازه ساخته می‌شود (میانه‌ی خرید و فروش). «میانگین بازار» میانگین آخرین نرخ کابل، مزارشریف، هرات و قندهار است (نرخ‌های قدیمی‌تر از ۶ ساعت حساب نمی‌شوند). ترسیم‌های شما فقط در همین مرورگر ذخیره می‌شوند. صفحه هر ۳۰ ثانیه خودکار به‌روز می‌شود. منبع اخبار: Bing News و رسانه‌های افغانستان. منبع نرخ‌ها: کانال‌های تلگرام <a href="https://t.me/kabul_dollar" target="_blank" rel="noopener">@kabul_dollar</a>، <a href="https://t.me/Exchange_Rate" target="_blank" rel="noopener">@Exchange_Rate</a>، <a href="https://t.me/Mazar_Nerkh" target="_blank" rel="noopener">@Mazar_Nerkh</a> و <a href="https://t.me/herat_gold" target="_blank" rel="noopener">@herat_gold</a>. چارت حرفه‌ای طلا از TradingView.</p>
+  <p class="note">هر کندل از نرخ‌های اعلام‌شده و معاملات انجام‌شده در همان بازه ساخته می‌شود (میانه‌ی خرید و فروش). «میانگین بازار» میانگین آخرین نرخ کابل، مزارشریف، هرات و قندهار است (نرخ‌های قدیمی‌تر از ۶ ساعت حساب نمی‌شوند). ترسیم‌های شما فقط در همین مرورگر ذخیره می‌شوند. صفحه هر ۳۰ ثانیه خودکار به‌روز می‌شود. منبع اخبار: Bing News و رسانه‌های افغانستان. منبع نرخ‌ها: کانال‌های تلگرام <a href="https://t.me/kabul_dollar" target="_blank" rel="noopener">@kabul_dollar</a>، <a href="https://t.me/Exchange_Rate" target="_blank" rel="noopener">@Exchange_Rate</a>، <a href="https://t.me/Mazar_Nerkh" target="_blank" rel="noopener">@Mazar_Nerkh</a> و <a href="https://t.me/herat_gold" target="_blank" rel="noopener">@herat_gold</a>. کندل‌های طلای جهانی از Yahoo Finance.</p>
 
   <footer><span>راهبر · Raahbar — نرخ زنده‌ی دالر و طلا برای همه‌ی افغانستان</span><span id="foot">—</span></footer>
 </div>
@@ -498,14 +517,23 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   /* ---------- config ---------- */
   const MAIN=[["kabul","کابل","سرای شهزاده‌ی کابل"],["mazar","مزارشریف","بازار مزارشریف"],["herat","هرات","بازار هرات"],["kandahar","قندهار","بازار قندهار"]];
   const OTHER=[["jalalabad","ننگرهار"],["ghazni","غزنی"],["khost","خوست"]];
-  const GOLD={xau:'اونس جهانی طلا',g18herat:'طلای ۱۸ عیار هرات'};
+  const GOLD={xau:'اونس جهانی طلا',g18:'طلای ۱۸ عیار'};
   const NAMES=Object.fromEntries([...MAIN.map(m=>[m[0],m[1]]),...OTHER,["avg","میانگین بازار"],...Object.entries(GOLD)]);
   const KABUL=16200, STALE=6*3600;
   const $=id=>document.getElementById(id);
   const en=n=>Number(n).toFixed(2);
   const fa=n=>Number(n).toLocaleString('fa-IR');
   const tfmt=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Kabul',hour:'2-digit',minute:'2-digit'});
-  const dfmt=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Kabul',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  // Afghan solar calendar (حمل، ثور، جوزا …) with Kabul time; Gregorian date shown beside it.
+  const AF_MONTHS=['حمل','ثور','جوزا','سرطان','اسد','سنبله','میزان','عقرب','قوس','جدی','دلو','حوت'];
+  const toFa=x=>String(x).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+  const pcal=new Intl.DateTimeFormat('en-u-ca-persian-nu-latn',{timeZone:'Asia/Kabul',year:'numeric',month:'numeric',day:'numeric'});
+  const gcal=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kabul',day:'numeric',month:'short',year:'numeric'});
+  function afDate(ts,withYear){const d=new Date(ts*1000),pt={};pcal.formatToParts(d).forEach(x=>pt[x.type]=x.value);
+    return toFa(+pt.day)+' '+AF_MONTHS[(+pt.month)-1]+(withYear?' '+toFa(parseInt(pt.year)):'')}
+  const afDT=ts=>afDate(ts)+'، '+tfmt.format(new Date(ts*1000));
+  const gDate=ts=>gcal.format(new Date(ts*1000));
+  const dfmt={format:d=>afDT(Math.floor(d.getTime()/1000))};
   const dayKey=t=>Math.floor((t+KABUL)/86400);
   const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 
@@ -552,10 +580,14 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     }
     return out;
   }
+  function fxAt(t){const k=series.kabul||[];if(!k.length)return null;let lo=0,hi=k.length-1;if(t<=k[0][0])return k[0][1];if(t>=k[hi][0])return k[hi][1];
+    while(hi-lo>1){const m=(lo+hi)>>1;if(k[m][0]<=t)lo=m;else hi=m}return k[lo][1]}
+  const G18=v=>v/31.1035*0.75;
   function recompute(){
     series={};
-    for(const c in raw)series[c]=clean(raw[c]);
+    for(const c in raw)if(c!=='g18herat')series[c]=clean(raw[c]);
     series.avg=buildAvg();
+    series.g18=(series.xau||[]).map(x=>{const f=fxAt(x[0]);return f?[x[0],Math.round(G18(x[1])*f),0]:null}).filter(Boolean);
   }
 
   /* ---------- chart ---------- */
@@ -593,7 +625,24 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',retheme)}catch(e){}
   }
 
+  // World gold: real 5m / 1h / 1D candles from the server, extended with the live ounce ticks.
+  let xauData=null;
+  function goldBars(){
+    const src=tf<=900?{b:xauData.m5,s:300}:tf<86400?{b:xauData.h1,s:3600}:{b:xauData.d1,s:86400};
+    if(!src.b||!src.b.length)return null;
+    const conv=sel==='g18'?(v,t)=>{const f=fxAt(t);return f?Math.round(G18(v)*f):null}:(v)=>v;
+    const out=[];let cur=null;
+    const push=(t,o,h,l,c)=>{const b=Math.floor((t+KABUL)/tf)*tf;
+      if(!cur||cur.time!==b){if(cur)out.push(cur);cur={time:b,open:o,high:h,low:l,close:c}}
+      else{cur.high=Math.max(cur.high,h);cur.low=Math.min(cur.low,l);cur.close=c}};
+    for(const [t,o,h,l,c] of src.b){const O=conv(o,t),H=conv(h,t),L=conv(l,t),C=conv(c,t);if(O==null)continue;push(t,O,H,L,C)}
+    const end=src.b[src.b.length-1][0]+src.s;
+    for(const x of series.xau||[]){if(x[0]<end)continue;const v=conv(x[1],x[0]);if(v==null)continue;push(x[0],cur?cur.close:v,Math.max(v,cur?cur.close:v),Math.min(v,cur?cur.close:v),v)}
+    if(cur)out.push(cur);
+    return out;
+  }
   function buildBars(){
+    if((sel==='xau'||sel==='g18')&&xauData){const g=goldBars();if(g&&g.length)return g}
     let t=series[sel]||[];
     if(ind.deals&&sel!=='avg')t=t.filter(x=>x[2]);
     const out=[];let last=null,cur=null;
@@ -617,6 +666,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function renderChart(fit){
     if(!chart)return;
     bars=buildBars();
+    const prec=sel==='g18'?0:2;candles.applyOptions({priceFormat:{type:'price',precision:prec,minMove:prec?0.01:1}});
     candles.setData(bars);
     ma20s.setData(ind.ma20?sma(bars,20):[]);
     ma50s.setData(ind.ma50?sma(bars,50):[]);
@@ -705,15 +755,17 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     const st=statsOf(series[sel]);
     const isGold=!!GOLD[sel];
     $('pairA').textContent=isGold?'طلا':'دالر';$('pairB').textContent=sel==='xau'?'دالر':'افغانی';
-    $('unitLbl').textContent=sel==='xau'?'USD/oz':sel==='g18herat'?'AFN/g':'AFN';
+    $('unitLbl').textContent=sel==='xau'?'USD/oz':sel==='g18'?'AFN/g':'AFN';
     $('tbar').hidden=isGold;
-    const where=sel==='xau'?'نرخ جهانی هر اونس (۳۱.۱ گرام)':sel==='g18herat'?'طلای آب‌شده‌ی ۱۸ عیار، بازار هرات، هر گرام':sel==='avg'?'میانگین بازار (کابل، مزار، هرات، قندهار)':(MAIN.find(m=>m[0]===sel)||[])[2]||('بازار '+NAMES[sel]);
-    $('subt').textContent=(sel==='xau'?'XAU/USD':sel==='g18herat'?'18K/AFN':'USD/AFN')+' · '+where+' · وقت کابل';
+    const where=sel==='xau'?'نرخ جهانی هر اونس (۳۱.۱ گرام)':sel==='g18'?'۱۸ عیار هر گرام، از نرخ جهانی و دالر کابل':sel==='avg'?'میانگین بازار (کابل، مزار، هرات، قندهار)':(MAIN.find(m=>m[0]===sel)||[])[2]||('بازار '+NAMES[sel]);
+    $('subt').textContent=(sel==='xau'?'XAU/USD':sel==='g18'?'18K/AFN':'USD/AFN')+' · '+where+' · وقت کابل';
+    {const dl=$('dateLbl'),nowTs=Date.now()/1000;dl.textContent=afDate(nowTs,true)+' · ';const b=document.createElement('bdi');b.textContent=gDate(nowTs);dl.appendChild(b)}
     const c=$('chg');
     if(!st){['now','hi','lo','prev','count'].forEach(i=>$(i).textContent='—');c.textContent='—';c.className='chg';return}
-    $('now').textContent=en(st.price);$('hi').textContent=en(st.hi);$('lo').textContent=en(st.lo);
-    $('prev').textContent=st.prev==null?'—':en(st.prev);$('count').textContent=fa(st.n);
-    if(st.chg!=null){c.textContent=chgTxt(st.chg,st.prev);c.className='chg '+cls(st.chg)}else{c.textContent='—';c.className='chg'}
+    const P=v=>sel==='g18'?fmtA(v):en(v);
+    $('now').textContent=P(st.price);$('hi').textContent=P(st.hi);$('lo').textContent=P(st.lo);
+    $('prev').textContent=st.prev==null?'—':P(st.prev);$('count').textContent=fa(st.n);
+    if(st.chg!=null){c.textContent=sel==='g18'?((st.chg>=0?'+':'')+fmtA(st.chg)+' ('+(st.chg>=0?'+':'')+(st.chg/st.prev*100).toFixed(2)+'%)'):chgTxt(st.chg,st.prev);c.className='chg '+cls(st.chg)}else{c.textContent='—';c.className='chg'}
     $('dealsBtn').disabled=sel==='avg'||!!GOLD[sel];
   }
   function renderLive(){
@@ -1060,7 +1112,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function isDark(){const t=document.documentElement.getAttribute('data-theme');return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches}
   function syncTheme(){const d=isDark();document.documentElement.classList.toggle('is-dark',d);$('themeLbl').textContent=d?'حالت روز':'حالت شب';
     const m=document.querySelector('meta[name=theme-color]');if(m)m.content=d?'#0E1220':'#F3F1EC'}
-  $('themeBtn').addEventListener('click',()=>{const t=isDark()?'light':'dark';document.documentElement.setAttribute('data-theme',t);store.set('th-theme',t);syncTheme();retheme();renderPanels();if(tvLoaded)loadTV(true)});
+  $('themeBtn').addEventListener('click',()=>{const t=isDark()?'light':'dark';document.documentElement.setAttribute('data-theme',t);store.set('th-theme',t);syncTheme();retheme();renderPanels()});
   try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{syncTheme();renderPanels()})}catch(e){}
   syncTheme();
 
@@ -1078,7 +1130,8 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     $(emptyId).hidden=list.length>0}
   async function loadNews(){
     try{const r=await getJSON('/api/news');const list=r.news||[];renderBoli(r.boli);if(r.gold){goldMeta=r.gold;try{renderGold()}catch(e){}}
-      renderList('nlist','nempty',list,12);renderList('gnlist','gnempty',r.newsGold||[],15);
+      NEWS.usd=list;NEWS.gold=r.newsGold||[];renderList('nlist','nempty',NEWS.usd,5);renderList('gnlist','gnempty',NEWS.gold,5);
+      $('allUsd').hidden=NEWS.usd.length<=5;$('allUsd').textContent='همه‌ی اخبار ارز ('+fa(NEWS.usd.length)+')';$('allGold').hidden=NEWS.gold.length<=5;$('allGold').textContent='همه‌ی اخبار طلا ('+fa(NEWS.gold.length)+')';if(!$('newsAll').hidden)routeNews();
       const au=list.find(auctionInfo),box=$('auction');
       if(au){box.hidden=false;box.textContent='';const l=document.createElement('span');l.textContent='آخرین لیلام دالر د افغانستان بانک:';
         const b=document.createElement('b');b.textContent=auctionInfo(au);const t=document.createElement('span');t.className='ntime';t.textContent=ago(au.ts);box.append(l,b,t)}
@@ -1093,7 +1146,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-selected',String(a.dataset.page===p)));
     $('slot-'+p).appendChild($('chartArea'));
     if(pageOf(sel)!==p){const k=store.get('th-sel-'+p,p==='gold'?'xau':'avg');sel=NAMES[k]&&pageOf(k)===p?k:(p==='gold'?'xau':'avg');store.set('th-sel',sel);loadDraw();if(loaded)renderAll(true)}
-    if(p==='gold'){loadTV();renderGoldChips()}
+    if(p==='gold'){loadXau();renderGoldChips()}
     document.title=(p==='gold'?'نرخ زنده‌ی طلا':'نرخ زنده‌ی دالر به افغانی')+' | راهبر';
     if(!fromHash&&location.hash!=='#'+p){try{history.replaceState(null,'','#'+p)}catch(e){location.hash=p}}
     setTimeout(schedule,60);
@@ -1101,25 +1154,36 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   document.querySelector('.tabs').addEventListener('click',e=>{const a=e.target.closest('a[data-page]');if(!a)return;e.preventDefault();showPage(a.dataset.page);window.scrollTo({top:0,behavior:'smooth'})});
   window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h==='usd'||h==='gold')showPage(h,true)});
 
-  /* ---------- TradingView gold chart (loaded when the gold page opens) ---------- */
-  let tvLoaded=false;
-  function loadTV(force){const box=$('tvc');if(!box||(tvLoaded&&!force))return;tvLoaded=true;box.textContent='';
-    const w=document.createElement('div');w.className='tradingview-widget-container__widget';w.style.height='100%';w.style.width='100%';box.appendChild(w);
-    const sc=document.createElement('script');sc.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';sc.async=true;
-    sc.text=JSON.stringify({autosize:true,symbol:'OANDA:XAUUSD',interval:'60',timezone:'Asia/Kabul',theme:isDark()?'dark':'light',style:'1',locale:'fa_IR',
-      allow_symbol_change:true,withdateranges:true,hide_side_toolbar:false,details:true,calendar:false,
-      watchlist:['OANDA:XAUUSD','OANDA:XAGUSD','TVC:DXY'],support_host:'https://www.tradingview.com'});
-    box.appendChild(sc)}
+  /* ---------- world gold candles ---------- */
+  let xauAt=0;
+  async function loadXau(){if(Date.now()-xauAt<240000)return;xauAt=Date.now();
+    try{xauData=await getJSON('/api/xau');if(GOLD[sel]){const r=chart&&chart.timeScale().getVisibleLogicalRange();renderChart(!r);}}catch(e){xauAt=0}}
+  setInterval(()=>{if(!document.hidden&&page==='gold')loadXau()},300000);
+
+  /* ---------- all news page ---------- */
+  const NEWS={usd:[],gold:[]};
+  function openAllNews(cat){const box=$('newsAll');box.hidden=false;document.body.classList.add('noscroll');
+    document.querySelectorAll('#naTabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cat===cat)));
+    $('naTitle').textContent=cat==='gold'?'همه‌ی اخبار طلا':'همه‌ی اخبار ارز و د افغانستان بانک';
+    renderList('naList','naEmpty',NEWS[cat],200);box.scrollTop=0}
+  function closeAllNews(){$('newsAll').hidden=true;document.body.classList.remove('noscroll')}
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-allnews]');if(!b)return;e.preventDefault();location.hash='news-'+b.dataset.allnews});
+  $('naTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){try{history.replaceState(null,'','#news-'+b.dataset.cat)}catch(_){}openAllNews(b.dataset.cat)}});
+  $('naClose').addEventListener('click',()=>{location.hash=page||'usd'});
+  function routeNews(){const h=location.hash.slice(1);if(h==='news-usd'||h==='news-gold')openAllNews(h.slice(5));else if(!$('newsAll').hidden)closeAllNews()}
+  window.addEventListener('hashchange',routeNews);
 
   /* ---------- optional membership ---------- */
   function joinedNote(){if(store.get('th-joined',0)){$('jBtn').textContent='به‌روز کردن معلومات عضویت';$('joinTop').textContent='عضو راهبر ✓'}}
   joinedNote();
   $('joinForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,msg=$('jMsg'),btn=$('jBtn');
-    const d={name:$('jName').value.trim(),phone:$('jPhone').value.trim(),city:$('jCity').value,role:$('jRole').value,wants:$('jWants').checked,website:$('jWeb').value};
+    const d={name:$('jName').value.trim(),phone:$('jPhone').value.trim(),email:$('jEmail').value.trim(),city:$('jCity').value,role:$('jRole').value,wants:$('jWants').checked,ads:$('jAds').checked,website:$('jWeb').value};
     const say=(t,k)=>{msg.textContent=t;msg.className='dmsg '+k};
     if(d.name.length<2){say('لطفاً نام خود را بنویسید.','err');$('jName').focus();return}
     const digits=d.phone.replace(/[۰-۹]/g,x=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/[\s\-().+]/g,'');
-    if(!/^\d{9,15}$/.test(digits)){say('شماره‌ی تماس درست نیست. مثال: 0700123456','err');$('jPhone').focus();return}
+    if(!digits&&!d.email){say('لطفاً شماره‌ی تماس یا ایمیل خود را بنویسید.','err');$('jPhone').focus();return}
+    if(digits&&!/^\d{9,15}$/.test(digits)){say('شماره‌ی تماس درست نیست. مثال: 0700123456','err');$('jPhone').focus();return}
+    if(d.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)){say('ایمیل درست نیست. مثال: name@gmail.com','err');$('jEmail').focus();return}
     btn.disabled=true;say('در حال ثبت…','warn');
     try{const r=await fetch('/api/join',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));
       if(r.ok){say('عضویت شما ثبت شد. تشکر از همراهی شما با راهبر!','ok');store.set('th-joined',1);joinedNote()}
@@ -1151,7 +1215,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       renderLive();
     }catch(e){}
   }
-  {const h=location.hash.slice(1);showPage(h==='usd'||h==='gold'?h:pageOf(sel),true)}
+  {const h=location.hash.slice(1);showPage(h==='usd'||h==='gold'?h:h==='news-gold'?'gold':pageOf(sel),true);routeNews()}
   boot();loadNews();
   setInterval(()=>{if(!document.hidden)poll()},30000);
   setInterval(()=>{if(!document.hidden)loadNews()},300000);
