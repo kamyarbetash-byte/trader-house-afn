@@ -1,5 +1,6 @@
 import { parsePage, parsePost, parseAll, parseGold, PARSER_VERSION, CITIES } from "./parse.js";
 import PAGE from "./page.html";
+import { handleAuth, listUsers, cleanupAuth } from "./auth.js";
 
 // Public Telegram channels read every minute. `city` is used when a post names no city.
 // Message ids are stored as idx * 1e9 + id so channels never collide (kabul_dollar keeps its raw ids).
@@ -325,6 +326,7 @@ async function collect(env) {
   await updateSnapshots(db, all);
   const now = Math.floor(Date.now() / 1000);
   try { await collectXau(db); } catch (e) { errors.push("xau: " + (e && e.message || e)); }
+  if (now - (+(await meta(db, "authCleanAt")) || 0) >= 3600) { try { await cleanupAuth(db); await setMeta(db, "authCleanAt", now); } catch (e) { errors.push("auth: " + (e && e.message || e)); } }
   if (now - (+(await meta(db, "newsAt")) || 0) >= 1800) {
     try { await collectNews(db); } catch (e) { errors.push("news: " + (e && e.message || e)); }
   }
@@ -431,6 +433,14 @@ async function admin(url, db) {
   await db.prepare(MEMBERS_SQL).run();
   const rows = (await db.prepare("SELECT ts,name,phone,email,city,role,wants,ads FROM members ORDER BY ts DESC LIMIT 5000").all()).results;
   const day = t => new Date((t + 16200) * 1000).toISOString().slice(0, 16).replace("T", " ");
+  const users = await listUsers(db);
+  const yn = v => (v ? "بلی" : "نخیر");
+  if (url.pathname.endsWith(".csv") && url.searchParams.get("t") !== "old") {
+    const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+    const csv = "\ufeffcreated,name,email,phone,province,role,email_verified,wants_rates_news,accepts_ads,last_login\n" +
+      users.map(r => [day(r.created), r.name, r.email, r.phone, r.city, r.role, r.verified ? "yes" : "no", r.wants ? "yes" : "no", r.ads ? "yes" : "no", r.last_login ? day(r.last_login) : ""].map(q).join(",")).join("\n");
+    return new Response(csv, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": "attachment; filename=raahbar-accounts.csv", "cache-control": "no-store" } });
+  }
   if (url.pathname.endsWith(".csv")) {
     const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
     const csv = "\ufeffdate,name,phone,email,province,role,wants_rates_news,accepts_ads\n" + rows.map(r => [day(r.ts), r.name, r.phone, r.email, r.city, r.role, r.wants ? "yes" : "no", r.ads ? "yes" : "no"].map(q).join(",")).join("\n");
@@ -439,7 +449,9 @@ async function admin(url, db) {
   const tr = rows.map(r => `<tr><td>${esc(day(r.ts))}</td><td>${esc(r.name)}</td><td dir="ltr">${esc(r.phone)}</td><td dir="ltr">${esc(r.email)}</td><td>${esc(r.city)}</td><td>${esc(r.role)}</td><td>${r.wants ? "بلی" : "نخیر"}</td><td>${r.ads ? "بلی" : "نخیر"}</td></tr>`).join("");
   const html = `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>اعضای راهبر</title>
 <style>body{font-family:Tahoma,system-ui,sans-serif;margin:0;padding:16px;background:#0E1220;color:#EDEBE4}h1{font-size:20px;color:#E2B847}a{color:#E2B847}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #252D44;padding:7px 8px;text-align:right}th{color:#9AA2B5;font-weight:500}.w{overflow-x:auto}</style></head>
-<body><h1>اعضای راهبر: ${rows.length} نفر</h1><p><a href="/admin.csv?key=${encodeURIComponent(given)}">دانلود فایل اکسل (CSV)</a></p>
+<body><h1>حساب‌های راهبر: ${users.length} نفر</h1><p><a href="/admin.csv?key=${encodeURIComponent(given)}">دانلود فایل اکسل حساب‌ها (CSV)</a></p>
+<div class="w"><table><thead><tr><th>تاریخ ساخت (وقت کابل)</th><th>نام</th><th>ایمیل</th><th>تأیید ایمیل</th><th>شماره</th><th>ولایت</th><th>شغل</th><th>نرخ و خبر</th><th>اعلانات تجاری</th><th>آخرین ورود</th></tr></thead><tbody>${users.map(r => `<tr><td>${esc(day(r.created))}</td><td>${esc(r.name)}</td><td dir="ltr">${esc(r.email)}</td><td>${yn(r.verified)}</td><td dir="ltr">${esc(r.phone)}</td><td>${esc(r.city)}</td><td>${esc(r.role)}</td><td>${yn(r.wants)}</td><td>${yn(r.ads)}</td><td>${r.last_login ? esc(day(r.last_login)) : ""}</td></tr>`).join("")}</tbody></table></div>
+<h2 style="font-size:16px;color:#9AA2B5;margin-top:28px">ثبت‌نام‌های قبلی (بدون رمز): ${rows.length} نفر · <a href="/admin.csv?t=old&key=${encodeURIComponent(given)}">CSV</a></h2>
 <div class="w"><table><thead><tr><th>تاریخ (وقت کابل)</th><th>نام</th><th>شماره</th><th>ایمیل</th><th>ولایت</th><th>شغل</th><th>نرخ و خبر</th><th>اعلانات تجاری</th></tr></thead><tbody>${tr}</tbody></table></div></body></html>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" } });
 }
@@ -489,6 +501,8 @@ async function handle(req, env) {
     const url = new URL(req.url);
     const db = env.DB;
     try {
+      const a = await handleAuth(req, url, db);
+      if (a) return a;
       if (url.pathname === "/api/history") return json(await cached("history", 30000, () => history(db)), 30);
       if (url.pathname === "/api/news")
         return json(await cached("news", 120000, async () => ({ news: JSON.parse((await meta(db, "news")) || "[]"), newsGold: JSON.parse((await meta(db, "newsGold")) || "[]"), boli: JSON.parse((await meta(db, "boli")) || "null"), gold: JSON.parse((await meta(db, "gold")) || "null") })), 120);

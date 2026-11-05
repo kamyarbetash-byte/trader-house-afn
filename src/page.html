@@ -250,6 +250,23 @@ body.noscroll{overflow:hidden}
 .nahead{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-12px;background:var(--bg);padding-block:6px;z-index:1}
 .nahead h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:24px}
 .naClose{font:700 14px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 14px;cursor:pointer}
+.jcta{display:flex;flex-direction:column;gap:10px;align-self:center}
+.jbtn.alt{background:none;color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.acct{position:fixed;inset:0;z-index:80;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow-y:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 24px) max(16px,env(safe-area-inset-left,0px))}
+.acct[hidden]{display:none}
+.acbox{max-width:520px;margin:0 auto;background:var(--surface);border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.acbox .nahead{position:static;background:none;top:auto}
+.acbox [data-v][hidden]{display:none!important}
+.jform.one{grid-template-columns:1fr}
+.pwRow{display:flex;gap:6px}.pwRow input{flex:1;min-width:0}
+.pwEye{font:500 12.5px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:10px;padding:0 10px;cursor:pointer;white-space:nowrap}
+.linkBtn{background:none;border:0;color:var(--gold);font:600 13.5px var(--f-body);cursor:pointer;padding:2px 0;text-decoration:underline;justify-self:start}
+.prof{display:flex;flex-direction:column;gap:10px}
+.prof .hello{margin:0;font-family:var(--f-display);font-size:22px;color:var(--gold)}
+.prof .pmail{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:12px;border-radius:999px;padding:1px 10px;border:1px solid currentColor}
+.badge.ok{color:var(--up)}.badge.no{color:var(--gold)}
 /* News */
 .news{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .news h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -286,7 +303,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     </div>
     <div class="hdr-r">
       <span class="live stale" id="live"><i></i><span id="updated">در حال بارگذاری…</span></span>
-      <a class="joinBtn" href="#join" id="joinTop">عضویت رایگان</a>
+      <button type="button" class="joinBtn" id="acctBtn">ورود / ساختن حساب</button>
       <button type="button" class="themeBtn" id="themeBtn" title="حالت روز / شب" aria-label="تغییر حالت روز و شب">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -488,22 +505,71 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
 
   <section class="join" id="join" aria-labelledby="joinH">
     <div class="jtext">
-      <h2 id="joinH">عضویت رایگان راهبر</h2>
-      <p>اختیاری است. اعضا نرخ‌ها و خبرهای مهم دالر و طلا را زودتر دریافت می‌کنند و از امکانات تازه‌ی سایت باخبر می‌شوند.</p>
-      <p class="jpriv">شماره یا ایمیل خود را بنویسید (یکی کافی است). معلومات شما فقط برای فرستادن نرخ و خبرهای راهبر استفاده می‌شود و با هیچ‌کس شریک نمی‌شود. اعلانات تجاری فقط با اجازه‌ی شما فرستاده می‌شود و هر وقت بخواهید می‌توانید لغو کنید.</p>
+      <h2 id="joinH">حساب رایگان راهبر</h2>
+      <p>با یک حساب، <b>ترسیم‌ها و تحلیل‌های شما روی چارت</b> و <b>حساب معامله‌ی دیمو</b> ذخیره می‌شود؛ فردا از هر گوشی یا کامپیوتر وارد شوید و ببینید تحلیل‌تان درست پیش رفته یا نه.</p>
+      <p class="jpriv">معلومات شما فقط برای حساب و فرستادن نرخ و خبرهای راهبر استفاده می‌شود و با هیچ‌کس شریک نمی‌شود. رمز شما به‌شکل رمزگذاری‌شده نگه داشته می‌شود و هیچ‌کس، حتی ما، آن را نمی‌بیند.</p>
     </div>
-    <form class="jform" id="joinForm" novalidate>
-      <label for="jName">نام<input id="jName" name="jName" autocomplete="name" maxlength="60" required></label>
-      <label for="jPhone">شماره‌ی تماس / واتساپ (اختیاری)<input id="jPhone" name="jPhone" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xx xxx xxx" maxlength="20"></label>
-      <label for="jEmail">ایمیل (اختیاری)<input id="jEmail" name="jEmail" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="name@gmail.com" maxlength="120"></label>
-      <label for="jCity">ولایت<select id="jCity" name="jCity"><option>کابل</option><option>هرات</option><option>بلخ / مزارشریف</option><option>قندهار</option><option>ننگرهار</option><option>غزنی</option><option>خوست</option><option>کندز</option><option>بدخشان</option><option>بامیان</option><option>ولایت دیگر</option><option>خارج از کشور</option></select></label>
-      <label for="jRole">کار شما<select id="jRole" name="jRole"><option>صراف</option><option>تاجر</option><option>زرگر</option><option>معامله‌گر / تحلیل‌گر</option><option>مردم عام</option><option>دیگر</option></select></label>
-      <label class="jchk" for="jWants"><input type="checkbox" id="jWants" name="jWants" checked> نرخ‌ها و خبرهای مهم را برایم بفرستید</label>
-      <label class="jchk" for="jAds"><input type="checkbox" id="jAds" name="jAds"> اعلانات و پیشنهادهای تجاری راهبر را هم دریافت می‌کنم</label>
-      <input type="text" name="website" id="jWeb" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
-      <button type="submit" class="jbtn" id="jBtn">ثبت عضویت</button>
-      <p class="dmsg" id="jMsg" role="status"></p>
-    </form>
+    <div class="jcta" id="jcta">
+      <button type="button" class="jbtn" data-open="register">ساختن حساب رایگان</button>
+      <button type="button" class="jbtn alt" data-open="login">ورود به حساب</button>
+    </div>
+  </section>
+
+  <section class="acct" id="acct" hidden role="dialog" aria-modal="true" aria-labelledby="acTitle">
+    <div class="acbox">
+      <div class="nahead"><h2 id="acTitle">حساب راهبر</h2><button type="button" class="naClose" id="acClose" aria-label="بستن">✕ بستن</button></div>
+      <div class="seg" role="tablist" id="acTabs"><button type="button" data-v="login">ورود</button><button type="button" data-v="register">ساختن حساب</button></div>
+
+      <form class="jform one" data-v="login" id="fLogin" novalidate>
+        <label for="lEmail">ایمیل<input id="lEmail" type="email" inputmode="email" autocomplete="username" dir="ltr" required maxlength="120"></label>
+        <label for="lPw">رمز<span class="pwRow"><input id="lPw" type="password" autocomplete="current-password" dir="ltr" required maxlength="200"><button type="button" class="pwEye" data-eye aria-label="نمایش رمز">نمایش</button></span></label>
+        <button type="submit" class="jbtn">ورود</button>
+        <button type="button" class="linkBtn" data-go="forgot">رمز را فراموش کرده‌ام</button>
+      </form>
+
+      <form class="jform" data-v="register" id="fReg" novalidate>
+        <label for="rName">نام<input id="rName" autocomplete="name" maxlength="60" required></label>
+        <label for="rEmail">ایمیل<input id="rEmail" type="email" inputmode="email" autocomplete="email" dir="ltr" placeholder="name@gmail.com" maxlength="120" required></label>
+        <label for="rPw">رمز (حداقل ۸ حرف)<span class="pwRow"><input id="rPw" type="password" autocomplete="new-password" dir="ltr" minlength="8" maxlength="200" required><button type="button" class="pwEye" data-eye aria-label="نمایش رمز">نمایش</button></span></label>
+        <label for="rPhone">شماره‌ی تماس / واتساپ (اختیاری)<input id="rPhone" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xx xxx xxx" maxlength="20"></label>
+        <label for="rCity">ولایت<select id="rCity"><option>کابل</option><option>هرات</option><option>بلخ / مزارشریف</option><option>قندهار</option><option>ننگرهار</option><option>غزنی</option><option>خوست</option><option>کندز</option><option>بدخشان</option><option>بامیان</option><option>ولایت دیگر</option><option>خارج از کشور</option></select></label>
+        <label for="rRole">کار شما<select id="rRole"><option>صراف</option><option>تاجر</option><option>زرگر</option><option>معامله‌گر / تحلیل‌گر</option><option>مردم عام</option><option>دیگر</option></select></label>
+        <label class="jchk" for="rWants"><input type="checkbox" id="rWants" checked> نرخ‌ها و خبرهای مهم را برایم بفرستید</label>
+        <label class="jchk" for="rAds"><input type="checkbox" id="rAds"> اعلانات و پیشنهادهای تجاری راهبر را هم دریافت می‌کنم</label>
+        <input type="text" id="rWeb" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+        <button type="submit" class="jbtn">ساختن حساب</button>
+      </form>
+
+      <form class="jform one" data-v="forgot" id="fForgot" novalidate>
+        <p class="jpriv">ایمیل حساب خود را بنویسید؛ یک لینک برای ساختن رمز تازه به ایمیل‌تان فرستاده می‌شود.</p>
+        <label for="fEmail">ایمیل<input id="fEmail" type="email" inputmode="email" autocomplete="email" dir="ltr" required maxlength="120"></label>
+        <button type="submit" class="jbtn">فرستادن لینک بازیابی</button>
+        <button type="button" class="linkBtn" data-go="login">برگشت به ورود</button>
+      </form>
+
+      <form class="jform one" data-v="reset" id="fReset" novalidate>
+        <p class="jpriv">رمز تازه‌ی حساب خود را بنویسید.</p>
+        <label for="nPw">رمز تازه (حداقل ۸ حرف)<span class="pwRow"><input id="nPw" type="password" autocomplete="new-password" dir="ltr" minlength="8" maxlength="200" required><button type="button" class="pwEye" data-eye aria-label="نمایش رمز">نمایش</button></span></label>
+        <button type="submit" class="jbtn">ذخیره‌ی رمز تازه</button>
+      </form>
+
+      <div class="prof" data-v="profile" id="vProfile">
+        <p class="hello" id="pHello"></p>
+        <p class="pmail"><bdi id="pEmail" dir="ltr"></bdi> <span class="badge" id="pBadge"></span> <button type="button" class="linkBtn" id="pResend" hidden>فرستادن دوباره‌ی ایمیل تأیید</button></p>
+        <p class="jpriv">ترسیم‌های شما روی چارت‌ها و حساب معامله‌ی دیمو به‌طور خودکار در این حساب ذخیره می‌شود و روی هر دستگاهی که وارد شوید نمایش داده می‌شود.</p>
+        <form class="jform" id="fProf" novalidate>
+          <label for="pName">نام<input id="pName" maxlength="60"></label>
+          <label for="pPhone">شماره‌ی تماس / واتساپ<input id="pPhone" inputmode="tel" dir="ltr" maxlength="20"></label>
+          <label for="pCity">ولایت<select id="pCity"><option>کابل</option><option>هرات</option><option>بلخ / مزارشریف</option><option>قندهار</option><option>ننگرهار</option><option>غزنی</option><option>خوست</option><option>کندز</option><option>بدخشان</option><option>بامیان</option><option>ولایت دیگر</option><option>خارج از کشور</option></select></label>
+          <label for="pRole">کار شما<select id="pRole"><option>صراف</option><option>تاجر</option><option>زرگر</option><option>معامله‌گر / تحلیل‌گر</option><option>مردم عام</option><option>دیگر</option></select></label>
+          <label class="jchk" for="pWants"><input type="checkbox" id="pWants"> نرخ‌ها و خبرهای مهم را برایم بفرستید</label>
+          <label class="jchk" for="pAds"><input type="checkbox" id="pAds"> اعلانات و پیشنهادهای تجاری راهبر را هم دریافت می‌کنم</label>
+          <button type="submit" class="jbtn">ذخیره‌ی معلومات</button>
+        </form>
+        <button type="button" class="jbtn alt" id="pLogout">خروج از حساب</button>
+      </div>
+      <p class="dmsg" id="acMsg" role="status"></p>
+    </div>
   </section>
 
   <p class="note">هر کندل از نرخ‌های اعلام‌شده و معاملات انجام‌شده در همان بازه ساخته می‌شود (میانه‌ی خرید و فروش). «میانگین بازار» میانگین آخرین نرخ کابل، مزارشریف، هرات و قندهار است (نرخ‌های قدیمی‌تر از ۶ ساعت حساب نمی‌شوند). ترسیم‌های شما فقط در همین مرورگر ذخیره می‌شوند. صفحه هر ۳۰ ثانیه خودکار به‌روز می‌شود. منبع اخبار: Bing News و رسانه‌های افغانستان. منبع نرخ‌ها: کانال‌های تلگرام <a href="https://t.me/kabul_dollar" target="_blank" rel="noopener">@kabul_dollar</a>، <a href="https://t.me/Exchange_Rate" target="_blank" rel="noopener">@Exchange_Rate</a>، <a href="https://t.me/Mazar_Nerkh" target="_blank" rel="noopener">@Mazar_Nerkh</a> و <a href="https://t.me/herat_gold" target="_blank" rel="noopener">@herat_gold</a>. کندل‌های طلای جهانی از Yahoo Finance.</p>
@@ -535,7 +601,8 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   const gDate=ts=>gcal.format(new Date(ts*1000));
   const dfmt={format:d=>afDT(Math.floor(d.getTime()/1000))};
   const dayKey=t=>Math.floor((t+KABUL)/86400);
-  const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+  let me=null,mailOn=false,syncT=0;const syncQ=new Map();
+  const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}if(me&&isSyncKey(k))queueSync(k,v)}};
 
   /* ---------- state ---------- */
   let raf=0;function schedule(){if(!raf)raf=requestAnimationFrame(draw)}
@@ -1172,24 +1239,85 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function routeNews(){const h=location.hash.slice(1);if(h==='news-usd'||h==='news-gold')openAllNews(h.slice(5));else if(!$('newsAll').hidden)closeAllNews()}
   window.addEventListener('hashchange',routeNews);
 
-  /* ---------- optional membership ---------- */
-  function joinedNote(){if(store.get('th-joined',0)){$('jBtn').textContent='به‌روز کردن معلومات عضویت';$('joinTop').textContent='عضو راهبر ✓'}}
-  joinedNote();
-  $('joinForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,msg=$('jMsg'),btn=$('jBtn');
-    const d={name:$('jName').value.trim(),phone:$('jPhone').value.trim(),email:$('jEmail').value.trim(),city:$('jCity').value,role:$('jRole').value,wants:$('jWants').checked,ads:$('jAds').checked,website:$('jWeb').value};
-    const say=(t,k)=>{msg.textContent=t;msg.className='dmsg '+k};
-    if(d.name.length<2){say('لطفاً نام خود را بنویسید.','err');$('jName').focus();return}
-    const digits=d.phone.replace(/[۰-۹]/g,x=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/[\s\-().+]/g,'');
-    if(!digits&&!d.email){say('لطفاً شماره‌ی تماس یا ایمیل خود را بنویسید.','err');$('jPhone').focus();return}
-    if(digits&&!/^\d{9,15}$/.test(digits)){say('شماره‌ی تماس درست نیست. مثال: 0700123456','err');$('jPhone').focus();return}
-    if(d.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)){say('ایمیل درست نیست. مثال: name@gmail.com','err');$('jEmail').focus();return}
-    btn.disabled=true;say('در حال ثبت…','warn');
-    try{const r=await fetch('/api/join',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));
-      if(r.ok){say('عضویت شما ثبت شد. تشکر از همراهی شما با راهبر!','ok');store.set('th-joined',1);joinedNote()}
-      else say(j.error||'ثبت نشد؛ چند لحظه بعد دوباره امتحان کنید.','err')}
-    catch(err){say('اتصال برقرار نشد؛ دوباره امتحان کنید.','err')}
-    finally{btn.disabled=false}});
-  $('joinTop').addEventListener('click',e=>{e.preventDefault();$('join').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('jName').focus({preventScroll:true}),500)});
+  /* ---------- accounts: login, sign-up, saved analyses ---------- */
+  const isSyncKey=k=>/^th-draw-[a-z0-9]{2,12}$/.test(k)||k==='th-demo';
+  const srvKey=k=>k==='th-demo'?'demo':'draw:'+k.slice(8);
+  const locKey=k=>k==='demo'?'th-demo':'th-draw-'+k.slice(5);
+  function queueSync(k,v){syncQ.set(k,v);clearTimeout(syncT);syncT=setTimeout(flushSync,1200)}
+  async function flushSync(keep){
+    for(const [k,v] of [...syncQ]){syncQ.delete(k);
+      try{const r=await fetch('/api/user/data',{method:'PUT',headers:{'content-type':'application/json'},keepalive:!!keep,body:JSON.stringify({k:srvKey(k),v:JSON.stringify(v)})});
+        if(r.status===401){me=null;renderAcctBtn();return}if(!r.ok&&r.status>=500)syncQ.set(k,v)}catch(e){syncQ.set(k,v)}}}
+  addEventListener('pagehide',()=>{if(syncQ.size)flushSync(true)});
+  function reloadLocal(){loadDraw();acct=store.get('th-demo',null);if(!acct||typeof acct.cash!=='number')acct={cash:START,usd:0,cost:0,key:null,trades:[]};renderDemo();schedule()}
+  async function pullData(){
+    try{const r=await fetch('/api/user/data',{cache:'no-store'});if(!r.ok)return;const {data}=await r.json();
+      const have=new Set();
+      for(const k in data){if(!/^(draw:[a-z0-9]{2,12}|demo)$/.test(k))continue;have.add(locKey(k));try{localStorage.setItem(locKey(k),data[k].v)}catch(e){}}
+      // drawings made before logging in are kept and added to the account
+      try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSyncKey(k)&&!have.has(k)){const v=store.get(k,null);if(v&&(!Array.isArray(v)||v.length))queueSync(k,v)}}}catch(e){}
+      reloadLocal()}catch(e){}}
+  function clearLocal(){try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSyncKey(k))ks.push(k)}ks.forEach(k=>localStorage.removeItem(k))}catch(e){}reloadLocal()}
+  async function api(path,body){try{const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{})});const j=await r.json().catch(()=>({}));return{ok:r.ok,status:r.status,j}}catch(e){return{ok:false,status:0,j:{error:'اتصال برقرار نشد؛ دوباره امتحان کنید.'}}}}
+  const amsg=(t,k)=>{const m=$('acMsg');m.textContent=t||'';m.className='dmsg '+(k||'')};
+  function renderAcctBtn(){$('acctBtn').textContent=me?'حساب من · '+me.name:'ورود / ساختن حساب';
+    $('jcta').hidden=!!me;$('joinH').textContent=me?'سلام '+me.name+'؛ تحلیل‌های شما در حساب ذخیره می‌شود':'حساب رایگان راهبر'}
+  function fillProfile(){if(!me)return;$('pHello').textContent='سلام '+me.name;$('pEmail').textContent=me.email;
+    const b=$('pBadge');b.textContent=me.verified?'ایمیل تأیید شده':'ایمیل هنوز تأیید نشده';b.className='badge '+(me.verified?'ok':'no');
+    $('pResend').hidden=me.verified||!mailOn;
+    $('pName').value=me.name;$('pPhone').value=me.phone||'';$('pCity').value=me.city||'کابل';$('pRole').value=me.role||'صراف';$('pWants').checked=me.wants;$('pAds').checked=me.ads}
+  function openAcct(v,msg,kind){const box=$('acct');box.hidden=false;document.body.classList.add('noscroll');
+    if(me&&(v==='login'||v==='register'))v='profile';
+    document.querySelectorAll('#acct [data-v]').forEach(el=>{if(el.parentElement.id!=='acTabs')el.hidden=el.dataset.v!==v});
+    $('acTabs').hidden=!(v==='login'||v==='register');
+    document.querySelectorAll('#acTabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));
+    $('acTitle').textContent={login:'ورود به حساب',register:'ساختن حساب راهبر',forgot:'بازیابی رمز',reset:'ساختن رمز تازه',profile:'حساب من'}[v];
+    if(v==='profile')fillProfile();amsg(msg,kind);
+    const f=box.querySelector('[data-v="'+v+'"] input:not([type=checkbox]):not(.hp)');if(f&&!('ontouchstart' in window))setTimeout(()=>f.focus(),50)}
+  function closeAcct(){$('acct').hidden=true;document.body.classList.remove('noscroll')}
+  $('acctBtn').addEventListener('click',()=>openAcct(me?'profile':'login'));
+  $('jcta').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)openAcct(b.dataset.open)});
+  $('acClose').addEventListener('click',closeAcct);
+  $('acct').addEventListener('click',e=>{if(e.target.id==='acct')closeAcct();const g=e.target.closest('[data-go]');if(g)openAcct(g.dataset.go);
+    const t=e.target.closest('#acTabs button');if(t)openAcct(t.dataset.v);
+    const eyeB=e.target.closest('[data-eye]');if(eyeB){const i=eyeB.previousElementSibling;i.type=i.type==='password'?'text':'password';eyeB.textContent=i.type==='password'?'نمایش':'پنهان'}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('acct').hidden)closeAcct()});
+  const busy=(f,on)=>f.querySelectorAll('button[type=submit]').forEach(b=>b.disabled=on);
+  $('fLogin').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget;const email=$('lEmail').value.trim(),password=$('lPw').value;
+    if(!email||!password){amsg('ایمیل و رمز را بنویسید.','err');return}
+    busy(f,true);amsg('در حال ورود…','warn');const r=await api('/api/auth/login',{email,password});busy(f,false);
+    if(!r.ok){amsg(r.j.error||'ورود ناموفق بود.','err');return}
+    me=r.j.user;$('lPw').value='';renderAcctBtn();await pullData();openAcct('profile','خوش آمدید! ترسیم‌ها و حساب دیموی شما بارگذاری شد.','ok')});
+  $('fReg').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget;
+    const d={name:$('rName').value.trim(),email:$('rEmail').value.trim(),password:$('rPw').value,phone:$('rPhone').value.trim(),city:$('rCity').value,role:$('rRole').value,wants:$('rWants').checked,ads:$('rAds').checked,website:$('rWeb').value};
+    if(d.name.length<2){amsg('لطفاً نام خود را بنویسید.','err');return}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)){amsg('ایمیل درست نیست. مثال: name@gmail.com','err');return}
+    if(d.password.length<8){amsg('رمز باید حداقل ۸ حرف باشد.','err');return}
+    busy(f,true);amsg('در حال ساختن حساب…','warn');const r=await api('/api/auth/register',d);busy(f,false);
+    if(!r.ok){amsg(r.j.error||'حساب ساخته نشد.','err');return}
+    me=r.j.user;$('rPw').value='';renderAcctBtn();await pullData();
+    openAcct('profile',r.j.mailed?'حساب شما ساخته شد! یک ایمیل تأیید به '+me.email+' فرستادیم؛ لینک داخل آن را بزنید.':'حساب شما ساخته شد! از این به بعد ترسیم‌ها و تحلیل‌های شما در حساب ذخیره می‌شود.','ok')});
+  $('fForgot').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,email=$('fEmail').value.trim();
+    if(!email){amsg('ایمیل را بنویسید.','err');return}busy(f,true);const r=await api('/api/auth/forgot',{email});busy(f,false);
+    amsg(r.ok?'اگر این ایمیل حساب داشته باشد، لینک بازیابی تا چند دقیقه به آن می‌رسد. پوشه‌ی Spam را هم ببینید.':(r.j.error||'درخواست ناموفق بود.'),r.ok?'ok':'err')});
+  let resetTok='';
+  $('fReset').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,password=$('nPw').value;
+    if(password.length<8){amsg('رمز باید حداقل ۸ حرف باشد.','err');return}busy(f,true);const r=await api('/api/auth/reset',{token:resetTok,password});busy(f,false);
+    if(!r.ok){amsg(r.j.error||'رمز ذخیره نشد.','err');return}me=r.j.user;renderAcctBtn();await pullData();openAcct('profile','رمز تازه ذخیره شد و وارد حساب شدید.','ok')});
+  $('fProf').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget;busy(f,true);
+    const r=await api('/api/auth/profile',{name:$('pName').value.trim(),phone:$('pPhone').value.trim(),city:$('pCity').value,role:$('pRole').value,wants:$('pWants').checked,ads:$('pAds').checked});busy(f,false);
+    if(!r.ok){amsg(r.j.error||'ذخیره نشد.','err');return}me=r.j.user;renderAcctBtn();fillProfile();amsg('معلومات شما ذخیره شد.','ok')});
+  $('pResend').addEventListener('click',async()=>{const r=await api('/api/auth/resend');amsg(r.ok?(r.j.verified?'ایمیل شما قبلاً تأیید شده است.':'ایمیل تأیید دوباره فرستاده شد.'):(r.j.error||'فرستاده نشد.'),r.ok?'ok':'err')});
+  $('pLogout').addEventListener('click',async()=>{if(syncQ.size)await flushSync();await api('/api/auth/logout');me=null;clearLocal();renderAcctBtn();closeAcct();toast('از حساب خارج شدید')});
+  async function bootAcct(){
+    const q=new URLSearchParams(location.search),ok=q.get('ok'),rt=q.get('reset');
+    if(ok||rt){try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}}
+    try{const r=await fetch('/api/auth/me',{cache:'no-store'});const j=await r.json();me=j.user||null;mailOn=!!j.mail}catch(e){}
+    renderAcctBtn();if(me)await pullData();
+    if(rt){resetTok=rt;openAcct('reset')}
+    else if(ok==='verified')openAcct(me?'profile':'login',me?'ایمیل شما تأیید شد. تشکر!':'ایمیل شما تأیید شد؛ حالا وارد شوید.','ok');
+    else if(ok==='badlink')openAcct(me?'profile':'login','این لینک باطل شده یا وقتش گذشته است.','err');
+  }
 
   /* ---------- data loading ---------- */
   async function getJSON(u){const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return r.json()}
@@ -1215,7 +1343,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     }catch(e){}
   }
   {const h=location.hash.slice(1);showPage(h==='usd'||h==='gold'?h:h==='news-gold'?'gold':pageOf(sel),true);routeNews()}
-  boot();loadNews();
+  boot();loadNews();bootAcct();
   setInterval(()=>{if(!document.hidden)poll()},30000);
   setInterval(()=>{if(!document.hidden)loadNews()},300000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
