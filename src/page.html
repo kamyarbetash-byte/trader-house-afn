@@ -196,9 +196,9 @@ footer a{color:inherit}
 @media (max-width:720px){.tsum{order:3;flex-basis:100%;gap:2px 10px;font-size:11.5px}.thead .tnew{margin-inline-start:auto}}
 .ttog,.tnew{font:600 12px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:3px 9px;cursor:pointer;white-space:nowrap}
 .tnew{color:var(--muted);font-weight:500}
-.tlogin{font:600 11.5px var(--f-body);border:1px solid var(--down);color:var(--down);background:none;border-radius:8px;padding:1px 8px;cursor:pointer;white-space:nowrap}
 .hsum{margin:0 8px 4px;font-size:11.5px;color:var(--muted)}.hsum b{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}.hsum b.up{color:var(--up)}.hsum b.down{color:var(--down)}
-.nalogin{display:flex;flex-direction:column;gap:6px;background:var(--gold-soft);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.8}
+.gate{position:relative;max-width:320px}.gate .gx{position:absolute;top:8px;left:10px;border:0;background:none;color:var(--muted);font-size:15px;cursor:pointer}
+#gate .nac{flex:1;font-weight:700}
 .tsum{display:flex;gap:4px 12px;flex-wrap:wrap;flex:1 1 260px;color:var(--muted);min-width:0}.tsum span{white-space:nowrap}.tsum b{font-family:var(--f-mono);color:var(--ink);direction:ltr;unicode-bidi:isolate}
 .tsum b.up{color:var(--up)}.tsum b.down{color:var(--down)}
 .ttabs{display:flex;gap:4px;padding:0 8px 4px}.ttabs button{font:500 11.5px var(--f-body);border:1px solid var(--line);background:none;color:var(--muted);border-radius:7px;padding:2px 9px;cursor:pointer}
@@ -557,10 +557,17 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
           <button type="submit" class="ogo b" id="oGo">خرید</button>
           <p class="oq">بعداً می‌توانید خط‌های SL و TP را روی چارت با موس یا انگشت جابه‌جا کنید.</p>
         </form>
+        <div class="newacct" id="gate" hidden role="dialog" aria-labelledby="gT">
+          <div class="nacard gate">
+            <button type="button" class="gx" aria-label="بستن">✕</button>
+            <b id="gT">معامله‌ی دیمو</b>
+            <p>برای خرید و فروش دیمو وارد حساب خود شوید یا ثبت نام کنید. رایگان است و همه‌ی معاملات، سود و زیان شما در حساب‌تان می‌ماند.</p>
+            <div class="nabtns"><button type="button" class="ogo b" data-v="register">ثبت نام</button><button type="button" class="nac" data-v="login">ورود</button></div>
+          </div>
+        </div>
         <div class="newacct" id="newAcct" hidden role="dialog" aria-labelledby="naT">
           <div class="nacard">
             <b id="naT">ساختن حساب دیمو</b>
-            <div class="nalogin" id="naLogin" hidden><span>🔒 برای این‌که همه‌ی معاملات دیموی شما ذخیره شود و بعداً سود و زیان‌تان را از هر موبایل یا کامپیوتر ببینید، اول وارد حساب شوید.</span><button type="button" class="ogo b" id="naSign">ورود / ساختن حساب راهبر</button></div>
             <p>مقدار پول حساب تمرینی را خودتان انتخاب کنید (۱,۰۰۰ تا ۱۰۰,۰۰۰ دالر). پول واقعی نیست؛ برای تمرین خرید و فروش است.</p>
             <input id="naAmt" inputmode="numeric" aria-label="مقدار حساب به دالر">
             <div class="nachips"><button type="button" data-amt="1000">1,000$</button><button type="button" data-amt="5000">5,000$</button><button type="button" data-amt="10000">10,000$</button><button type="button" data-amt="50000">50,000$</button><button type="button" data-amt="100000">100,000$</button></div>
@@ -1274,7 +1281,9 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function totals(){let fl=0,mg=0;if(acct)for(const p of acct.pos){fl+=pnl(p);mg+=marginOf(p)}const eq=(acct?acct.bal:0)+fl;return{fl,mg,eq,free:eq-mg}}
   const side=(s,fa)=>fa?(s==='buy'?'خرید':'فروش'):(s==='buy'?'BUY':'SELL');
   const L2=x=>'⁦'+x+'⁩';
-  function needAcct(){if(acct)return false;openNewAcct();return true}
+  function needAcct(){if(!me){openGate();return true}if(acct)return false;openNewAcct();return true}
+  function openGate(){$('ordPop').hidden=true;$('gate').hidden=false}
+  $('gate').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('gate').hidden=true;if(b.dataset.v){pendingDemo=true;openAcct(b.dataset.v)}});
   function okLevels(sd,ref,sl,tp){ // SL/TP must sit on the losing / winning side of the reference price
     if(sl!=null&&(sd==='buy'?sl>=ref:sl<=ref))return 'استاپ لاس باید '+(sd==='buy'?'پایین‌تر':'بالاتر')+' از قیمت باشد';
     if(tp!=null&&(sd==='buy'?tp<=ref:tp>=ref))return 'تیک پرافیت باید '+(sd==='buy'?'بالاتر':'پایین‌تر')+' از قیمت باشد';return null}
@@ -1321,7 +1330,8 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       if(p.sl!=null)add(p.sl,dn,2,'SL #'+p.id+' '+usd(pnlAt(p,p.sl),1)+'$',{kind:'sl',id:p.id,price:p.sl});
       if(p.tp!=null)add(p.tp,up,2,'TP #'+p.id+' '+usd(pnlAt(p,p.tp),1)+'$',{kind:'tp',id:p.id,price:p.tp})}
     for(const o of acct.ord)if(o.key===sel){add(o.price,gd,2,'#'+o.id+' '+TYPES[o.type][1].toUpperCase()+' '+fmtV(o.key,o.vol),{kind:'ord',id:o.id,price:o.price});
-      if(o.sl!=null)add(o.sl,dn,3,'SL #'+o.id,{kind:'osl',id:o.id,price:o.sl});if(o.tp!=null)add(o.tp,up,3,'TP #'+o.id,{kind:'otp',id:o.id,price:o.tp})}
+      const op={key:o.key,side:TYPES[o.type][0],vol:o.vol,open:o.price};
+      if(o.sl!=null)add(o.sl,dn,3,'SL #'+o.id+' '+usd(pnlAt(op,o.sl),1)+'$',{kind:'osl',id:o.id,price:o.sl});if(o.tp!=null)add(o.tp,up,3,'TP #'+o.id+' '+usd(pnlAt(op,o.tp),1)+'$',{kind:'otp',id:o.id,price:o.tp})}
   }
   // MetaTrader-style labels on each line: live profit, TP / SL handles to drag out, ✕ to close or remove.
   let tChips=[];
@@ -1341,7 +1351,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       else if(l.kind==='sl'||l.kind==='tp'){const v=pnlAt(o,o[l.kind]),c=l.kind==='tp'?up:dn;x+=chip(x,y,(l.kind==='tp'?'TP ':'SL ')+usd(v,1)+' $',c,'#fff');chip(x,y,'✕',bg,ink,'rm'+l.kind,o.id,css('--line'))}
       else if(l.kind==='ord'){x+=chip(x,y,TYPES[o.type][1].toUpperCase()+' '+fmtV(o.key,o.vol)+' @ '+fp(o.key,o.price),gd,'#111');
         if(o.tp==null)x+=chip(x,y,'TP ↕',bg,up,'otp',o.id,up);if(o.sl==null)x+=chip(x,y,'SL ↕',bg,dn,'osl',o.id,dn);chip(x,y,'✕',bg,ink,'cancel',o.id,css('--line'))}
-      else{const k=l.kind==='otp'?'tp':'sl';x+=chip(x,y,k.toUpperCase()+' #'+o.id,k==='tp'?up:dn,'#fff');chip(x,y,'✕',bg,ink,'ormo'+k,o.id,css('--line'))}}
+      else{const k=l.kind==='otp'?'tp':'sl',v=pnlAt({key:o.key,side:TYPES[o.type][0],vol:o.vol,open:o.price},o[k]);x+=chip(x,y,k.toUpperCase()+' #'+o.id+'  '+usd(v,1)+' $',k==='tp'?up:dn,'#fff');chip(x,y,'✕',bg,ink,'ormo'+k,o.id,css('--line'))}}
     og.restore();
   }
   function chipAt(x,y){for(let i=tChips.length-1;i>=0;i--){const c=tChips[i];if(x>=c.x&&x<=c.x+c.w&&y>=c.y&&y<=c.y+c.h)return c}return null}
@@ -1380,7 +1390,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     const it=(l,v,c)=>{const s=document.createElement('span');const b=document.createElement('b');b.textContent='\u2066'+v+'\u2069';if(c)b.className=c;s.append(l+' ',b);sum.appendChild(s)};
     it('موجودی',usd(acct.bal)+'$');it('اکویتی',usd(t.eq)+'$');if(t.mg)it('مارجین آزاد',usd(t.free)+'$');if(acct.pos.length)it('سود/زیان',usd(t.fl,1)+'$',cls(t.fl));
     {const r=t.eq-acct.start;it('نتیجه از شروع',usd(r,1)+'$ ('+(r>=0?'+':'')+(r/acct.start*100).toFixed(2)+'%)',cls(r))}
-    if(!me){const w=document.createElement('button');w.type='button';w.className='tlogin';w.id='termLogin';w.textContent='⚠ ذخیره نمی‌شود — وارد شوید';sum.appendChild(w)}
+
     const B=$('termBody');B.textContent='';if(!termOpen)return;
     const tabs=document.createElement('div');tabs.className='ttabs';[['pos','باز ('+fa(acct.pos.length)+')'],['ord','سفارش‌ها ('+fa(acct.ord.length)+')'],['hist','تاریخچه']].forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.dataset.tab=k;b.textContent=l;b.setAttribute('aria-pressed',String(termTab===k));tabs.appendChild(b)});B.appendChild(tabs);
     const tbl=document.createElement('table');tbl.className='ttab';const hd=document.createElement('tr');
@@ -1403,7 +1413,6 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   $('term').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     if(b.id==='termTog'){if(needAcct())return;termOpen=!termOpen;store.set('th-term',termOpen);renderTerm();return}
     if(b.id==='termNew'){openNewAcct();return}
-    if(b.id==='termLogin'){pendingDemo=true;openAcct('register','حساب راهبر بسازید (یا اگر دارید وارد شوید) تا معاملات دیموی شما ذخیره شود.','warn');return}
     if(b.dataset.tab){termTab=b.dataset.tab;renderTerm();return}
     if(b.dataset.go){if(b.dataset.go!==sel)select(b.dataset.go);return}
     if(b.dataset.close){closePos(+b.dataset.close);renderDemo();return}
@@ -1414,11 +1423,10 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     if(bad){o[i.dataset.f]=old;toast(bad)}else saveAcct();renderDemo()});
   // new account
   let pendingDemo=false;
-  function openNewAcct(){const d=$('newAcct');d.hidden=false;$('naLogin').hidden=!!me;$('naOk').className=me?'ogo b':'nac';$('naOk').textContent=me?'ساختن حساب دیمو':'بدون ورود ادامه بده (ذخیره نمی‌شود)';$('naAmt').value=acct?acct.start:10000;$('naWarn').hidden=!(acct&&(acct.pos.length||acct.ord.length));setTimeout(()=>$('naAmt').focus(),30)}
+  function openNewAcct(){const d=$('newAcct');d.hidden=false;$('naAmt').value=acct?acct.start:10000;$('naWarn').hidden=!(acct&&(acct.pos.length||acct.ord.length));setTimeout(()=>$('naAmt').focus(),30)}
   $('newAcct').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     if(b.dataset.amt){$('naAmt').value=b.dataset.amt;return}
     if(b.id==='naCancel'){$('newAcct').hidden=true;return}
-    if(b.id==='naSign'){pendingDemo=true;$('newAcct').hidden=true;openAcct('register','حساب راهبر بسازید (یا اگر دارید وارد شوید) تا معاملات دیموی شما ذخیره شود.','warn');return}
     if(b.id==='naOk'){const v=Math.round(num($('naAmt').value));if(!(v>=MINB&&v<=MAXB)){toast('مقدار باید بین ۱,۰۰۰ و ۱۰۰,۰۰۰ دالر باشد');return}
       acct={v:2,start:v,bal:v,pos:[],ord:[],hist:[],seq:0,chk:0,created:nowS()};saveAcct();$('newAcct').hidden=true;termOpen=true;store.set('th-term',true);termTab='pos';
       toast('حساب دیمو با '+L2(fmtA(v)+'$')+' ساخته شد');renderDemo()}});
