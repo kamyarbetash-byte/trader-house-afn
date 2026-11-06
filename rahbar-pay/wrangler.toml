@@ -1,0 +1,34 @@
+name = "rahbar-pay"
+main = "src/worker.js"
+compatibility_date = "2025-06-01"
+
+# Static frontend (built Tailwind CSS + ES modules) served by Workers Static Assets.
+# /api/* and /admin* reach the Worker first; everything else is the customer SPA.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*", "/admin", "/admin/*"]
+
+[vars]
+APP_NAME = "Rahbar Pay"
+# DEMO_MODE=true shows one-time codes on screen instead of sending SMS.
+# Set to "false" in production once an SMS / Telegram verification provider is configured.
+DEMO_MODE = "true"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rahbar-pay"
+database_id = "00000000-0000-0000-0000-000000000000" # replace with the id from `wrangler d1 create rahbar-pay`
+migrations_dir = "migrations"
+
+# Optional: private receipt storage. Without it, receipts are stored in D1 (demo only, 2 MB limit).
+# [[r2_buckets]]
+# binding = "FILES"
+# bucket_name = "rahbar-pay-files"
+
+# Secrets (set with `wrangler secret put NAME`, never commit them):
+#   ADMIN_SETUP_KEY      one-time key to create the first administrator at /admin/setup
+#   TELEGRAM_BOT_TOKEN   Telegram bot token (optional)
+#   TELEGRAM_WEBHOOK_SECRET  random string checked on Telegram webhook calls (optional)
+#   TELEGRAM_ADMIN_CHAT  chat id for operator alerts (optional)
