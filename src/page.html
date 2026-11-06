@@ -172,7 +172,12 @@ footer a{color:inherit}
 .tbar input:focus{outline:2px solid var(--gold);outline-offset:-2px}
 .tbar .tm{background:var(--surface);color:var(--ink);min-width:30px;padding:0 8px;font-size:16px;text-align:center;border-inline-start:1px solid var(--line)}
 .ordpop{position:absolute;top:52px;left:8px;z-index:12;width:min(300px,calc(100% - 16px));background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);padding:8px 10px;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
-.ordpop[hidden],.newacct[hidden]{display:none}
+.ordpop[hidden],.newacct[hidden],.pmenu[hidden]{display:none}
+.tbar .tm[aria-pressed="true"]{background:var(--gold);color:#111}
+.pmenu{position:absolute;z-index:13;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);padding:4px;display:flex;flex-direction:column;gap:3px;min-width:210px}
+.pmh{font-size:11.5px;color:var(--muted);padding:3px 6px}
+.pmb{font:600 12.5px var(--f-body);text-align:right;border:0;border-radius:7px;background:var(--bg);color:var(--ink);padding:6px 9px;cursor:pointer}
+.pmb.up{color:var(--up)}.pmb.down{color:var(--down)}.pmb:hover{background:var(--gold-soft)}
 .ohead{display:flex;align-items:center;gap:8px}.ohead b{font-size:14px}.ohead span{color:var(--muted);flex:1;font-size:12px}.ohead button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:14px}
 .ordpop label{display:flex;flex-direction:column;gap:2px;color:var(--muted);flex:1;min-width:0}
 .ordpop select,.ordpop input{font:600 13px var(--f-body);padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
@@ -191,6 +196,9 @@ footer a{color:inherit}
 @media (max-width:720px){.tsum{order:3;flex-basis:100%;gap:2px 10px;font-size:11.5px}.thead .tnew{margin-inline-start:auto}}
 .ttog,.tnew{font:600 12px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:3px 9px;cursor:pointer;white-space:nowrap}
 .tnew{color:var(--muted);font-weight:500}
+.tlogin{font:600 11.5px var(--f-body);border:1px solid var(--down);color:var(--down);background:none;border-radius:8px;padding:1px 8px;cursor:pointer;white-space:nowrap}
+.hsum{margin:0 8px 4px;font-size:11.5px;color:var(--muted)}.hsum b{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}.hsum b.up{color:var(--up)}.hsum b.down{color:var(--down)}
+.nalogin{display:flex;flex-direction:column;gap:6px;background:var(--gold-soft);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.8}
 .tsum{display:flex;gap:4px 12px;flex-wrap:wrap;flex:1 1 260px;color:var(--muted);min-width:0}.tsum span{white-space:nowrap}.tsum b{font-family:var(--f-mono);color:var(--ink);direction:ltr;unicode-bidi:isolate}
 .tsum b.up{color:var(--up)}.tsum b.down{color:var(--down)}
 .ttabs{display:flex;gap:4px;padding:0 8px 4px}.ttabs button{font:500 11.5px var(--f-body);border:1px solid var(--line);background:none;color:var(--muted);border-radius:7px;padding:2px 9px;cursor:pointer}
@@ -266,6 +274,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .zbar button svg{width:17px;height:17px}
 .zbar button:hover{border-color:var(--gold);color:var(--gold)}
 .zbar button[aria-pressed="true"]{color:var(--gold);border-color:var(--gold)}
+.zbar button.spin svg{animation:spin .9s linear}@keyframes spin{to{transform:rotate(360deg)}}
 .txtIn{position:absolute;z-index:12;font:600 13px var(--f-body);direction:rtl;padding:4px 8px;border:1px solid var(--gold);border-radius:6px;background:var(--surface);color:var(--ink);width:180px;max-width:70%}
 .chartArea.tall #chart{height:min(82vh,820px)}
 .chartArea.tall .rail{max-height:min(82vh,820px)}
@@ -535,8 +544,10 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
           <button type="button" class="ts" id="tSell" title="فروش فوری (دیمو)">SELL<small id="tBid">—</small></button>
           <input id="tQty" inputmode="decimal" autocomplete="off" value="1000" aria-label="حجم" title="حجم">
           <button type="button" class="tb" id="tBuy" title="خرید فوری (دیمو)">BUY<small id="tAsk">—</small></button>
+          <button type="button" class="tm" id="tPlace" title="گذاشتن سفارش لیمیت / استاپ با کلیک روی چارت" aria-label="سفارش روی چارت" aria-pressed="false">⊕</button>
           <button type="button" class="tm" id="tMore" title="سفارش جدید: لیمیت، استاپ، استاپ لاس و تیک پرافیت" aria-label="سفارش جدید">⋯</button>
         </div>
+        <div class="pmenu" id="placeMenu" hidden role="menu"></div>
         <form class="ordpop" id="ordPop" hidden novalidate aria-label="سفارش جدید">
           <div class="ohead"><b>سفارش جدید</b><span id="oMkt"></span><button type="button" id="oX" aria-label="بستن">✕</button></div>
           <label>نوع<select id="oType"><option value="mb">خرید فوری (Market Buy)</option><option value="ms">فروش فوری (Market Sell)</option><option value="bl">خرید لیمیت (Buy Limit)</option><option value="sl">فروش لیمیت (Sell Limit)</option><option value="bs">خرید استاپ (Buy Stop)</option><option value="ss">فروش استاپ (Sell Stop)</option></select></label>
@@ -549,11 +560,12 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
         <div class="newacct" id="newAcct" hidden role="dialog" aria-labelledby="naT">
           <div class="nacard">
             <b id="naT">ساختن حساب دیمو</b>
+            <div class="nalogin" id="naLogin" hidden><span>🔒 برای این‌که همه‌ی معاملات دیموی شما ذخیره شود و بعداً سود و زیان‌تان را از هر موبایل یا کامپیوتر ببینید، اول وارد حساب شوید.</span><button type="button" class="ogo b" id="naSign">ورود / ساختن حساب راهبر</button></div>
             <p>مقدار پول حساب تمرینی را خودتان انتخاب کنید (۱,۰۰۰ تا ۱۰۰,۰۰۰ دالر). پول واقعی نیست؛ برای تمرین خرید و فروش است.</p>
             <input id="naAmt" inputmode="numeric" aria-label="مقدار حساب به دالر">
             <div class="nachips"><button type="button" data-amt="1000">1,000$</button><button type="button" data-amt="5000">5,000$</button><button type="button" data-amt="10000">10,000$</button><button type="button" data-amt="50000">50,000$</button><button type="button" data-amt="100000">100,000$</button></div>
             <p class="nawarn" id="naWarn" hidden>حساب قبلی و پوزیشن‌های باز آن بسته می‌شوند.</p>
-            <div class="nabtns"><button type="button" class="ogo b" id="naOk">ساختن حساب</button><button type="button" class="nac" id="naCancel">بعداً</button></div>
+            <div class="nabtns"><button type="button" class="ogo b" id="naOk">ساختن حساب دیمو</button><button type="button" class="nac" id="naCancel">بعداً</button></div>
             <small>اهرم ۱:۲۰ · اسپرد: دالر ۰.۰۲ افغانی، اونس ۰.۴ دالر</small>
           </div>
         </div>
@@ -565,6 +577,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
           <button type="button" data-z="in" title="بزرگ‌نمایی (دیدن جزئیات)" aria-label="بزرگ‌نمایی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg></button>
           <button type="button" data-z="fit" title="نمایش همه‌ی چارت" aria-label="نمایش همه"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           <button type="button" data-z="tall" id="tallBtn" title="بلندتر / کوتاه‌تر کردن چارت" aria-label="تغییر ارتفاع چارت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg></button>
+          <button type="button" data-z="reload" title="تازه کردن چارت (اگر کندل‌ها نیامد)" aria-label="تازه کردن چارت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
           <button type="button" data-z="fs" id="fsBtn" title="تمام صفحه" aria-label="تمام صفحه"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></button>
         </div>
         <div class="watermark">RAAHBAR · nirkh.com</div>
@@ -793,13 +806,17 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     if(cur)out.push(cur);return out;
   }
 
+  let viewSrc='';
+  function fitView(){const ts=chart.timeScale(),n=bars.length;if(n>180)ts.setVisibleLogicalRange({from:n-180,to:n+4});else ts.fitContent();try{ts.scrollToRealTime()}catch(e){}}
   function renderChart(fit){
     if(!chart)return;
     bars=buildBars();
     const prec=sel==='g18'?0:2;candles.applyOptions({priceFormat:{type:'price',precision:prec,minMove:prec?0.01:1}});
     candles.setData(bars);
     renderInd();
-    if(fit){chart.timeScale().fitContent();}
+    // Show the latest candles whenever the market changes or its real data arrives (gold candles load a moment later).
+    const src=sel+'|'+tf+'|'+(GOLD[sel]&&xauData?'x':'t');
+    if((fit||src!==viewSrc)&&bars.length){fitView();viewSrc=src}
     {const r=chart.timeScale().getVisibleLogicalRange();if(r)syncPanes(r)}
     renderLegend();
     if(typeof renderDemo==='function')try{renderDemo()}catch(_){}
@@ -1091,8 +1108,9 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function draw(){
     raf=0;if(!chart)return;
     const {w,h,dpr}=size();og.setTransform(dpr,0,0,dpr,0,0);og.clearRect(0,0,w,h);
-    if(D.hide)return;
     const pw=w-chart.priceScale('right').width(),ph=h-chart.timeScale().height();
+    drawTrades(pw,ph);
+    if(D.hide)return;
     og.save();og.beginPath();og.rect(0,0,pw,ph);og.clip();
     const gold=css('--gold'),bg=css('--surface'),ink=css('--ink'),up=css('--up'),dn=css('--down');
     const list=D.items.slice();if(D.pending&&D.pending.b)list.push(D.pending);
@@ -1163,8 +1181,10 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   ov.addEventListener('pointerup',e=>{if(!D.pending||!D.down)return;const {x,y}=pos(e);const moved=Math.hypot(x-D.down.x,y-D.down.y)>8;D.down=null;if(moved)commit()});
   // Cursor mode: click a drawing to select it, drag it to move, drag its end points to reshape it.
   wrap.addEventListener('pointerdown',e=>{
-    if(D.tool!=='cursor'||e.target.closest('button,input,select,form,.tbar,.zbar,.newacct'))return;
+    if(D.tool!=='cursor'||e.target.closest('button,input,select,form,.tbar,.zbar,.newacct,.pmenu'))return;
     const {x,y}=pos(e);
+    {const c=placeArm?null:chipAt(x,y);if(c){e.stopPropagation();e.preventDefault();const dr=chipAct(c);if(dr){D.drag={trade:dr};try{wrap.setPointerCapture(e.pointerId)}catch(_){}}schedule();return}}
+    if(placeArm){e.stopPropagation();e.preventDefault();placeArm=false;$('tPlace').setAttribute('aria-pressed','false');$('hint').hidden=true;openPlace(x,y);return}
     {const pw=wrap.clientWidth-chart.priceScale('right').width();const tl=x<pw?tradeHit(y):null;
       if(tl){e.stopPropagation();e.preventDefault();const list=tl.kind==='ord'||tl.kind==='osl'||tl.kind==='otp'?acct.ord:acct.pos,o=list.find(z=>z.id===tl.id);
         D.drag={trade:{kind:tl.kind,id:tl.id,moved:false,orig:o?{sl:o.sl,tp:o.tp,price:o.price}:{}}};try{wrap.setPointerCapture(e.pointerId)}catch(_){}return}}
@@ -1188,7 +1208,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       else{const dl=pt.l-D.drag.start.l,dp=pt.p-D.drag.start.p,mv=q=>({t:l2t(t2l(q.t)+dl),p:+(q.p+dp).toFixed(dec())});
         it.a=it.type==='hline'?{t:o.a.t,p:mv(o.a).p}:it.type==='vline'?{t:mv(o.a).t,p:o.a.p}:mv(o.a);if(o.b)it.b=mv(o.b)}
       schedule();return}
-    if(D.tool==='cursor'&&e.pointerType==='mouse'&&!e.target.closest('form,.tbar,.zbar,.newacct')){const tl=x<wrap.clientWidth-chart.priceScale('right').width()&&tradeHit(y);if(tl){wrap.style.cursor='ns-resize';return}
+    if(D.tool==='cursor'&&e.pointerType==='mouse'&&!e.target.closest('form,.tbar,.zbar,.newacct,.pmenu')){if(placeArm){wrap.style.cursor='crosshair';return}if(chipAt(x,y)){wrap.style.cursor='pointer';return}const tl=x<wrap.clientWidth-chart.priceScale('right').width()&&tradeHit(y);if(tl){wrap.style.cursor='ns-resize';return}
       if(D.hide){wrap.style.cursor='';return}const k=D.sel>=0&&handleAt(D.items[D.sel],x,y);wrap.style.cursor=k?'grab':hit(x,y)>=0?'move':''}
   },true);
   const endDrag=e=>{if(!D.drag)return;e.stopPropagation();if(D.drag.trade){const t=D.drag.trade;D.drag=null;tradeDragEnd(t);return}const m=D.drag.moved;D.drag=null;if(m)saveDraw();schedule()};
@@ -1206,6 +1226,8 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   $('zbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!chart)return;const ts=chart.timeScale(),z=b.dataset.z;
     if(z==='in'||z==='out'){const r=ts.getVisibleLogicalRange();if(!r)return;const span=(r.to-r.from)*(z==='in'?0.7:1.45);ts.setVisibleLogicalRange({from:r.to-span,to:r.to})}
     if(z==='fit')ts.fitContent();
+    if(z==='reload'){viewSrc='';xauAt=0;liveX=null;b.classList.add('spin');setTimeout(()=>b.classList.remove('spin'),900);
+      Promise.allSettled([loaded?poll():boot(),GOLD[sel]?loadXau():null,GOLD[sel]?loadLive():null]).then(()=>{recompute();renderPanels();renderHeader();renderChart(true);toast('چارت تازه شد')})}
     if(z==='tall'){const v=$('chartArea').classList.toggle('tall');store.set('th-tall',v);b.setAttribute('aria-pressed',String(v));setTimeout(schedule,60)}
     if(z==='fs')toggleFs();
     schedule()});
@@ -1301,13 +1323,44 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     for(const o of acct.ord)if(o.key===sel){add(o.price,gd,2,'#'+o.id+' '+TYPES[o.type][1].toUpperCase()+' '+fmtV(o.key,o.vol),{kind:'ord',id:o.id,price:o.price});
       if(o.sl!=null)add(o.sl,dn,3,'SL #'+o.id,{kind:'osl',id:o.id,price:o.sl});if(o.tp!=null)add(o.tp,up,3,'TP #'+o.id,{kind:'otp',id:o.id,price:o.tp})}
   }
+  // MetaTrader-style labels on each line: live profit, TP / SL handles to drag out, ✕ to close or remove.
+  let tChips=[];
+  function drawTrades(pw,ph){
+    tChips=[];if(!acct||!candles||!tLines.length)return;
+    const up=css('--up'),dn=css('--down'),gd=css('--gold'),bg=css('--surface'),ink=css('--ink');
+    og.save();og.beginPath();og.rect(0,0,pw,ph);og.clip();og.font='700 11px JetBrains Mono, monospace';og.textBaseline='middle';og.textAlign='left';og.direction='ltr';
+    const rr=(x,y,w,h,r)=>{og.beginPath();og.moveTo(x+r,y);og.arcTo(x+w,y,x+w,y+h,r);og.arcTo(x+w,y+h,x,y+h,r);og.arcTo(x,y+h,x,y,r);og.arcTo(x,y,x+w,y,r);og.closePath()};
+    const chip=(x,y,txt,fill,fg,act,id,line)=>{const w=og.measureText(txt).width+12,h=20;rr(x,y-h/2,w,h,5);og.fillStyle=fill;og.fill();if(line){og.strokeStyle=line;og.lineWidth=1;og.stroke()}og.fillStyle=fg;og.fillText(txt,x+6,y+1);if(act)tChips.push({x:x-3,y:y-h/2-3,w:w+6,h:h+6,act,id});return w+4};
+    const all=tLines.map(l=>({l,y:Y(l.price)})).filter(o=>o.y!=null&&o.y>-10&&o.y<ph+10).sort((a,b)=>a.y-b.y);
+    let lastY=-99;
+    for(const {l,y:y0} of all){const y=Math.max(y0,lastY+22);lastY=y;let x=Math.max(10,pw*0.08);
+      const isO=l.kind==='ord'||l.kind==='osl'||l.kind==='otp',o=(isO?acct.ord:acct.pos).find(z=>z.id===l.id);if(!o)continue;
+      if(l.kind==='pos'){const v=pnl(o),c=o.side==='buy'?up:dn;
+        x+=chip(x,y,'#'+o.id+' '+side(o.side)+' '+fmtV(o.key,o.vol),c,'#fff');x+=chip(x,y,usd(v,1)+' $',bg,v>=0?up:dn,null,null,v>=0?up:dn);
+        if(o.tp==null)x+=chip(x,y,'TP ↕',bg,up,'tp',o.id,up);if(o.sl==null)x+=chip(x,y,'SL ↕',bg,dn,'sl',o.id,dn);chip(x,y,'✕',bg,ink,'close',o.id,css('--line'))}
+      else if(l.kind==='sl'||l.kind==='tp'){const v=pnlAt(o,o[l.kind]),c=l.kind==='tp'?up:dn;x+=chip(x,y,(l.kind==='tp'?'TP ':'SL ')+usd(v,1)+' $',c,'#fff');chip(x,y,'✕',bg,ink,'rm'+l.kind,o.id,css('--line'))}
+      else if(l.kind==='ord'){x+=chip(x,y,TYPES[o.type][1].toUpperCase()+' '+fmtV(o.key,o.vol)+' @ '+fp(o.key,o.price),gd,'#111');
+        if(o.tp==null)x+=chip(x,y,'TP ↕',bg,up,'otp',o.id,up);if(o.sl==null)x+=chip(x,y,'SL ↕',bg,dn,'osl',o.id,dn);chip(x,y,'✕',bg,ink,'cancel',o.id,css('--line'))}
+      else{const k=l.kind==='otp'?'tp':'sl';x+=chip(x,y,k.toUpperCase()+' #'+o.id,k==='tp'?up:dn,'#fff');chip(x,y,'✕',bg,ink,'ormo'+k,o.id,css('--line'))}}
+    og.restore();
+  }
+  function chipAt(x,y){for(let i=tChips.length-1;i>=0;i--){const c=tChips[i];if(x>=c.x&&x<=c.x+c.w&&y>=c.y&&y<=c.y+c.h)return c}return null}
+  function chipAct(c){const pos=acct.pos.find(p=>p.id===c.id),ord=acct.ord.find(o=>o.id===c.id);
+    if(c.act==='close'){closePos(c.id);renderDemo();return null}
+    if(c.act==='cancel'){acct.ord=acct.ord.filter(o=>o.id!==c.id);saveAcct();toast('سفارش لغو شد');renderDemo();return null}
+    if(c.act==='rmsl'||c.act==='rmtp'){if(pos){pos[c.act.slice(2)]=null;saveAcct();renderDemo()}return null}
+    if(c.act==='ormosl'||c.act==='ormotp'){if(ord){ord[c.act.slice(4)]=null;saveAcct();renderDemo()}return null}
+    // drag a new TP / SL out of the line
+    const o=c.act==='tp'||c.act==='sl'?pos:ord;if(!o)return null;const f=c.act.replace('o','');
+    const dr={kind:c.act==='tp'||c.act==='sl'?c.act:c.act,id:c.id,moved:false,orig:{sl:o.sl,tp:o.tp,price:o.price},fresh:f};
+    o[f]=c.act==='tp'||c.act==='sl'?o.open:o.price;renderTrades();return dr}
   function tradeHit(y){if(!acct||!candles)return null;let best=null,bd=7;for(const l of tLines){const yy=Y(l.price);if(yy==null)continue;const d=Math.abs(yy-y);if(d<bd){bd=d;best=l}}return best}
   function tradeDragMove(dr,y){const pr=candles.coordinateToPrice(y);if(pr==null)return;const v=+pr.toFixed(pdp(sel));dr.moved=true;
     const p=dr.kind==='ord'||dr.kind==='osl'||dr.kind==='otp'?acct.ord.find(o=>o.id===dr.id):acct.pos.find(o=>o.id===dr.id);if(!p)return;
     if(dr.kind==='pos'){const sd=p.side,win=sd==='buy'?v>p.open:v<p.open;dr.set=win?'tp':'sl';p[dr.set]=v}
     else if(dr.kind==='ord')p.price=v;else if(dr.kind==='sl'||dr.kind==='osl')p.sl=v;else p.tp=v;
-    renderTrades()}
-  function tradeDragEnd(dr){if(!dr.moved){return}const isO=dr.kind==='ord'||dr.kind==='osl'||dr.kind==='otp';
+    renderTrades();schedule()}
+  function tradeDragEnd(dr){if(!dr.moved){if(dr.fresh){const o=(dr.kind[0]==='o'?acct.ord:acct.pos).find(z=>z.id===dr.id);if(o){o[dr.fresh]=dr.orig[dr.fresh];toast('دکمه‌ی '+dr.fresh.toUpperCase()+' را نگه دارید و '+(dr.fresh==='tp'?'به سمت سود':'به سمت ضرر')+' بکشید')}renderTrades();schedule()}return}const isO=dr.kind==='ord'||dr.kind==='osl'||dr.kind==='otp';
     const p=(isO?acct.ord:acct.pos).find(o=>o.id===dr.id);if(!p)return;const q=quote(p.key);let bad=null;
     if(isO){const sd=TYPES[p.type][0];bad=badOrder(p.type,p.price,q)||okLevels(sd,p.price,p.sl,p.tp)}
     else if(q)bad=okLevels(p.side,p.side==='buy'?q.bid:q.ask,p.sl,p.tp);
@@ -1324,8 +1377,10 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     if(!acct){$('termTog').textContent='حساب دیمو';const s=document.createElement('span');s.textContent='برای تمرین خرید و فروش یک حساب دیمو بسازید';sum.appendChild(s);$('termNew').textContent='ساختن حساب دیمو';$('termBody').textContent='';return}
     $('termNew').textContent='حساب جدید';
     const t=totals(),n=acct.pos.length+acct.ord.length;$('termTog').textContent=(termOpen?'▾ ':'▴ ')+'پوزیشن‌ها'+(n?' ('+fa(n)+')':'');
-    const it=(l,v,c)=>{const s=document.createElement('span');const b=document.createElement('b');b.textContent=v;if(c)b.className=c;s.append(l+' ',b);sum.appendChild(s)};
+    const it=(l,v,c)=>{const s=document.createElement('span');const b=document.createElement('b');b.textContent='\u2066'+v+'\u2069';if(c)b.className=c;s.append(l+' ',b);sum.appendChild(s)};
     it('موجودی',usd(acct.bal)+'$');it('اکویتی',usd(t.eq)+'$');if(t.mg)it('مارجین آزاد',usd(t.free)+'$');if(acct.pos.length)it('سود/زیان',usd(t.fl,1)+'$',cls(t.fl));
+    {const r=t.eq-acct.start;it('نتیجه از شروع',usd(r,1)+'$ ('+(r>=0?'+':'')+(r/acct.start*100).toFixed(2)+'%)',cls(r))}
+    if(!me){const w=document.createElement('button');w.type='button';w.className='tlogin';w.id='termLogin';w.textContent='⚠ ذخیره نمی‌شود — وارد شوید';sum.appendChild(w)}
     const B=$('termBody');B.textContent='';if(!termOpen)return;
     const tabs=document.createElement('div');tabs.className='ttabs';[['pos','باز ('+fa(acct.pos.length)+')'],['ord','سفارش‌ها ('+fa(acct.ord.length)+')'],['hist','تاریخچه']].forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.dataset.tab=k;b.textContent=l;b.setAttribute('aria-pressed',String(termTab===k));tabs.appendChild(b)});B.appendChild(tabs);
     const tbl=document.createElement('table');tbl.className='ttab';const hd=document.createElement('tr');
@@ -1341,11 +1396,14 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
       else if(termTab==='hist'){td(tr,side(o.side,1),o.side==='buy'?'up':'down');td(tr,fmtV(o.key,o.vol),'n');td(tr,fp(o.key,o.open),'n');td(tr,fp(o.key,o.close)+(o.why==='sl'?' SL':o.why==='tp'?' TP':o.why==='so'?' SO':''),'n');td(tr,usd(o.pnl,1),'n '+cls(o.pnl));td(tr,'')}
       else{const q=quote(o.key),v=pnl(o);td(tr,side(o.side,1),o.side==='buy'?'up':'down');td(tr,fmtV(o.key,o.vol),'n');td(tr,fp(o.key,o.open),'n');td(tr,lvl(o,'sl'));td(tr,lvl(o,'tp'));td(tr,q?fp(o.key,o.side==='buy'?q.bid:q.ask):'—','n');td(tr,usd(v,1),'n '+cls(v));td(tr,x(o.id,'close','بستن پوزیشن'))}
       tbl.appendChild(tr)}
+    if(termTab==='hist'&&acct.hist.length){const tot=acct.hist.reduce((a,h)=>a+h.pnl,0),won=acct.hist.filter(h=>h.pnl>0).length,p=document.createElement('p');p.className='hsum';
+      p.textContent='معاملات بسته‌شده: '+fa(acct.hist.length)+' · برنده: '+fa(won)+' · بازنده: '+fa(acct.hist.length-won)+' · جمع سود/زیان: ';const bb=document.createElement('b');bb.textContent='\u2066'+usd(tot,1)+'$\u2069';bb.className=cls(tot);p.appendChild(bb);B.appendChild(p)}
     const w=document.createElement('div');w.className='twrap';w.appendChild(tbl);B.appendChild(w);
   }
   $('term').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     if(b.id==='termTog'){if(needAcct())return;termOpen=!termOpen;store.set('th-term',termOpen);renderTerm();return}
     if(b.id==='termNew'){openNewAcct();return}
+    if(b.id==='termLogin'){pendingDemo=true;openAcct('register','حساب راهبر بسازید (یا اگر دارید وارد شوید) تا معاملات دیموی شما ذخیره شود.','warn');return}
     if(b.dataset.tab){termTab=b.dataset.tab;renderTerm();return}
     if(b.dataset.go){if(b.dataset.go!==sel)select(b.dataset.go);return}
     if(b.dataset.close){closePos(+b.dataset.close);renderDemo();return}
@@ -1355,10 +1413,12 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     const q=quote(o.key),bad=i.dataset.o?okLevels(TYPES[o.type][0],o.price,o.sl,o.tp):q?okLevels(o.side,o.side==='buy'?q.bid:q.ask,o.sl,o.tp):null;
     if(bad){o[i.dataset.f]=old;toast(bad)}else saveAcct();renderDemo()});
   // new account
-  function openNewAcct(){const d=$('newAcct');d.hidden=false;$('naAmt').value=acct?acct.start:10000;$('naWarn').hidden=!(acct&&(acct.pos.length||acct.ord.length));setTimeout(()=>$('naAmt').focus(),30)}
+  let pendingDemo=false;
+  function openNewAcct(){const d=$('newAcct');d.hidden=false;$('naLogin').hidden=!!me;$('naOk').className=me?'ogo b':'nac';$('naOk').textContent=me?'ساختن حساب دیمو':'بدون ورود ادامه بده (ذخیره نمی‌شود)';$('naAmt').value=acct?acct.start:10000;$('naWarn').hidden=!(acct&&(acct.pos.length||acct.ord.length));setTimeout(()=>$('naAmt').focus(),30)}
   $('newAcct').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     if(b.dataset.amt){$('naAmt').value=b.dataset.amt;return}
     if(b.id==='naCancel'){$('newAcct').hidden=true;return}
+    if(b.id==='naSign'){pendingDemo=true;$('newAcct').hidden=true;openAcct('register','حساب راهبر بسازید (یا اگر دارید وارد شوید) تا معاملات دیموی شما ذخیره شود.','warn');return}
     if(b.id==='naOk'){const v=Math.round(num($('naAmt').value));if(!(v>=MINB&&v<=MAXB)){toast('مقدار باید بین ۱,۰۰۰ و ۱۰۰,۰۰۰ دالر باشد');return}
       acct={v:2,start:v,bal:v,pos:[],ord:[],hist:[],seq:0,chk:0,created:nowS()};saveAcct();$('newAcct').hidden=true;termOpen=true;store.set('th-term',true);termTab='pos';
       toast('حساب دیمو با '+L2(fmtA(v)+'$')+' ساخته شد');renderDemo()}});
@@ -1383,7 +1443,23 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     const price=num($('oPrice').value),bad=badOrder(t,price,quote(sel))||okLevels(TYPES[t][0],price,sl,tp);if(bad){toast(bad);return}
     if(!(vol>=spec(sel).min)){toast('حجم را درست بنویسید');return}
     acct.ord.push({id:++acct.seq,key:sel,type:t,vol,price,sl,tp,ts:nowS()});saveAcct();$('ordPop').hidden=true;toast('سفارش '+TYPES[t][2]+' ثبت شد @ '+fp(sel,price));termTab='ord';renderDemo()});
-  function renderTrades(){tradeLines();renderTerm()}
+  function renderTrades(){tradeLines();renderTerm();schedule()}
+  // place a limit / stop order by clicking a price on the chart (⊕ button, or right-click)
+  let placeArm=false;
+  function openPlace(x,y){if(needAcct())return;const pr=candles.coordinateToPrice(y),q=quote(sel);if(pr==null||!q){toast('برای این بازار هنوز نرخی نیست');return}
+    const v=+pr.toFixed(pdp(sel)),m=$('placeMenu');m.textContent='';const vol=num($('tQty').value);
+    const h=document.createElement('div');h.className='pmh';h.textContent='سفارش در '+fp(sel,v)+' · حجم '+fmtV(sel,vol);m.appendChild(h);
+    const opts=v<q.bid?[['bl','up'],['ss','down']]:v>q.ask?[['sl','down'],['bs','up']]:[];
+    if(!opts.length){const n=document.createElement('div');n.className='pmh';n.textContent='این قیمت به قیمت فعلی خیلی نزدیک است؛ از SELL / BUY استفاده کنید.';m.appendChild(n)}
+    for(const [t,c] of opts){const b=document.createElement('button');b.type='button';b.className='pmb '+c;b.dataset.t=t;b.dataset.p=v;b.textContent=TYPES[t][2]+' ('+TYPES[t][1]+') @ '+fp(sel,v);m.appendChild(b)}
+    const cx=document.createElement('button');cx.type='button';cx.className='pmb';cx.textContent='لغو';m.appendChild(cx);
+    m.hidden=false;const W=wrap.clientWidth;m.style.left=Math.max(6,Math.min(x,W-m.offsetWidth-6))+'px';m.style.top=Math.max(6,Math.min(y,wrap.clientHeight-m.offsetHeight-6))+'px'}
+  $('placeMenu').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('placeMenu').hidden=true;if(!b.dataset.t)return;
+    const t=b.dataset.t,price=+b.dataset.p,vol=num($('tQty').value),bad=badOrder(t,price,quote(sel));if(bad){toast(bad);return}if(!(vol>=spec(sel).min)){toast('حجم را درست بنویسید');return}
+    acct.ord.push({id:++acct.seq,key:sel,type:t,vol,price,sl:null,tp:null,ts:nowS()});saveAcct();toast('سفارش '+TYPES[t][2]+' ثبت شد؛ TP و SL را از روی خط بکشید');termTab='ord';renderDemo()});
+  $('tPlace').addEventListener('click',e=>{e.stopPropagation();if(needAcct())return;placeArm=!placeArm;$('tPlace').setAttribute('aria-pressed',String(placeArm));const h=$('hint');h.hidden=!placeArm;h.textContent='روی قیمت مورد نظر در چارت کلیک کنید (خرید/فروش لیمیت یا استاپ)'});
+  wrap.addEventListener('contextmenu',e=>{if(e.target.closest('form,.tbar,.zbar,.newacct,.pmenu'))return;e.preventDefault();const r=wrap.getBoundingClientRect();openPlace(e.clientX-r.left,e.clientY-r.top)});
+  document.addEventListener('pointerdown',e=>{const m=$('placeMenu');if(!m.hidden&&!e.target.closest('#placeMenu'))m.hidden=true},true);
   document.addEventListener('click',e=>{const o=$('ordPop');if(!o.hidden&&!e.target.closest('#ordPop,#tMore'))o.hidden=true});
   function renderDemo(){
     const q=quote(sel);$('tBid').textContent=q?fp(sel,q.bid):'—';$('tAsk').textContent=q?fp(sel,q.ask):'—';
@@ -1570,7 +1646,7 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
   function clearLocal(){try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSyncKey(k))ks.push(k)}ks.forEach(k=>localStorage.removeItem(k))}catch(e){}reloadLocal()}
   async function api(path,body){try{const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{})});const j=await r.json().catch(()=>({}));return{ok:r.ok,status:r.status,j}}catch(e){return{ok:false,status:0,j:{error:'اتصال برقرار نشد؛ دوباره امتحان کنید.'}}}}
   const amsg=(t,k)=>{const m=$('acMsg');m.textContent=t||'';m.className='dmsg '+(k||'')};
-  function renderAcctBtn(){$('acctBtn').textContent=me?'حساب من · '+me.name:'ورود / ساختن حساب';
+  function renderAcctBtn(){try{renderTerm()}catch(e){}$('acctBtn').textContent=me?'حساب من · '+me.name:'ورود / ساختن حساب';
     $('jcta').hidden=!!me;$('joinH').textContent=me?'سلام '+me.name+'؛ تحلیل‌های شما در حساب ذخیره می‌شود':'حساب رایگان راهبر'}
   function fillProfile(){if(!me)return;$('pHello').textContent='سلام '+me.name;$('pEmail').textContent=me.email;
     const b=$('pBadge');b.textContent=me.verified?'ایمیل تأیید شده':'ایمیل هنوز تأیید نشده';b.className='badge '+(me.verified?'ok':'no');
@@ -1584,7 +1660,8 @@ footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-betw
     $('acTitle').textContent={login:'ورود به حساب',register:'ساختن حساب راهبر',forgot:'بازیابی رمز',reset:'ساختن رمز تازه',profile:'حساب من'}[v];
     if(v==='profile')fillProfile();amsg(msg,kind);
     const f=box.querySelector('[data-v="'+v+'"] input:not([type=checkbox]):not(.hp)');if(f&&!('ontouchstart' in window))setTimeout(()=>f.focus(),50)}
-  function closeAcct(){$('acct').hidden=true;document.body.classList.remove('noscroll')}
+  function closeAcct(){$('acct').hidden=true;document.body.classList.remove('noscroll');
+    if(pendingDemo&&me){pendingDemo=false;renderTerm();if(!acct){$('chartArea').scrollIntoView({block:'start'});openNewAcct()}else toast('حساب دیموی شما بارگذاری شد')}}
   $('acctBtn').addEventListener('click',()=>openAcct(me?'profile':'login'));
   $('jcta').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)openAcct(b.dataset.open)});
   $('acClose').addEventListener('click',closeAcct);
