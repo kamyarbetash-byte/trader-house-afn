@@ -1,6 +1,8 @@
 import { parsePage, parsePost, parseAll, parseGold, PARSER_VERSION, CITIES } from "./parse.js";
 import PAGE from "./page.html";
 import { handleAuth, listUsers, cleanupAuth } from "./auth.js";
+import { seoPage, sitemap } from "./seo.js";
+const LOGO = (() => { const m = PAGE.match(/data:image\/jpeg;base64,([^"]+)/); return m ? Uint8Array.from(atob(m[1]), c => c.charCodeAt(0)) : null; })();
 
 // Public Telegram channels read every minute. `city` is used when a post names no city.
 // Message ids are stored as idx * 1e9 + id so channels never collide (kabul_dollar keeps its raw ids).
@@ -386,6 +388,23 @@ async function collectXau(db) {
   if (status.length) await setMeta(db, "xauStatus", new Date().toISOString() + " " + status.join(" | "));
 }
 
+// ---- Live gold price for open pages (Yahoo 1-minute bars, shared by all viewers for 10 s) ----
+async function liveGold() {
+  try {
+    const r = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1m&range=1d",
+      { headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36", accept: "application/json" }, signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return { xau: null };
+    const res = (await r.json()).chart.result[0], q = res.indicators.quote[0], bars = [];
+    (res.timestamp || []).forEach((t, i) => {
+      const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i];
+      if ([o, h, l, c].every(v => typeof v === "number" && v > 500)) bars.push([t, +o.toFixed(2), +h.toFixed(2), +l.toFixed(2), +c.toFixed(2)]);
+    });
+    const m = res.meta || {}, p = +m.regularMarketPrice || (bars.length ? bars[bars.length - 1][4] : 0);
+    if (!(p > 500)) return { xau: null };
+    return { xau: { p: +p.toFixed(2), t: +m.regularMarketTime || Math.floor(Date.now() / 1000), bars: bars.slice(-90) } };
+  } catch (e) { return { xau: null }; }
+}
+
 // ---- Optional member registration ----
 const MEMBERS_SQL = "CREATE TABLE IF NOT EXISTS members(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, name TEXT, phone TEXT UNIQUE, city TEXT, role TEXT, wants INTEGER, iph TEXT, email TEXT, ads INTEGER)";
 const toLatin = s => String(s || "").replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
@@ -515,6 +534,7 @@ async function handle(req, env) {
           const g = async k => { try { return JSON.parse((await meta(db, k)) || "[]"); } catch (e) { return []; } };
           return { m5: await g("xau5m"), h1: await g("xau1h"), d1: await g("xau1d") };
         }), 60);
+      if (url.pathname === "/api/live") return json(await cached("live", 10000, liveGold), 5);
       if (url.pathname === "/api/join") return await join(req, db);
       if (url.pathname === "/admin" || url.pathname === "/admin.csv") return await admin(url, db);
       if (url.pathname === "/api/updates") {
@@ -532,9 +552,19 @@ async function handle(req, env) {
       return new Response(JSON.stringify({ error: "unavailable" }), { status: 503, headers: { "content-type": "application/json" } });
     }
     if (url.pathname === "/robots.txt")
-      return new Response("User-agent: *\nDisallow: /admin\nDisallow: /api/\n", { headers: { "content-type": "text/plain" } });
-    if (url.pathname === "/" || url.pathname === "/index.html")
-      return new Response(PAGE, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=120" } });
+      return new Response("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: https://nirkh.com/sitemap.xml\n", { headers: { "content-type": "text/plain" } });
+    if (url.pathname === "/sitemap.xml")
+      return new Response(sitemap(), { headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=3600" } });
+    if (url.pathname === "/logo.jpg" && LOGO)
+      return new Response(LOGO, { headers: { "content-type": "image/jpeg", "cache-control": "public, max-age=604800" } });
+    if (url.pathname === "/index.html") return Response.redirect(url.origin + "/", 301);
+    if (url.pathname === "/" || url.pathname === "/gold") {
+      const kind = url.pathname === "/gold" ? "gold" : "usd";
+      let html;
+      try { html = await cached("seo:" + kind, 60000, async () => seoPage(PAGE, await cached("history", 30000, () => history(env.DB)), kind)); }
+      catch (e) { html = PAGE; }
+      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" } });
+    }
     return new Response("Not found", { status: 404 });
   }
 }
