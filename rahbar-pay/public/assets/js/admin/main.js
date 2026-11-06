@@ -241,7 +241,7 @@ function reqTable(rows) {
   return html`<div class="scroll-x"><table class="tbl min-w-[900px]">
     <thead><tr><th>${t('req_tracking')}</th><th>${t('a_customer')}</th><th>${t('req_service')}</th><th>${t('req_amount')}</th><th>${t('req_method')}</th><th>${t('a_assignee')}</th><th>${t('req_submitted')}</th><th class="!text-end">${t('col_status')}</th></tr></thead>
     <tbody>${rows.map((r) => html`<tr class="clickable" data-href="/admin/requests/${r.tracking_no}">
-      <td><span class="mono text-fog-50">${r.tracking_no}</span>${r.duplicate_of ? html`<span class="badge b-bad ms-2" title="${t('a_flag_dup')}">${icon('flag', 'size-3')}</span>` : ''}</td>
+      <td><span class="mono text-fog-50">${r.tracking_no}</span>${r.duplicate_of ? html`<span class="badge b-bad ms-2" title="${t('a_flag_dup')}">${icon('flag', 'size-3')}</span>` : ''}${r.customer_unread ? html`<span class="badge b-gold ms-2" title="${t('a_new_msg')}">${icon('chats', 'size-3')}${r.customer_unread}</span>` : ''}</td>
       <td><div class="text-fog-100">${r.customer_name}</div><div class="mono text-[11.5px] text-fog-500">${r.user_id}</div></td>
       <td>${svcName(r)}</td>
       <td class="num">${money(r)}</td>
@@ -349,6 +349,13 @@ async function requestDetail({ id }) {
         </section>` : ''}
 
         <section class="card card-pad">
+          <h2 class="text-sm font-semibold">${t('a_chat')}</h2>
+          <div class="mt-4 space-y-2.5">${d.messages.length ? d.messages.map((m) => html`<div class="flex ${m.is_staff ? 'justify-end' : 'justify-start'}"><div class="max-w-[85%] rounded-2xl px-3.5 py-2.5 ${m.is_staff ? 'bg-gold-400/[0.12]' : 'border border-line bg-ink-800'}">
+            <p class="mb-0.5 text-[11px] text-fog-400">${m.author_name || m.author_id} · ${fmtDate(m.created_at)}</p><p class="whitespace-pre-wrap text-sm">${m.body}</p></div></div>`) : html`<p class="text-sm text-fog-500">${t('a_chat_empty')}</p>`}</div>
+          <form data-reply-msg class="mt-4 flex gap-2" novalidate><div class="flex-1" data-field="message"><textarea name="message" rows="2" class="input min-h-0 py-2.5 text-sm" placeholder="${t('a_chat_ph')}"></textarea><p class="field-error"></p></div><button class="btn-gold btn-sm self-start">${icon('send', 'size-4 rtl:-scale-x-100')}</button></form>
+        </section>
+
+        <section class="card card-pad">
           <h2 class="text-sm font-semibold">${t('a_notes')}</h2>
           <ul class="mt-4 space-y-3">${d.notes.map((n) => html`<li class="rounded-xl border border-line bg-ink-900 p-3.5"><p class="whitespace-pre-wrap text-sm">${n.body}</p><p class="mt-2 text-[11.5px] text-fog-500">${n.author_name} <span class="mono">(${n.author_id})</span> · ${fmtDate(n.created_at)}</p></li>`)}</ul>
           <form data-note class="mt-4 flex gap-2" novalidate><div class="flex-1" data-field="body"><textarea name="body" rows="2" class="input min-h-0 py-2.5 text-sm" placeholder="${t('a_notes_ph')}"></textarea><p class="field-error"></p></div><button class="btn-ghost btn-sm self-start">${t('a_add_note')}</button></form>
@@ -437,6 +444,14 @@ async function requestDetail({ id }) {
       });
     },
   }));
+
+  const rf = $('[data-reply-msg]');
+  rf.addEventListener('submit', async (e) => {
+    e.preventDefault(); clearErrors(rf);
+    const message = new FormData(rf).get('message').trim();
+    if (!message) return setFieldError(rf, 'message', t('v_required'));
+    try { await api.post(`/api/admin/requests/${r.tracking_no}/messages`, { message }); reload(); } catch (err) { showApiError(rf, err); }
+  });
 
   const nf = $('[data-note]');
   nf.addEventListener('submit', async (e) => {

@@ -1,0 +1,11 @@
+{
+  "name": "رهبر پی · Rahbar Pay",
+  "short_name": "رهبر پی",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050506",
+  "theme_color": "#050506",
+  "icons": [{ "src": "/assets/img/logo-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

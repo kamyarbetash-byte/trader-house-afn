@@ -1,7 +1,7 @@
 // Public + customer API: auth, catalog, requests, payments, notifications, profile, support.
 import {
-  HttpError, json, readJson, str, oneOf, normPhone, password, amountToMinor, normRef, now,
-  randomCode, randomDigits, trackingNo, sha256, hashPassword, safeEqual, clientIp, parseJsonSafe,
+  HttpError, json, readJson, str, oneOf, normPhone, amountToMinor, normRef, now, toLatinDigits,
+  randomCode, randomDigits, trackingNo, sha256, safeEqual, clientIp, parseJsonSafe,
 } from '../lib/util.js';
 import {
   createSession, destroySession, currentCustomer, requireCustomer, rateLimit, audit, publicUser,
@@ -18,27 +18,28 @@ export async function settingsMap(env) {
   return Object.fromEntries(results.map((r) => [r.key, r.value]));
 }
 
-// ── OTP (phone verification / password reset) ───────────────────────────
-async function issueOtp(env, phone, purpose) {
+// ── one-time codes (sign in / sign up by phone) ───────────────────────
+async function issueOtp(env, phone) {
   const code = randomDigits(6);
-  await env.DB.prepare('UPDATE otp_codes SET used = 1 WHERE phone = ? AND purpose = ? AND used = 0').bind(phone, purpose).run();
-  await env.DB.prepare('INSERT INTO otp_codes (phone, purpose, code_hash, expires_at, created_at) VALUES (?,?,?,?,?)')
-    .bind(phone, purpose, await sha256(`${phone}:${code}`), now() + OTP_TTL, now()).run();
-  // Production: send `code` through an SMS provider here. In demo mode it is returned to the screen.
+  await env.DB.prepare("UPDATE otp_codes SET used = 1 WHERE phone = ? AND purpose = 'login' AND used = 0").bind(phone).run();
+  await env.DB.prepare("INSERT INTO otp_codes (phone, purpose, code_hash, expires_at, created_at) VALUES (?,'login',?,?,?)")
+    .bind(phone, await sha256(`${phone}:${code}`), now() + OTP_TTL, now()).run();
+  // Production: send `code` by SMS here. In demo mode it is shown on screen.
   return env.DEMO_MODE === 'true' ? { demo_code: code } : {};
 }
 
-async function checkOtp(env, phone, purpose, code) {
+/** Checks the code. `consume=false` keeps it valid for the follow-up call that sends the new customer's name. */
+async function checkOtp(env, phone, code, consume = true) {
   const row = await env.DB.prepare(
-    'SELECT * FROM otp_codes WHERE phone = ? AND purpose = ? AND used = 0 AND expires_at > ? ORDER BY id DESC LIMIT 1',
-  ).bind(phone, purpose, now()).first();
-  if (!row || row.attempts >= 5) throw new HttpError(400, 'otp_invalid');
-  const ok = safeEqual(row.code_hash, await sha256(`${phone}:${String(code || '').trim()}`));
-  if (!ok) {
+    "SELECT * FROM otp_codes WHERE phone = ? AND purpose = 'login' AND used = 0 AND expires_at > ? ORDER BY id DESC LIMIT 1",
+  ).bind(phone, now()).first();
+  if (!row || row.attempts >= 5) throw new HttpError(400, 'otp_invalid', 'code is wrong or expired', { field: 'code' });
+  const clean = toLatinDigits(String(code || '')).trim();
+  if (!safeEqual(row.code_hash, await sha256(`${phone}:${clean}`))) {
     await env.DB.prepare('UPDATE otp_codes SET attempts = attempts + 1 WHERE id = ?').bind(row.id).run();
-    throw new HttpError(400, 'otp_invalid');
+    throw new HttpError(400, 'otp_invalid', 'code is wrong or expired', { field: 'code' });
   }
-  await env.DB.prepare('UPDATE otp_codes SET used = 1 WHERE id = ?').bind(row.id).run();
+  if (consume) await env.DB.prepare('UPDATE otp_codes SET used = 1 WHERE id = ?').bind(row.id).run();
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────
@@ -94,7 +95,7 @@ export async function handleCustomer(request, env, ctx, path) {
     return json({
       demo_mode: env.DEMO_MODE === 'true',
       support_hours_en: s.support_hours_en, support_hours_fa: s.support_hours_fa,
-      support_email: s.support_email, telegram_bot: s.telegram_bot_username || null,
+      support_email: s.support_email, support_phone: s.support_phone || null, telegram_bot: s.telegram_bot_username || null,
       maintenance: s.maintenance === '1', submissions_open: s.submissions_open !== '0',
     });
   }
@@ -106,115 +107,52 @@ export async function handleCustomer(request, env, ctx, path) {
     return json({ categories: cats, services, payment_methods: methods });
   }
 
-  // ── registration & login ──
-  if (path === '/api/auth/register' && m === 'POST') {
-    await rateLimit(env, `reg:${ip}`, 5, 3600);
+  // ── sign in / sign up: phone → code → (name, first time only) ──
+  if (path === '/api/auth/start' && m === 'POST') {
+    await rateLimit(env, `start:${ip}`, 10, 3600);
     const b = await readJson(request);
-    const full_name = str(b.full_name, { min: 3, max: 80, field: 'full_name' });
     const phone = normPhone(b.phone);
-    const pw = password(b.password);
-    const lang = b.lang === 'fa' ? 'fa' : 'en';
-    if (b.accept_terms !== true) throw new HttpError(422, 'validation', 'terms must be accepted', { field: 'accept_terms' });
-    const existing = await env.DB.prepare('SELECT id, phone_verified FROM users WHERE phone = ?').bind(phone).first();
-    if (existing?.phone_verified) throw new HttpError(409, 'phone_taken');
-    const { hash, salt } = await hashPassword(pw);
-    const t = now();
-    if (existing) {
-      // unverified registration: allow re-registering the same number
-      await env.DB.prepare('UPDATE users SET full_name = ?, pass_hash = ?, pass_salt = ?, lang = ? WHERE id = ?').bind(full_name, hash, salt, lang, existing.id).run();
-    } else {
-      const id = await newCustomerId(env);
-      await env.DB.prepare('INSERT INTO users (id, role, full_name, phone, pass_hash, pass_salt, lang, created_at) VALUES (?,?,?,?,?,?,?,?)')
-        .bind(id, 'customer', full_name, phone, hash, salt, lang, t).run();
+    await rateLimit(env, `otp:${phone}`, 5, 3600);
+    return json({ ok: true, phone, ...(await issueOtp(env, phone)) });
+  }
+
+  if (path === '/api/auth/confirm' && m === 'POST') {
+    await rateLimit(env, `confirm:${ip}`, 30, 3600);
+    const b = await readJson(request);
+    const phone = normPhone(b.phone);
+    let user = await env.DB.prepare("SELECT * FROM users WHERE phone = ? AND role = 'customer'").bind(phone).first();
+    const isNew = !user || !user.phone_verified;
+    if (isNew && !b.full_name) {
+      await checkOtp(env, phone, b.code, false);
+      return json({ ok: false, need_name: true });
     }
-    await rateLimit(env, `otp:${phone}`, 5, 3600);
-    return json({ ok: true, phone, ...(await issueOtp(env, phone, 'verify')) });
-  }
-
-  if (path === '/api/auth/resend' && m === 'POST') {
-    const b = await readJson(request);
-    const phone = normPhone(b.phone);
-    const purpose = oneOf(b.purpose || 'verify', ['verify', 'reset'], 'purpose');
-    await rateLimit(env, `otp:${phone}`, 5, 3600);
-    const user = await env.DB.prepare("SELECT id FROM users WHERE phone = ? AND role = 'customer'").bind(phone).first();
-    // Same answer whether or not the number exists (no account enumeration).
-    if (!user) return json({ ok: true });
-    return json({ ok: true, ...(await issueOtp(env, phone, purpose)) });
-  }
-
-  if (path === '/api/auth/verify-phone' && m === 'POST') {
-    await rateLimit(env, `verify:${ip}`, 20, 3600);
-    const b = await readJson(request);
-    const phone = normPhone(b.phone);
-    await checkOtp(env, phone, 'verify', b.code);
-    const user = await env.DB.prepare("SELECT * FROM users WHERE phone = ? AND role = 'customer'").bind(phone).first();
-    if (!user) throw new HttpError(400, 'otp_invalid');
-    await env.DB.prepare('UPDATE users SET phone_verified = 1, last_login_at = ? WHERE id = ?').bind(now(), user.id).run();
-    await audit(env, request, user, 'customer.registered', 'user', user.id);
-    await notifyUser(env, ctx, user, {
-      kind: 'welcome', title_en: 'Welcome to Rahbar Pay', title_fa: 'به رهبر پی خوش آمدید',
-      body_en: `Your customer ID is ${user.id}. Keep it for support requests.`,
-      body_fa: `شناسه مشتری شما ${user.id} است. آن را برای درخواست‌های پشتیبانی نگه دارید.`,
-    });
-    const setCookie = await createSession(env, request, user.id, 'customer');
-    return json({ ok: true, user: publicUser({ ...user, phone_verified: 1 }) }, 200, { 'set-cookie': setCookie });
-  }
-
-  if (path === '/api/auth/login' && m === 'POST') {
-    await rateLimit(env, `login:${ip}`, 20, 900);
-    const b = await readJson(request);
-    const phone = normPhone(b.phone);
-    const pw = typeof b.password === 'string' ? b.password : '';
-    const user = await env.DB.prepare("SELECT * FROM users WHERE phone = ? AND role = 'customer'").bind(phone).first();
-    if (user && user.locked_until > now()) throw new HttpError(423, 'locked', 'account temporarily locked', { retry_after: user.locked_until - now() });
-    const { hash } = await hashPassword(pw, user?.pass_salt || '00000000000000000000000000000000');
-    if (!user || !safeEqual(hash, user.pass_hash)) {
+    await checkOtp(env, phone, b.code, true);
+    const t = now();
+    if (isNew) {
+      const full_name = str(b.full_name, { min: 2, max: 80, field: 'full_name' });
+      const lang = b.lang === 'en' ? 'en' : 'fa';
       if (user) {
-        const fails = user.failed_logins + 1;
-        await env.DB.prepare('UPDATE users SET failed_logins = ?, locked_until = ? WHERE id = ?')
-          .bind(fails >= 5 ? 0 : fails, fails >= 5 ? now() + 900 : 0, user.id).run();
+        await env.DB.prepare('UPDATE users SET full_name = ?, lang = ?, phone_verified = 1 WHERE id = ?').bind(full_name, lang, user.id).run();
+      } else {
+        const id = await newCustomerId(env);
+        await env.DB.prepare("INSERT INTO users (id, role, full_name, phone, pass_hash, pass_salt, phone_verified, lang, created_at) VALUES (?, 'customer', ?, ?, '', '', 1, ?, ?)")
+          .bind(id, full_name, phone, lang, t).run();
       }
-      throw new HttpError(401, 'bad_credentials');
+      user = await env.DB.prepare('SELECT * FROM users WHERE phone = ?').bind(phone).first();
+      await audit(env, request, user, 'customer.registered', 'user', user.id);
+      await notifyUser(env, ctx, user, {
+        kind: 'welcome', title_en: 'Welcome to Rahbar Pay', title_fa: 'به رهبر پی خوش آمدید',
+        body_en: `Your customer number is ${user.id}.`, body_fa: `شماره مشتری شما ${user.id} است.`,
+      });
     }
     if (user.status !== 'active') throw new HttpError(403, 'suspended');
-    if (!user.phone_verified) {
-      await rateLimit(env, `otp:${phone}`, 5, 3600);
-      return json({ ok: false, needs_verification: true, phone, ...(await issueOtp(env, phone, 'verify')) });
-    }
-    await env.DB.prepare('UPDATE users SET failed_logins = 0, last_login_at = ? WHERE id = ?').bind(now(), user.id).run();
+    await env.DB.prepare('UPDATE users SET last_login_at = ? WHERE id = ?').bind(t, user.id).run();
     const setCookie = await createSession(env, request, user.id, 'customer');
-    return json({ ok: true, user: publicUser(user) }, 200, { 'set-cookie': setCookie });
+    return json({ ok: true, is_new: isNew, user: publicUser(user) }, 200, { 'set-cookie': setCookie });
   }
 
   if (path === '/api/auth/logout' && m === 'POST') {
     return json({ ok: true }, 200, { 'set-cookie': await destroySession(env, request, 'customer') });
-  }
-
-  if (path === '/api/auth/forgot' && m === 'POST') {
-    await rateLimit(env, `forgot:${ip}`, 5, 3600);
-    const b = await readJson(request);
-    const phone = normPhone(b.phone);
-    const user = await env.DB.prepare("SELECT id FROM users WHERE phone = ? AND role = 'customer'").bind(phone).first();
-    if (!user) return json({ ok: true });
-    await rateLimit(env, `otp:${phone}`, 5, 3600);
-    return json({ ok: true, ...(await issueOtp(env, phone, 'reset')) });
-  }
-
-  if (path === '/api/auth/reset' && m === 'POST') {
-    await rateLimit(env, `reset:${ip}`, 10, 3600);
-    const b = await readJson(request);
-    const phone = normPhone(b.phone);
-    const pw = password(b.password);
-    await checkOtp(env, phone, 'reset', b.code);
-    const user = await env.DB.prepare("SELECT * FROM users WHERE phone = ? AND role = 'customer'").bind(phone).first();
-    if (!user) throw new HttpError(400, 'otp_invalid');
-    const { hash, salt } = await hashPassword(pw);
-    await env.DB.batch([
-      env.DB.prepare('UPDATE users SET pass_hash = ?, pass_salt = ?, failed_logins = 0, locked_until = 0, phone_verified = 1 WHERE id = ?').bind(hash, salt, user.id),
-      env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id),
-    ]);
-    await audit(env, request, user, 'customer.password_reset', 'user', user.id);
-    return json({ ok: true });
   }
 
   if (path === '/api/me' && m === 'GET') {
@@ -234,20 +172,6 @@ export async function handleCustomer(request, env, ctx, path) {
     const ne = b.notify_email !== undefined ? (b.notify_email ? 1 : 0) : user.notify_email;
     await env.DB.prepare('UPDATE users SET full_name = ?, lang = ?, notify_telegram = ?, notify_email = ? WHERE id = ?').bind(full_name, lang, nt, ne, user.id).run();
     return json({ ok: true, user: publicUser({ ...user, full_name, lang, notify_telegram: nt, notify_email: ne }) });
-  }
-
-  if (path === '/api/me/password' && m === 'POST') {
-    await rateLimit(env, `pw:${user.id}`, 5, 3600);
-    const b = await readJson(request);
-    const { hash } = await hashPassword(String(b.current || ''), user.pass_salt);
-    if (!safeEqual(hash, user.pass_hash)) throw new HttpError(401, 'bad_credentials');
-    const next = await hashPassword(password(b.password));
-    await env.DB.batch([
-      env.DB.prepare('UPDATE users SET pass_hash = ?, pass_salt = ? WHERE id = ?').bind(next.hash, next.salt, user.id),
-      env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND token_hash != ?').bind(user.id, user.token_hash),
-    ]);
-    await audit(env, request, user, 'customer.password_changed', 'user', user.id);
-    return json({ ok: true });
   }
 
   if (path === '/api/me/sessions' && m === 'GET') {
@@ -273,25 +197,44 @@ export async function handleCustomer(request, env, ctx, path) {
     return json({ ok: true });
   }
 
-  // ── dashboard summary ──
-  if (path === '/api/dashboard' && m === 'GET') {
-    const counts = (await env.DB.prepare('SELECT status, COUNT(*) AS n FROM requests WHERE user_id = ? GROUP BY status').bind(user.id).all()).results;
-    const recent = (await env.DB.prepare(`${REQ_SELECT} WHERE r.user_id = ? ORDER BY r.created_at DESC LIMIT 5`).bind(user.id).all()).results.map(requestOut);
-    const unread = await unreadCount(env, user);
-    return json({ counts: Object.fromEntries(counts.map((c) => [c.status, c.n])), recent, unread });
+  // ── badge counts (small, polled on slow connections) ──
+  if (path === '/api/badges' && m === 'GET') {
+    const chats = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM requests x WHERE x.user_id = ? AND (
+        EXISTS (SELECT 1 FROM request_events e WHERE e.request_id = x.id AND e.created_at > x.customer_seen_at AND e.actor_id IS NOT NULL AND e.actor_id != x.user_id)
+        OR EXISTS (SELECT 1 FROM request_messages rm WHERE rm.request_id = x.id AND rm.is_staff = 1 AND rm.created_at > x.customer_seen_at))`,
+    ).bind(user.id).first();
+    const active = await env.DB.prepare("SELECT COUNT(*) AS n FROM requests WHERE user_id = ? AND status NOT IN ('completed','rejected')").bind(user.id).first();
+    return json({ unread: await unreadCount(env, user), chats: chats.n, active: active.n });
   }
 
   // ── requests ──
   if (path === '/api/requests' && m === 'GET') {
     const url = new URL(request.url);
-    const status = url.searchParams.get('status');
     const q = (url.searchParams.get('q') || '').trim().toUpperCase();
-    let sql = `${REQ_SELECT} WHERE r.user_id = ?`;
+    let sql = `SELECT x.*,
+      (SELECT MAX(e.created_at) FROM request_events e WHERE e.request_id = x.id) AS last_event_at,
+      (SELECT e.status FROM request_events e WHERE e.request_id = x.id ORDER BY e.id DESC LIMIT 1) AS last_event_status,
+      (SELECT rm.body FROM request_messages rm WHERE rm.request_id = x.id ORDER BY rm.id DESC LIMIT 1) AS last_msg,
+      (SELECT rm.is_staff FROM request_messages rm WHERE rm.request_id = x.id ORDER BY rm.id DESC LIMIT 1) AS last_msg_staff,
+      (SELECT MAX(rm.created_at) FROM request_messages rm WHERE rm.request_id = x.id) AS last_msg_at,
+      ((SELECT COUNT(*) FROM request_events e WHERE e.request_id = x.id AND e.created_at > x.customer_seen_at AND e.actor_id IS NOT NULL AND e.actor_id != x.user_id)
+       + (SELECT COUNT(*) FROM request_messages rm WHERE rm.request_id = x.id AND rm.is_staff = 1 AND rm.created_at > x.customer_seen_at)) AS unread
+      FROM (${REQ_SELECT} WHERE r.user_id = ?) x`;
     const args = [user.id];
-    if (status) { sql += ' AND r.status = ?'; args.push(status); }
-    if (q) { sql += ' AND r.tracking_no LIKE ?'; args.push(`%${q}%`); }
-    sql += ' ORDER BY r.created_at DESC LIMIT 200';
-    return json({ requests: (await env.DB.prepare(sql).bind(...args).all()).results.map(requestOut) });
+    if (q) { sql += ' WHERE x.tracking_no LIKE ?'; args.push(`%${q}%`); }
+    sql += ' ORDER BY MAX(x.updated_at, COALESCE(last_msg_at, 0)) DESC LIMIT 200';
+    const { results } = await env.DB.prepare(sql).bind(...args).all();
+    return json({
+      requests: results.map((r) => {
+        const msgNewer = r.last_msg_at && r.last_msg_at >= (r.last_event_at || 0);
+        return {
+          ...requestOut(r),
+          unread: r.unread,
+          last: msgNewer ? { type: 'message', body: r.last_msg, staff: !!r.last_msg_staff, at: r.last_msg_at } : { type: 'status', status: r.last_event_status, at: r.last_event_at },
+        };
+      }),
+    });
   }
 
   if (path === '/api/requests' && m === 'POST') {
@@ -309,7 +252,7 @@ export async function handleCustomer(request, env, ctx, path) {
       const v = b.details?.[f.key];
       if (f.type === 'select') {
         if (!v && !f.required) continue;
-        details[f.key] = oneOf(v, f.options, f.key);
+        details[f.key] = oneOf(v, f.options.map((o) => (typeof o === 'string' ? o : o.value)), f.key);
       } else {
         details[f.key] = str(v, { max: f.type === 'textarea' ? 1000 : 120, pattern: f.pattern, field: f.key, optional: !f.required });
       }
@@ -362,12 +305,30 @@ export async function handleCustomer(request, env, ctx, path) {
     return json({ ok: true, tracking_no: tracking }, 201);
   }
 
-  const reqMatch = path.match(/^\/api\/requests\/(RP-\d{4}-[A-Z0-9]{6})$/);
-  if (reqMatch && m === 'GET') {
+  const reqMatch = path.match(/^\/api\/requests\/(RP-\d{4}-[A-Z0-9]{6})(\/messages)?$/);
+  if (reqMatch) {
     const r = await env.DB.prepare(`${REQ_SELECT} WHERE r.tracking_no = ? AND r.user_id = ?`).bind(reqMatch[1], user.id).first();
     if (!r) throw new HttpError(404, 'not_found');
-    const events = (await env.DB.prepare('SELECT status, note, created_at FROM request_events WHERE request_id = ? ORDER BY id').bind(r.id).all()).results;
-    return json({ request: requestOut(r), events });
+    if (!reqMatch[2] && m === 'GET') {
+      const [events, messages] = await Promise.all([
+        env.DB.prepare('SELECT status, note, created_at FROM request_events WHERE request_id = ? ORDER BY id').bind(r.id).all(),
+        env.DB.prepare('SELECT id, is_staff, body, created_at FROM request_messages WHERE request_id = ? ORDER BY id').bind(r.id).all(),
+      ]);
+      await env.DB.prepare('UPDATE requests SET customer_seen_at = ? WHERE id = ?').bind(now(), r.id).run();
+      return json({ request: requestOut(r), events: events.results, messages: messages.results, staff_seen_at: r.staff_seen_at });
+    }
+    if (reqMatch[2] && m === 'POST') {
+      await rateLimit(env, `rmsg:${user.id}`, 60, 3600);
+      const b = await readJson(request);
+      const body = str(b.message, { min: 1, max: 1000, field: 'message' });
+      const t = now();
+      await env.DB.batch([
+        env.DB.prepare('INSERT INTO request_messages (request_id, author_id, is_staff, body, created_at) VALUES (?,?,0,?,?)').bind(r.id, user.id, body, t),
+        env.DB.prepare('UPDATE requests SET customer_seen_at = ? WHERE id = ?').bind(t, r.id),
+      ]);
+      await alertOperators(env, ctx, 'a customer sent a message on a request.');
+      return json({ ok: true }, 201);
+    }
   }
 
   // ── uploads (receipts) ──
@@ -438,49 +399,32 @@ export async function handleCustomer(request, env, ctx, path) {
     return json({ ok: true, unread: await unreadCount(env, user) });
   }
 
-  // ── support ──
-  if (path === '/api/support' && m === 'GET') {
-    const { results } = await env.DB.prepare('SELECT * FROM support_tickets WHERE user_id = ? ORDER BY updated_at DESC').bind(user.id).all();
-    return json({ tickets: results });
+  // ── support: one simple conversation per customer ──
+  if (path === '/api/support/thread' && m === 'GET') {
+    const ticket = await env.DB.prepare("SELECT * FROM support_tickets WHERE user_id = ? AND status != 'closed' ORDER BY id DESC LIMIT 1").bind(user.id).first();
+    if (!ticket) return json({ ticket: null, messages: [] });
+    const msgs = (await env.DB.prepare('SELECT id, is_staff, body, created_at FROM support_messages WHERE ticket_id = ? ORDER BY id').bind(ticket.id).all()).results;
+    return json({ ticket: { ticket_no: ticket.ticket_no, status: ticket.status }, messages: msgs });
   }
-  if (path === '/api/support' && m === 'POST') {
-    await rateLimit(env, `ticket:${user.id}`, 10, 3600);
+  if (path === '/api/support/thread' && m === 'POST') {
+    await rateLimit(env, `ticket:${user.id}`, 60, 3600);
     const b = await readJson(request);
-    const subject = str(b.subject, { min: 4, max: 120, field: 'subject' });
-    const category = oneOf(b.category || 'general', ['general', 'request', 'payment', 'account', 'security'], 'category');
-    const body = str(b.message, { min: 10, max: 2000, field: 'message' });
-    let tracking = null;
-    if (b.tracking_no) {
-      const r = await env.DB.prepare('SELECT tracking_no FROM requests WHERE tracking_no = ? AND user_id = ?').bind(String(b.tracking_no).toUpperCase(), user.id).first();
-      if (!r) throw new HttpError(422, 'validation', 'tracking number not found', { field: 'tracking_no' });
-      tracking = r.tracking_no;
-    }
+    const body = str(b.message, { min: 1, max: 2000, field: 'message' });
     const t = now();
-    const no = `T-${randomCode(6)}`;
-    const res = await env.DB.prepare('INSERT INTO support_tickets (ticket_no, user_id, subject, category, tracking_no, created_at, updated_at) VALUES (?,?,?,?,?,?,?)')
-      .bind(no, user.id, subject, category, tracking, t, t).run();
-    await env.DB.prepare('INSERT INTO support_messages (ticket_id, author_id, is_staff, body, created_at) VALUES (?,?,0,?,?)').bind(res.meta.last_row_id, user.id, body, t).run();
-    await alertOperators(env, ctx, 'new support ticket opened.');
-    return json({ ok: true, ticket_no: no }, 201);
-  }
-  const tMatch = path.match(/^\/api\/support\/(T-[A-Z0-9]{6})(\/messages)?$/);
-  if (tMatch) {
-    const ticket = await env.DB.prepare('SELECT * FROM support_tickets WHERE ticket_no = ? AND user_id = ?').bind(tMatch[1], user.id).first();
-    if (!ticket) throw new HttpError(404, 'not_found');
-    if (!tMatch[2] && m === 'GET') {
-      const msgs = (await env.DB.prepare('SELECT is_staff, body, created_at FROM support_messages WHERE ticket_id = ? ORDER BY id').bind(ticket.id).all()).results;
-      return json({ ticket, messages: msgs });
+    let ticket = await env.DB.prepare("SELECT * FROM support_tickets WHERE user_id = ? AND status != 'closed' ORDER BY id DESC LIMIT 1").bind(user.id).first();
+    if (!ticket) {
+      const no = `T-${randomCode(6)}`;
+      const subject = body.replace(/\s+/g, ' ').slice(0, 60);
+      await env.DB.prepare("INSERT INTO support_tickets (ticket_no, user_id, subject, category, created_at, updated_at) VALUES (?,?,?,'general',?,?)")
+        .bind(no, user.id, subject, t, t).run();
+      ticket = await env.DB.prepare('SELECT * FROM support_tickets WHERE ticket_no = ?').bind(no).first();
+      await alertOperators(env, ctx, 'new support conversation opened.');
     }
-    if (tMatch[2] && m === 'POST') {
-      if (ticket.status === 'closed') throw new HttpError(409, 'ticket_closed');
-      const b = await readJson(request);
-      const body = str(b.message, { min: 2, max: 2000, field: 'message' });
-      await env.DB.batch([
-        env.DB.prepare('INSERT INTO support_messages (ticket_id, author_id, is_staff, body, created_at) VALUES (?,?,0,?,?)').bind(ticket.id, user.id, body, now()),
-        env.DB.prepare("UPDATE support_tickets SET status = 'open', updated_at = ? WHERE id = ?").bind(now(), ticket.id),
-      ]);
-      return json({ ok: true });
-    }
+    await env.DB.batch([
+      env.DB.prepare('INSERT INTO support_messages (ticket_id, author_id, is_staff, body, created_at) VALUES (?,?,0,?,?)').bind(ticket.id, user.id, body, t),
+      env.DB.prepare("UPDATE support_tickets SET status = 'open', updated_at = ? WHERE id = ?").bind(t, ticket.id),
+    ]);
+    return json({ ok: true, ticket_no: ticket.ticket_no }, 201);
   }
 
   throw new HttpError(404, 'not_found');

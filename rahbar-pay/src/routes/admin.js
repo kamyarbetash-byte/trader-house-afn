@@ -18,6 +18,7 @@ export const TRANSITIONS = {
 };
 
 const REQ_SELECT = `SELECT r.*, s.name_en AS service_en, s.name_fa AS service_fa, s.requires_payment,
+  (SELECT COUNT(*) FROM request_messages rm WHERE rm.request_id = r.id AND rm.is_staff = 0 AND rm.created_at > r.staff_seen_at) AS customer_unread,
   m.name_en AS method_en, m.name_fa AS method_fa, u.full_name AS customer_name, u.phone AS customer_phone,
   a.full_name AS assignee_name
   FROM requests r JOIN services s ON s.id = r.service_id LEFT JOIN payment_methods m ON m.id = r.payment_method_id
@@ -34,6 +35,7 @@ function adminReq(r) {
     assignee_name: r.assignee_name,
     duplicate_of: r.duplicate_of,
     requires_payment: !!r.requires_payment,
+    customer_unread: r.customer_unread || 0,
   };
 }
 
@@ -184,14 +186,15 @@ export async function handleAdmin(request, env, ctx, path) {
     return json({ requests: (await env.DB.prepare(sql).bind(...args).all()).results.map(adminReq) });
   }
 
-  const rq = path.match(/^\/api\/admin\/requests\/(RP-\d{4}-[A-Z0-9]{6})(?:\/(status|notes|assign|payments))?$/);
+  const rq = path.match(/^\/api\/admin\/requests\/(RP-\d{4}-[A-Z0-9]{6})(?:\/(status|notes|assign|payments|messages))?$/);
   if (rq) {
     const r = await env.DB.prepare(`${REQ_SELECT} WHERE r.tracking_no = ?`).bind(rq[1]).first();
     if (!r) throw new HttpError(404, 'not_found');
     const action = rq[2];
 
     if (!action && m === 'GET') {
-      const [events, notes, payments, dups, file] = await Promise.all([
+      await env.DB.prepare('UPDATE requests SET staff_seen_at = ? WHERE id = ?').bind(now(), r.id).run();
+      const [events, notes, payments, dups, file, messages] = await Promise.all([
         env.DB.prepare('SELECT e.*, u.full_name AS actor_name FROM request_events e LEFT JOIN users u ON u.id = e.actor_id WHERE request_id = ? ORDER BY e.id').bind(r.id).all(),
         env.DB.prepare('SELECT n.*, u.full_name AS author_name FROM internal_notes n JOIN users u ON u.id = n.author_id WHERE request_id = ? ORDER BY n.id').bind(r.id).all(),
         env.DB.prepare('SELECT p.*, u.full_name AS operator_name FROM payments p JOIN users u ON u.id = p.operator_id WHERE request_id = ? ORDER BY p.id').bind(r.id).all(),
@@ -199,10 +202,11 @@ export async function handleAdmin(request, env, ctx, path) {
           ? env.DB.prepare('SELECT tracking_no, user_id, status, created_at FROM requests WHERE payment_method_id = ? AND payment_ref_norm = ? AND id != ?').bind(r.payment_method_id, r.payment_ref_norm, r.id).all()
           : Promise.resolve({ results: [] }),
         r.receipt_file_id ? env.DB.prepare('SELECT id, name, mime, size, sha256, created_at FROM files WHERE id = ?').bind(r.receipt_file_id).first() : null,
+        env.DB.prepare('SELECT m.*, u.full_name AS author_name FROM request_messages m LEFT JOIN users u ON u.id = m.author_id WHERE request_id = ? ORDER BY m.id').bind(r.id).all(),
       ]);
       return json({
         request: adminReq(r), events: events.results, notes: notes.results, payments: payments.results,
-        duplicates: dups.results, receipt: file, transitions: TRANSITIONS[r.status],
+        duplicates: dups.results, receipt: file, messages: messages.results, transitions: TRANSITIONS[r.status],
       });
     }
 
@@ -231,6 +235,23 @@ export async function handleAdmin(request, env, ctx, path) {
       const customer = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(r.user_id).first();
       await notifyStatus(env, ctx, customer, r, next, staff.id);
       return json({ ok: true, status: next });
+    }
+
+    if (action === 'messages' && m === 'POST') {
+      const b = await readJson(request);
+      const body = str(b.message, { min: 1, max: 1000, field: 'message' });
+      const t = now();
+      await env.DB.batch([
+        env.DB.prepare('INSERT INTO request_messages (request_id, author_id, is_staff, body, created_at) VALUES (?,?,1,?,?)').bind(r.id, staff.id, body, t),
+        env.DB.prepare('UPDATE requests SET staff_seen_at = ? WHERE id = ?').bind(t, r.id),
+      ]);
+      await audit(env, request, staff, 'request.message_sent', 'request', r.tracking_no);
+      const customer = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(r.user_id).first();
+      await notifyUser(env, ctx, customer, {
+        kind: 'request_message', title_en: `New message · ${r.tracking_no}`, title_fa: `پیام جدید · ${r.tracking_no}`,
+        link: `/requests/${r.tracking_no}`, createdBy: staff.id, tg_en: 'You have a new message', tg_fa: 'یک پیام جدید دارید',
+      });
+      return json({ ok: true }, 201);
     }
 
     if (action === 'notes' && m === 'POST') {
@@ -520,7 +541,7 @@ export async function handleAdmin(request, env, ctx, path) {
       const customer = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(ticket.user_id).first();
       await notifyUser(env, ctx, customer, {
         kind: 'support', title_en: `Support replied · ${ticket.ticket_no}`, title_fa: `پاسخ پشتیبانی · ${ticket.ticket_no}`,
-        link: `/support/${ticket.ticket_no}`, createdBy: staff.id, tg_en: 'Support replied to your ticket', tg_fa: 'پشتیبانی به تیکت شما پاسخ داد',
+        link: '/support', createdBy: staff.id, tg_en: 'Support replied to your ticket', tg_fa: 'پشتیبانی به تیکت شما پاسخ داد',
       });
       await audit(env, request, staff, 'support.replied', 'ticket', ticket.ticket_no);
       return json({ ok: true });

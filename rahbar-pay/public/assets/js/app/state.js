@@ -1,12 +1,13 @@
 // Customer app state + API client.
 import { client } from '../core/api.js';
 
-export const state = { user: null, config: null, catalog: null, unread: 0, router: null };
+export const state = { user: null, config: null, catalog: null, badges: { unread: 0, chats: 0, active: 0 }, router: null };
 
 export const api = client(() => {
   state.user = null;
-  const here = location.pathname + location.search;
-  if (!['/login', '/register', '/forgot', '/'].includes(location.pathname)) state.router?.go(`/login?next=${encodeURIComponent(here)}`, { replace: true });
+  if (!['/login', '/'].includes(location.pathname)) {
+    state.router?.go(`/login?next=${encodeURIComponent(location.pathname + location.search)}`, { replace: true });
+  }
 });
 
 export async function loadCatalog(force = false) {
@@ -14,14 +15,16 @@ export async function loadCatalog(force = false) {
   return state.catalog;
 }
 
-export async function refreshUnread() {
+/** Small JSON poll for the badge counters (works on slow connections). */
+export async function refreshBadges() {
   if (!state.user) return;
   try {
-    const d = await api.get('/api/dashboard');
-    state.unread = d.unread;
-    document.querySelectorAll('[data-unread]').forEach((el) => {
-      el.textContent = d.unread > 9 ? '9+' : String(d.unread);
-      el.classList.toggle('hidden', !d.unread);
+    state.badges = await api.get('/api/badges');
+    const set = (sel, n) => document.querySelectorAll(sel).forEach((el) => {
+      el.textContent = n > 9 ? '9+' : String(n);
+      el.classList.toggle('hidden', !n);
     });
-  } catch { /* ignore */ }
+    set('[data-badge-chats]', state.badges.chats);
+    set('[data-badge-unread]', state.badges.unread);
+  } catch { /* ignore on bad connections */ }
 }
