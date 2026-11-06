@@ -1,6 +1,10 @@
 name = "trader-house-afn"
 main = "src/index.js"
 compatibility_date = "2025-06-01"
+routes = [
+  { pattern = "nirkh.com", custom_domain = true },
+  { pattern = "www.nirkh.com", custom_domain = true }
+]
 
 [triggers]
 crons = ["* * * * *"]
