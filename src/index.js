@@ -500,6 +500,10 @@ async function handle(req, env) {
   {
     const url = new URL(req.url);
     const db = env.DB;
+    // One public address: www.nirkh.com and the old workers.dev link move to nirkh.com.
+    if ((url.hostname === "www.nirkh.com" || url.hostname.endsWith(".workers.dev")) &&
+        (req.method === "GET" || req.method === "HEAD") && !url.pathname.startsWith("/api/"))
+      return Response.redirect("https://nirkh.com" + url.pathname + url.search, 301);
     try {
       const a = await handleAuth(req, url, db);
       if (a) return a;

@@ -17,4 +17,6 @@ Live candlestick chart of the dollar-to-afghani open-market rate by province (Ka
 - **Accounts:** `src/auth.js` — email + password sign-up and login (PBKDF2-SHA256 hashes with per-user salt), random session tokens in an HttpOnly/Secure/SameSite=Lax cookie (only their SHA-256 is stored), per-IP rate limits, same-origin checks. Each account stores its chart drawings and demo trading account (`/api/user/data`), so analyses follow the user across devices. Email verification and password reset send through Resend once D1 `meta` holds `resendKey` and `mailFrom`. The owner sees accounts at `/admin?key=…` (CSV at `/admin.csv?key=…`); the key is in D1 `meta.adminKey`, not in the repo. Earlier sign-ups without a password stay in the `members` table.
 - **Security:** every response carries security headers (CSP allowing only this site and the pinned chart library, no framing, nosniff, HSTS, referrer and permissions policies). `/api/join` accepts only same-origin, small JSON posts. All SQL is parameterized; page text is set with textContent. `/robots.txt` hides `/admin` and `/api/`.
 
+Public address: **https://nirkh.com** (Workers custom domains in `wrangler.toml`; www and the workers.dev link redirect there, `/api/` excepted).
+
 Deploys automatically to Cloudflare on every push to `main` (Workers Builds).
