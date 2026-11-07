@@ -19,7 +19,7 @@ export async function notifyUser(env, ctx, user, { kind, title_en, title_fa, bod
 
   if (user.telegram_chat && user.notify_telegram && env.TELEGRAM_BOT_TOKEN) {
     const fa = user.lang === 'fa';
-    const text = `${fa ? 'رهبر پی' : 'Rahbar Pay'} — ${fa ? (tg_fa ?? title_fa) : (tg_en ?? title_en)}\n${fa ? 'برای جزئیات وارد برنامه شوید.' : 'Sign in to the app for details.'}`;
+    const text = `${fa ? 'راهبر پی' : 'Rahbar Pay'} — ${fa ? (tg_fa ?? title_fa) : (tg_en ?? title_en)}\n${fa ? 'برای جزئیات وارد برنامه شوید.' : 'Sign in to the app for details.'}`;
     const p = sendTelegram(env, user.telegram_chat, text);
     if (ctx?.waitUntil) ctx.waitUntil(p); else await p;
   }

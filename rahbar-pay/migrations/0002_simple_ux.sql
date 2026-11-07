@@ -70,15 +70,15 @@ UPDATE services SET sort = 10 WHERE id = 'buy_crypto';
 UPDATE services SET sort = 11 WHERE id = 'sell_crypto';
 
 UPDATE payment_methods SET
-  instructions_fa = 'پول را به حساب تجاری رهبر پی در اتوما پی بفرستید. بعد شماره رسید را اینجا بنویسید.',
+  instructions_fa = 'پول را به حساب تجاری راهبر پی در اتوما پی بفرستید. بعد شماره رسید را اینجا بنویسید.',
   instructions_en = 'Send the money to the Rahbar Pay business account on ATOMA Pay. Then type the receipt number here.'
 WHERE id = 'atoma_pay';
 UPDATE payment_methods SET
-  instructions_fa = 'پول را به حساب تجاری رهبر پی در حساب پی بفرستید. بعد شماره رسید را اینجا بنویسید.',
+  instructions_fa = 'پول را به حساب تجاری راهبر پی در حساب پی بفرستید. بعد شماره رسید را اینجا بنویسید.',
   instructions_en = 'Send the money to the Rahbar Pay business account on Hesap Pay. Then type the receipt number here.'
 WHERE id = 'hesap_pay';
 UPDATE payment_methods SET
-  instructions_fa = 'پول را فقط به حساب بانکی شرکت رهبر پی بفرستید (نه حساب شخصی). بعد شماره رسید بانک را اینجا بنویسید.',
+  instructions_fa = 'پول را فقط به حساب بانکی شرکت راهبر پی بفرستید (نه حساب شخصی). بعد شماره رسید بانک را اینجا بنویسید.',
   instructions_en = 'Send the money only to the Rahbar Pay company bank account (never a personal account). Then type the bank receipt number here.'
 WHERE id = 'bank_transfer';
 UPDATE payment_methods SET name_fa = 'کارت بانکی', name_en = 'Bank card' WHERE id = 'gateway';

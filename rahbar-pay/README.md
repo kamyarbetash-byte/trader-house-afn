@@ -1,4 +1,4 @@
-# Rahbar Pay — رهبر پی
+# Rahbar Pay — راهبر پی
 
 A digital financial services web app (working prototype), designed for people who rarely use websites. It works in the browser with no app install, and it is meant to be as easy as sending a WhatsApp message while still keeping professional order management, security and an audit trail. Rahbar Pay is a separate product from the nirkh.com site in the root of this repository. It has its own Worker, database and code, and shares nothing with it.
 
@@ -11,7 +11,7 @@ A digital financial services web app (working prototype), designed for people wh
 3. **Three steps at most:** معلومات (details) → پرداخت (payment) → ارسال (send). Services without a payment take two steps. Choices are large tap tiles with icons, and top-up has quick amount buttons.
 4. **Easy to read and tap:** large buttons and text, clear Dari, recognizable icons, one short sentence of instruction per field.
 5. **Tracking is a conversation:** each request opens a WhatsApp-style chat.
-   - Status updates arrive as messages from "رهبر پی".
+   - Status updates arrive as messages from "راهبر پی".
    - A progress bar shows "مرحله ۲ از ۵" and what comes next.
    - The customer and staff can write to each other, and ✓✓ marks a message as read by staff.
    - Quick-reply chips are offered, such as "پول را فرستادم".

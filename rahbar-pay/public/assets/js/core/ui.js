@@ -92,7 +92,7 @@ export function logo({ size = 'md', sub = false } = {}) {
     ${logoMark(mark)}
     <span class="leading-none">
       ${fa
-        ? html`<span class="block text-[17px] font-bold tracking-tight">رهبر <span class="gold-text">پی</span></span>`
+        ? html`<span class="block text-[17px] font-bold tracking-tight">راهبر <span class="gold-text">پی</span></span>`
         : html`<span class="block text-[15px] font-semibold tracking-[0.2em]">RAHBAR<span class="gold-text ms-1.5">PAY</span></span>`}
       ${sub ? html`<span class="mt-1 block text-[10.5px] tracking-wide text-fog-500">${sub}</span>` : ''}
     </span>

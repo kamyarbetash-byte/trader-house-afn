@@ -133,7 +133,7 @@ const dict = {
   },
 
   fa: {
-    brand: 'رهبر پی',
+    brand: 'راهبر پی',
     lang_toggle: 'English',
     demo: 'نمایشی',
     retry: 'تلاش دوباره',

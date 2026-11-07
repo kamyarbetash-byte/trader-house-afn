@@ -56,12 +56,12 @@ async function telegramWebhook(request, env) {
     if (user) {
       await env.DB.prepare('UPDATE users SET telegram_chat = ?, telegram_link_code = NULL WHERE id = ?').bind(chat, user.id).run();
       await sendTelegram(env, chat, user.lang === 'fa'
-        ? 'رهبر پی — اعلان‌ها فعال شد. ما فقط به‌روزرسانی وضعیت را بدون جزئیات مالی ارسال می‌کنیم.'
+        ? 'راهبر پی — اعلان‌ها فعال شد. ما فقط به‌روزرسانی وضعیت را بدون جزئیات مالی ارسال می‌کنیم.'
         : 'Rahbar Pay — notifications enabled. We only send status updates, never financial details.');
       return json({ ok: true });
     }
   }
-  await sendTelegram(env, chat, 'Rahbar Pay — open Profile → Notifications in the app to link this chat.\nرهبر پی — برای اتصال، از بخش پروفایل ← اعلان‌ها در برنامه استفاده کنید.');
+  await sendTelegram(env, chat, 'Rahbar Pay — open Profile → Notifications in the app to link this chat.\nراهبر پی — برای اتصال، از بخش پروفایل ← اعلان‌ها در برنامه استفاده کنید.');
   return json({ ok: true });
 }
 

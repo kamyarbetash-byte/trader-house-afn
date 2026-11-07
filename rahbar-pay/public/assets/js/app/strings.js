@@ -3,7 +3,7 @@ export default {
   fa: {
     demo_short: 'نسخه آزمایشی — پول واقعی جابجا نمی‌شود.',
     hello: 'سلام',
-    hello_guest: 'به رهبر پی خوش آمدید',
+    hello_guest: 'به راهبر پی خوش آمدید',
     home_q: 'امروز چه کاری انجام دهیم؟',
     btn_bill: 'پرداخت بل',
     btn_bill_sub: 'برق، آب، انترنت',
@@ -37,7 +37,7 @@ export default {
     name_sub: 'فقط همین یک بار می‌پرسیم.',
     name_label: 'نام و تخلص',
     name_btn: 'شروع',
-    terms_line: 'با ادامه دادن، شرایط استفاده رهبر پی را می‌پذیرید.',
+    terms_line: 'با ادامه دادن، شرایط استفاده راهبر پی را می‌پذیرید.',
 
     step_of: 'مرحله {n} از {total}',
     s_info: 'معلومات',
@@ -80,8 +80,8 @@ export default {
     chat_q1: 'پول را فرستادم',
     chat_q2: 'کی تمام می‌شود؟',
     chat_q3: 'تشکر',
-    chat_rahbar: 'رهبر پی',
-    chat_staff: 'پشتیبانی رهبر پی',
+    chat_rahbar: 'راهبر پی',
+    chat_staff: 'پشتیبانی راهبر پی',
     chat_you: 'شما',
     chat_your_request: 'درخواست شما',
     chat_reason: 'دلیل:',

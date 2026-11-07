@@ -141,7 +141,7 @@ export async function handleCustomer(request, env, ctx, path) {
       user = await env.DB.prepare('SELECT * FROM users WHERE phone = ?').bind(phone).first();
       await audit(env, request, user, 'customer.registered', 'user', user.id);
       await notifyUser(env, ctx, user, {
-        kind: 'welcome', title_en: 'Welcome to Rahbar Pay', title_fa: 'به رهبر پی خوش آمدید',
+        kind: 'welcome', title_en: 'Welcome to Rahbar Pay', title_fa: 'به راهبر پی خوش آمدید',
         body_en: `Your customer number is ${user.id}.`, body_fa: `شماره مشتری شما ${user.id} است.`,
       });
     }
