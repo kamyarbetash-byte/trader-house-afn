@@ -94,9 +94,9 @@ const KEEP: [number, number][] = [[0, 0], [KX, 0], [KX, 80], [KX, 150], [PALACE.
 const range = (b: Batch, cx: number, cz: number, seed: number, near = 170) => {
   const r = rng(seed);
   for (let i = 0; i < 30; i++) {
-    const a = (i / 30) * Math.PI * 2 + r() * 0.2, d = near + r() * 230, h = 60 + r() * 130;
-    if (KEEP.some(([kx, kz]) => Math.hypot(cx + Math.cos(a) * d - kx, cz + Math.sin(a) * d - kz) < 165)) continue;
-    mountain(b, cx + Math.cos(a) * d, cz + Math.sin(a) * d, h, h * (1.0 + r() * 0.5), seed + i, h > 120);
+    const a = (i / 30) * Math.PI * 2 + r() * 0.2, d = near + r() * 230, h = 60 + r() * 130, rad = h * (1.0 + r() * 0.5);
+    if (KEEP.some(([kx, kz]) => Math.hypot(cx + Math.cos(a) * d - kx, cz + Math.sin(a) * d - kz) - rad * 1.25 < 120)) continue;
+    mountain(b, cx + Math.cos(a) * d, cz + Math.sin(a) * d, h, rad, seed + i, h > 120);
   }
 };
 
@@ -151,7 +151,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
   }
   for (let i = 0; i < 40; i++) { const a = r() * 6.28, d = 30 + r() * 200, s = 0.4 + r() * 1.6; b.add(new THREE.DodecahedronGeometry(s, 0), lam("rockS", () => ({ color: "#b9a68b" })), new THREE.Matrix4().compose(V(Math.cos(a) * d, s * 0.3, Math.sin(a) * d), new THREE.Quaternion().setFromEuler(new THREE.Euler(r(), r(), r())), V(1, 0.6, 1))); }
   for (let i = 0; i < 18; i++) { const a = r() * 6.28, d = 40 + r() * 160; prop(b, kit, "plant_bush", Math.cos(a) * d, 0, Math.sin(a) * d, 0.7 + r() * 0.6, r() * 6); }
-  range(b, 0, 0, 101);
+  range(b, 0, 0, 101, 260);
 
   // ================= Kabul: square, museum, houses, teahouse, courtyard =================
   const dust = lam("dustHD", () => ({ map: rep(dirtTex("dust", "#cdb894", "130,100,70", "245,230,200"), 1, 1) }));
@@ -198,7 +198,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
   }
   for (let i = 0; i < 30; i++) { const x = KX + (r() - 0.5) * 160, z = (r() - 0.6) * 160; if (Math.abs(x - KX) < 20 && z > -24 && z < 30) continue; prop(b, kit, r() < 0.5 ? "tree_fat" : "tree_oak", x, 0, z, 7 + r() * 4, r() * 6); }
   for (const [x, z] of [[KX - 13, 2], [KX + 13, 2], [KX - 13, -12], [KX + 13, -12]] as const) prop(b, kit, "tree-high-round", x, 0, z, 9.5, x);
-  range(b, KX, -60, 202, 190);
+  range(b, KX, -60, 202, 240);
   { // teahouse: mud wall behind, a takht platform with a carpet, an awning on poles, a samovar
     const [x, , z] = TEA;
     flatHouse(b, x, z - 5.5, 0, 9, 6, 4.2, 3);
@@ -232,7 +232,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
     b.add(boxGeo(V(x - 2.8, 4.5, z), V(x + 2.8, 5.2, z + 0.3)), stone);
     gq(x, z + 30, 70, dust, 0.005, 10);
     prop(b, kit, "tree-high-round", x - 9, 0, z + 4, 9); prop(b, kit, "tree-high-round", x + 10, 0, z + 5, 10);
-    range(b, x, z - 40, 303, 190);
+    range(b, x, z - 40, 303, 240);
   }
 
   // ================= vault =================
@@ -300,7 +300,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
       b.add(boxGeo(V(cx - 0.41, 1.655, cz - 0.41), V(cx + 0.41, 1.675, cz + 0.41)), glassEdge);
     };
     caseAt(gx, gz); caseAt(GCASE_EMPTY[0], GCASE_EMPTY[2]);
-    for (const [cx, cz] of [[gx + 6, gz - 5], [gx - 6, gz - 6], [gx + 7, gz + 4]] as const) {
+    for (const [cx, cz] of [[gx + 6, gz - 5], [gx - 9, gz + 5], [gx + 7, gz + 4]] as const) {
       b.add(boxGeo(V(cx - 0.35, 0, cz - 0.35), V(cx + 0.35, 1.1, cz + 0.35)), ped);
       b.add(new THREE.CylinderGeometry(0.16, 0.24, 0.55, 16).translate(0, 0.27, 0), lam("vaseG", () => ({ color: "#3f7fae" })), new THREE.Matrix4().makeTranslation(cx, 1.1, cz));
     }

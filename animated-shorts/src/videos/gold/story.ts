@@ -165,7 +165,7 @@ const S = {
   v13a: (f: number) => dolly(P(VX + 0.25, 1.28, 2.95), CR, pushK(f, 872, 0.004, 0.007, 25), { fov: 32, roll: 0.035 }),
   // 14 1989 workers carry crates in; 15 the door shuts; 16 the palace above; 17 keys up
   v14a: (f: number) => dolly(P(VX + 2.2, 1.85, 4.2), P(VX - 0.2, 1.5, -4.5), pushK(f, 903, 0.002), { fov: 44 }),
-  v14b: (f: number) => dolly(P(VX - 1.6, 1.6, 1.8), P(VX - 0.1, 1.4, -4.2), pushK(f, 958, 0.0022), { fov: 42, roll: 0.03 }),
+  v14b: (f: number) => dolly(P(VX + 2.9, 1.6, 2.7), P(VX + 0.4, 1.3, -3.0), pushK(f, 958, 0.0022), { fov: 44, roll: 0.03 }),
   v15a: (f: number) => dolly(P(VX + 2.6, 1.7, 2.6), P(VX - 0.3, 1.9, -5.6), pushK(f, 1007, 0.0025, 0.006, 20), { fov: 42, roll: -0.035 }),
   p16a: (f: number) => zoom(P(PALACE.x + 9, 1.4, 34), P(PALACE.x, 11, PALACE.z), 46, pushK(f, 1035, 0.002)),
   p16b: (f: number) => zoom(P(PALACE.x + 9, 1.4, 34), P(PALACE.x + 1, 1.0, PALACE.z + 6), 46, pushK(f, 1050, 0.002)),

@@ -180,6 +180,10 @@ export class World {
     TONE.uLambert.value = L.lambert; TONE.uSideK.value = L.sideK; TONE.uTerm.value = L.term; TONE.uBounce.value.set(...K.bounce); TONE.uSat.value = K.sat;
     CHAR.uCharTint.value.set(...L.charTint); CHAR.uCharShade.value = L.charShade; CHAR.uGrad.value = L.charGrad;
     CHAR.uBodyGrad.value = L.bodyGrad; CHAR.uSideTint.value.set(...L.sideTint);
+    if (!inside && s.light === "golden" && (s.sunEl ?? 7) > 15) { // late afternoon: warm, not sunset orange
+      TONE.uLitCol.value.set(1.5, 1.18, 0.84); TONE.uShadeCol.value.set(0.26, 0.25, 0.38); TONE.uTerm.value = 0.15;
+      CHAR.uCharTint.value.set(1.0, 0.92, 0.84);
+    }
     if (inside && s.light === "golden") { // lamp light: warmer than daylight, much less orange than a sunset
       TONE.uLitCol.value.set(1.45, 1.08, 0.68); TONE.uShadeCol.value.set(0.22, 0.2, 0.3); TONE.uTerm.value = 0.15;
       CHAR.uCharTint.value.set(1.0, 0.88, 0.74);
