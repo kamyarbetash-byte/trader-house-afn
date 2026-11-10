@@ -20,7 +20,7 @@ Format: the cartoon-3d-short formula (~60 s, ~3.7 words/s), our own characters +
 Twenty thousand pieces of ancient gold disappeared in Kabul, and the people who hid them never said a word.
 It's 1978. In northern Afghanistan, diggers open a little mound the locals call the Hill of Gold.
 The name turns out to be honest.
-Six graves, two thousand years old, packed with crowns, belts and tiny golden horses.
+Six graves, two thousand years old, packed with crowns, belts and tiny golden rams.
 The treasure goes to the national museum in Kabul. Then the wars come.
 Rockets hit the roof. Thieves carry off almost everything that's left.
 And the gold? Gone. Everyone says it was melted down and sold.
