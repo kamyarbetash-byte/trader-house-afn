@@ -89,10 +89,13 @@ const mountain = (b: Batch, x: number, z: number, h: number, r: number, seed: nu
     b.add(cap, lam("snow", () => ({ color: "#f3f1ec" })), new THREE.Matrix4().makeTranslation(x, h - h * 0.18 - 0.6, z));
   }
 };
-const range = (b: Batch, cx: number, cz: number, seed: number, near = 280) => {
+/** set centres no mountain may stand near */
+const KEEP: [number, number][] = [[0, 0], [KX, 0], [KX, 80], [KX, 150], [PALACE.x, PALACE.z]];
+const range = (b: Batch, cx: number, cz: number, seed: number, near = 170) => {
   const r = rng(seed);
-  for (let i = 0; i < 26; i++) {
-    const a = (i / 26) * Math.PI * 2 + r() * 0.2, d = near + r() * 260, h = 70 + r() * 150;
+  for (let i = 0; i < 30; i++) {
+    const a = (i / 30) * Math.PI * 2 + r() * 0.2, d = near + r() * 230, h = 60 + r() * 130;
+    if (KEEP.some(([kx, kz]) => Math.hypot(cx + Math.cos(a) * d - kx, cz + Math.sin(a) * d - kz) < 165)) continue;
     mountain(b, cx + Math.cos(a) * d, cz + Math.sin(a) * d, h, h * (1.0 + r() * 0.5), seed + i, h > 120);
   }
 };
@@ -110,7 +113,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
   const pit = lam("pitHD", () => ({ map: rep(dirtTex("pit", "#a27c55", "90,60,35", "200,170,130"), 1, 1) }));
   const canvasM = lam("tent", () => ({ color: "#e6dcc3", side: THREE.DoubleSide }));
   const wood = lam("woodPlain", () => ({ color: "#9a6a3e" }));
-  const cloth = lam("cloth", () => ({ color: "#f3efe4" }));
+  const cloth = lam("cloth", () => ({ color: "#4f6f93" }));
 
   // ================= dig site =================
   const gq = (cx: number, cz: number, s: number, m: THREE.Material, y = 0, t = 8) => b.add(quad(V(cx - s, y, cz + s), V(cx + s, y, cz + s), V(cx + s, y, cz - s), V(cx - s, y, cz - s), (2 * s) / t, (2 * s) / t), m);
@@ -195,7 +198,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
   }
   for (let i = 0; i < 30; i++) { const x = KX + (r() - 0.5) * 160, z = (r() - 0.6) * 160; if (Math.abs(x - KX) < 20 && z > -24 && z < 30) continue; prop(b, kit, r() < 0.5 ? "tree_fat" : "tree_oak", x, 0, z, 7 + r() * 4, r() * 6); }
   for (const [x, z] of [[KX - 13, 2], [KX + 13, 2], [KX - 13, -12], [KX + 13, -12]] as const) prop(b, kit, "tree-high-round", x, 0, z, 9.5, x);
-  range(b, KX, -60, 202, 240);
+  range(b, KX, -60, 202, 190);
   { // teahouse: mud wall behind, a takht platform with a carpet, an awning on poles, a samovar
     const [x, , z] = TEA;
     flatHouse(b, x, z - 5.5, 0, 9, 6, 4.2, 3);
@@ -229,7 +232,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
     b.add(boxGeo(V(x - 2.8, 4.5, z), V(x + 2.8, 5.2, z + 0.3)), stone);
     gq(x, z + 30, 70, dust, 0.005, 10);
     prop(b, kit, "tree-high-round", x - 9, 0, z + 4, 9); prop(b, kit, "tree-high-round", x + 10, 0, z + 5, 10);
-    range(b, x, z - 40, 303, 240);
+    range(b, x, z - 40, 303, 190);
   }
 
   // ================= vault =================

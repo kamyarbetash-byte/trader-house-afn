@@ -190,7 +190,7 @@ export class World {
     su.e.value.set(e[1], e[2], e[3], e[4]);
     this.sky.position.copy(cam.position);
     untone(s.war ? "#c79482" : L.fog, this.fog.color);
-    this.fog.near = s.war ? 30 : inside ? 60 : L.fogNear; this.fog.far = s.war ? 260 : inside ? 400 : L.fogFar;
+    this.fog.near = s.war ? 30 : inside ? 60 : 60; this.fog.far = s.war ? 320 : inside ? 400 : 640;
     scene.fog = this.fog; scene.background = null;
     const showSun = s.light === "golden" && !inside;
     this.sunDisc.visible = this.sunHalo.visible = showSun;

@@ -335,7 +335,7 @@ const roofFire = (t: number, out: Stage) => {
 };
 /** five keyholders in two rows before the vault door; keyUp(i) = holds the key up */
 const keyholders = (cam: CamInfo, t: number, out: Stage, expr: (i: number) => Expr, prop: (i: number) => Prop) => {
-  const spots: [number, number][] = [[VX - 0.95, -2.3], [VX - 0.47, -2.95], [VX, -2.3], [VX + 0.47, -2.95], [VX + 0.95, -2.3]];
+  const spots: [number, number][] = [[VX - 1.25, -2.3], [VX - 0.62, -3.0], [VX, -2.3], [VX + 0.62, -3.0], [VX + 1.25, -2.3]];
   spots.forEach(([x, z], i) => who(cam, out, i + 10, KEYHOLDERS[i], x, D0, z, { mode: "stand", expr: expr(i), prop: prop(i), blink: lidAt(t, i + 10), facing: x < VX - 0.1 ? 1 : x > VX + 0.1 ? -1 : 0 }));
 };
 
@@ -471,7 +471,7 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
     }
     case 23: case 24: {
       chamberGold(t, out, glowAt(id, f));
-      const ofs: [number, number][] = [[VX - 0.95, -2.55], [VX + 0.05, -2.95], [VX + 0.95, -2.5]];
+      const ofs: [number, number][] = id === 24 ? [[VX - 1.45, -2.5], [VX + 1.4, -2.75], [VX - 0.85, -3.25]] : [[VX - 0.95, -2.55], [VX + 0.05, -2.95], [VX + 0.95, -2.5]];
       const happy = id === 24 && at(t, 57.18);
       ofs.forEach(([x, z], i) => who(cam, out, 100 + i, OFFICIALS[i], x, D0, z, {
         mode: "stand", expr: happy ? (i === 1 ? "relief_open" : "relief") : id === 24 ? "shock" : i === 0 ? "nervous" : "stern",
@@ -479,7 +479,7 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
       }));
       if (f >= 1640 || id === 24) {
         const drill = id === 23 && f >= 1660;
-        who(cam, out, 104, SAFECRACKER, VX + 1.5, D0, -4.55, { mode: "stand", expr: id === 24 ? (happy ? "grin" : "shock") : "stern", prop: id === 23 ? (drill ? "drill" : "bag") : null, blink: lidAt(t, 104), facing: -1 }, 1, true);
+        who(cam, out, 104, SAFECRACKER, VX + (id === 24 ? 2.1 : 1.5), D0, id === 24 ? -3.4 : -4.55, { mode: "stand", expr: id === 24 ? (happy ? "grin" : "shock") : "stern", prop: id === 23 ? (drill ? "drill" : "bag") : null, blink: lidAt(t, 104), facing: -1 }, 1, true);
         if (drill) { const k = q((f % 9) / 9, 9); card(out, `sparks${k}`, 300, 300, (p) => fxSparks(p, k), VX + 0.92, 1.3, -5.3, 0.55, 0.55, { glow: 1.6 }); }
       }
       break;

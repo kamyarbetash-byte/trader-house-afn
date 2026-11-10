@@ -744,10 +744,12 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   if (o.beard) {
-    const bl = o.beardLen ?? 0, bp = ellPts(300 + 6 * u * facing, hc + 0.22 * H.b, 0.9 * H.a, 0.7 * H.b + bl * u, 0, 180);
+    // beard: lower half-ellipse from the cheeks down, with a skin "window" round the mouth (classic cartoon beard)
+    const bl = o.beardLen ?? 0, bx = 300 + 6 * u * facing;
+    const bp = ellPts(bx, hc + 0.36 * H.b, 0.9 * H.a, 0.62 * H.b + bl * u, 0, 180);
     p.shadedFill(bp, o.beard, mul(o.beard, SH_FELT), light, H.a, 0.35);
     p.poly(bp, null, ow * 0.8);
-    p.ell(300 + 8 * u * facing, hc + 20 * u, 12 * u, 6 * u, skin, 0);
+    p.ell(300 + 8 * u * facing, hc + 21 * u, 15 * u, 8.5 * u, skin, 0);
   }
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
   const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "scarfwrap" && o.hat !== "pakol";

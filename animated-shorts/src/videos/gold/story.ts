@@ -26,7 +26,7 @@ export const TABLE_DIG: V3 = [8, DIG.top, 5.2]; // finds table on the mound (top
 export const KX = 1000;
 export const MUSEUM = { x: KX, z: -20, w: 30, d: 14, h: 9.4 };
 export const PLAQUE: V3 = [KX + 3.4, 1.85, MUSEUM.z + 0.06];
-export const PALACE = { x: 1200, z: -10 };
+export const PALACE = { x: 1500, z: -10 };
 export const TEA: V3 = [KX, 0, 80];
 export const YARD: V3 = [KX, 0, 150];
 /** underground bank vault: room x -1008..-992, z -6..6; round door in the back wall, gold chamber behind it */
@@ -50,10 +50,10 @@ export const SHOTS: ShotDef[] = [
   { id: 4, a: 348, b: 399, light: "day", set: "dig" },                       // the name turns out to be honest
   { id: 5, a: 399, b: 470, light: "day", set: "dig" },                       // six graves, 2000 years old
   { id: 6, a: 470, b: 540, light: "day", set: "dig" },                       // crowns, belts, tiny golden rams
-  { id: 7, a: 540, b: 613, light: "day", set: "kabul" },                     // to the national museum in Kabul
-  { id: 8, a: 613, b: 648, light: "golden", set: "kabul", war: true },       // then the wars come
+  { id: 7, a: 540, b: 613, light: "day", set: "kabul", sunAz: 145, sunEl: 40 },                     // to the national museum in Kabul
+  { id: 8, a: 613, b: 648, light: "golden", set: "kabul", war: true, sunAz: 60, sunEl: 10 },       // then the wars come
   { id: 9, a: 648, b: 683, light: "golden", set: "kabul", war: true },       // rockets hit the roof
-  { id: 10, a: 683, b: 755, light: "golden", set: "kabul", war: true },      // thieves carry off
+  { id: 10, a: 683, b: 755, light: "golden", set: "kabul", war: true, sunAz: 115, sunEl: 14 },      // thieves carry off
   { id: 11, a: 755, b: 800, light: "golden", set: "gallery", ...GAL_SUN },   // and the gold? gone.
   { id: 12, a: 800, b: 872, light: "day", set: "tea" },                      // everyone says melted down and sold
   { id: 13, a: 872, b: 903, light: "golden", set: "vault", ...VAULT_SUN },   // except it wasn't
@@ -63,12 +63,12 @@ export const SHOTS: ShotDef[] = [
   { id: 17, a: 1066, b: 1109, light: "golden", set: "vault", ...VAULT_SUN }, // each kept one key
   { id: 18, a: 1109, b: 1176, light: "day", set: "palace" },                 // Luckily ...
   { id: 19, a: 1176, b: 1252, light: "day", set: "palace" },                 // Unluckily ...
-  { id: 20, a: 1252, b: 1382, light: "golden", set: "yard" },                // a lock with many keys / friends
-  { id: 21, a: 1382, b: 1469, light: "golden", set: "yard" },                // threaten one friend: one key
+  { id: 20, a: 1252, b: 1382, light: "golden", set: "yard", sunAz: 140, sunEl: 26 },                // a lock with many keys / friends
+  { id: 21, a: 1382, b: 1469, light: "golden", set: "yard", sunAz: 140, sunEl: 26 },                // threaten one friend: one key
   { id: 22, a: 1469, b: 1548, light: "day", set: "tea" },                    // fourteen years, said nothing
   { id: 23, a: 1548, b: 1688, light: "golden", set: "vault", ...VAULT_SUN }, // 2003: can't find them, safecracker
   { id: 24, a: 1688, b: 1763, light: "golden", set: "vault", ...VAULT_SUN }, // behind the door: every piece
-  { id: 25, a: 1763, b: 1926, light: "golden", set: "kabul" },               // the motto at the museum door
+  { id: 25, a: 1763, b: 1926, light: "golden", set: "kabul", sunAz: 150, sunEl: 20 },               // the motto at the museum door
   { id: 26, a: 1926, b: TOTAL, light: "golden", set: "gallery", ...GAL_SUN },// toured the world, in the spotlight
 ];
 /** crossfades (frames) at place/time changes; a white 4-frame flash after the hook */
@@ -138,19 +138,19 @@ const P = (x: number, y: number, z: number): V3 => [x, y, z];
 const CR = P(VX, 1.22, VTABLE[2]); // the crown on the vault table
 const S = {
   // 1 hook (vault): crown CU -> the door slams on "disappeared" -> the keyholders in a row, punch on "never said a word"
-  h1a: (f: number) => dolly(P(VX - 0.35, 1.38, 3.55), CR, pushK(f, 0, 0.003), { fov: 34, roll: -0.03 }),
-  h1b: (f: number) => dolly(P(VX + 1.7, 1.75, -0.4), P(VX - 0.2, 2.0, -5.6), pushK(f, 52, 0.0025), { fov: 42 }),
-  h1c: (f: number) => dolly(P(VX + 0.4, 1.5, 2.6), P(VX, 1.42, -2.7), pushK(f, 104, 0.0022, 0.006, 32), { fov: 42, roll: 0.035 }),
+  h1a: (f: number) => dolly(P(VX - 0.4, 1.42, 4.0), CR, pushK(f, 0, 0.003), { fov: 34, roll: -0.03 }),
+  h1b: (f: number) => dolly(P(VX + 2.6, 1.7, 2.6), P(VX - 0.3, 1.9, -5.6), pushK(f, 52, 0.0025), { fov: 44 }),
+  h1c: (f: number) => dolly(P(VX + 0.4, 1.5, 2.9), P(VX, 1.42, -2.7), pushK(f, 104, 0.0022, 0.006, 32), { fov: 47, roll: 0.035 }),
   // 2 dig aerial, crane down; 3 diggers MS, elder points; 4 low on the trench floor up at the digger; 5 top-down graves
-  d2a: (f: number) => zoom(P(46, 18, 58), P(0, 1.5, -2), 44, pushK(f, 170, 0.002)),
-  d2b: (f: number) => zoom(P(30, 9.5, 36), P(0, 2.6, 0), 42, pushK(f, 214, 0.002)),
-  d3a: (f: number) => dolly(P(3.4, 3.95, 11.6), P(0.4, 3.15, 3.6), pushK(f, 257, 0.0022), { fov: 42 }),
+  d2a: (f: number) => zoom(P(24, 11, 30), P(0, 2.2, 0), 44, pushK(f, 170, 0.002)),
+  d2b: (f: number) => zoom(P(14, 6.2, 19), P(0, 3.0, 2), 42, pushK(f, 214, 0.002)),
+  d3a: (f: number) => dolly(P(1.6, 3.85, 12.4), P(0.3, 3.15, 3.9), pushK(f, 257, 0.0022), { fov: 46 }),
   d3b: (f: number) => dolly(P(5.6, 3.8, 10.4), P(2.4, 3.3, 5.4), pushK(f, 318, 0.0015, 0.006, 30), { fov: 40, roll: -0.035 }),
   d4a: (f: number) => dolly(P(0.7, 1.15, -0.6), P(0, 2.55, 3.4), pushK(f, 348, 0.003, 0.006, 30), { fov: 46, roll: 0.04 }),
   d5a: (f: number) => dolly(P(7.0, 13.5, 0.2), P(0, 0.6, 0), pushK(f, 399, 0.0025), { fov: 40 }),
-  d6a: (f: number) => dolly(P(TABLE_DIG[0] - 0.75, 3.36, 6.45), P(TABLE_DIG[0] - 0.8, 3.24, TABLE_DIG[2]), pushK(f, 470, 0.003, 0.006, 15), { fov: 34, roll: 0.03 }),
-  d6b: (f: number) => dolly(P(TABLE_DIG[0] + 0.1, 3.3, 6.35), P(TABLE_DIG[0], 3.14, TABLE_DIG[2]), pushK(f, 485, 0.003, 0.006, 13), { fov: 34, roll: -0.03 }),
-  d6c: (f: number) => dolly(P(TABLE_DIG[0] + 0.95, 3.32, 6.15), P(TABLE_DIG[0] + 0.82, 3.2, TABLE_DIG[2]), pushK(f, 498, 0.0025, 0.006, 30), { fov: 32 }),
+  d6a: (f: number) => dolly(P(TABLE_DIG[0] - 0.7, 3.45, 7.0), P(TABLE_DIG[0] - 0.8, 3.24, TABLE_DIG[2]), pushK(f, 470, 0.003, 0.006, 15), { fov: 34, roll: 0.03 }),
+  d6b: (f: number) => dolly(P(TABLE_DIG[0] + 0.1, 3.4, 6.85), P(TABLE_DIG[0], 3.14, TABLE_DIG[2]), pushK(f, 485, 0.003, 0.006, 13), { fov: 34, roll: -0.03 }),
+  d6c: (f: number) => dolly(P(TABLE_DIG[0] + 0.95, 3.4, 6.55), P(TABLE_DIG[0] + 0.82, 3.2, TABLE_DIG[2]), pushK(f, 498, 0.0025, 0.006, 30), { fov: 32 }),
   // 7-8 the museum (day, then dusk smoke); 9 the rocket; 10 thieves at the door
   k7a: (f: number) => zoom(P(KX + 7, 2.4, 6), P(KX, 4.4, MUSEUM.z), 44, pushK(f, 536, 0.0018)),
   k8a: (f: number) => zoom(P(KX + 4, 3.5, 14), P(KX - 1, 6.5, MUSEUM.z), 46, pushK(f, 607, 0.002)),
@@ -166,25 +166,25 @@ const S = {
   // 14 1989 workers carry crates in; 15 the door shuts; 16 the palace above; 17 keys up
   v14a: (f: number) => dolly(P(VX + 2.2, 1.85, 4.2), P(VX - 0.2, 1.5, -4.5), pushK(f, 903, 0.002), { fov: 44 }),
   v14b: (f: number) => dolly(P(VX - 1.6, 1.6, 1.8), P(VX - 0.1, 1.4, -4.2), pushK(f, 958, 0.0022), { fov: 42, roll: 0.03 }),
-  v15a: (f: number) => dolly(P(VX + 1.7, 1.75, -0.4), P(VX - 0.2, 2.0, -5.6), pushK(f, 1007, 0.0025, 0.006, 20), { fov: 42, roll: -0.035 }),
+  v15a: (f: number) => dolly(P(VX + 2.6, 1.7, 2.6), P(VX - 0.3, 1.9, -5.6), pushK(f, 1007, 0.0025, 0.006, 20), { fov: 42, roll: -0.035 }),
   p16a: (f: number) => zoom(P(PALACE.x + 9, 1.4, 34), P(PALACE.x, 11, PALACE.z), 46, pushK(f, 1035, 0.002)),
   p16b: (f: number) => zoom(P(PALACE.x + 9, 1.4, 34), P(PALACE.x + 1, 1.0, PALACE.z + 6), 46, pushK(f, 1050, 0.002)),
-  v17a: (f: number) => dolly(P(VX - 0.3, 1.55, 2.4), P(VX, 1.55, -2.7), pushK(f, 1066, 0.0025, 0.006, 30), { fov: 42 }),
+  v17a: (f: number) => dolly(P(VX - 0.3, 1.6, 2.8), P(VX, 1.6, -2.7), pushK(f, 1066, 0.0025, 0.006, 30), { fov: 47 }),
   // 18-19 the same palace framing: thieves, then officials
-  p18a: (f: number) => dolly(P(PALACE.x + 1.3, 1.65, 3.6), P(PALACE.x + 0.2, 1.4, -4.4), pushK(f, 1109, 0.0022), { fov: 42 }),
-  p18b: (f: number) => dolly(P(PALACE.x + 1.0, 1.6, 2.8), P(PALACE.x + 0.2, 1.45, -4.4), pushK(f, 1150, 0.002), { fov: 40, roll: 0.035 }),
-  p19a: (f: number) => dolly(P(PALACE.x + 1.3, 1.65, 3.6), P(PALACE.x + 0.2, 1.4, -4.4), pushK(f, 1176, 0.0022), { fov: 42 }),
-  p19b: (f: number) => dolly(P(PALACE.x + 1.0, 1.6, 2.8), P(PALACE.x + 0.2, 1.45, -4.4), pushK(f, 1220, 0.002), { fov: 40, roll: -0.035 }),
+  p18a: (f: number) => dolly(P(PALACE.x + 0.9, 1.6, 1.6), P(PALACE.x + 0.2, 1.4, -4.4), pushK(f, 1109, 0.0022), { fov: 42 }),
+  p18b: (f: number) => dolly(P(PALACE.x + 0.7, 1.55, 0.9), P(PALACE.x + 0.2, 1.45, -4.4), pushK(f, 1150, 0.002), { fov: 40, roll: 0.035 }),
+  p19a: (f: number) => dolly(P(PALACE.x + 0.9, 1.6, 1.6), P(PALACE.x + 0.2, 1.4, -4.4), pushK(f, 1176, 0.0022), { fov: 42 }),
+  p19b: (f: number) => dolly(P(PALACE.x + 0.7, 1.55, 0.9), P(PALACE.x + 0.2, 1.45, -4.4), pushK(f, 1220, 0.002), { fov: 40, roll: -0.035 }),
   // 20-21 courtyard: friends with keys around the chest; the bully
-  y20a: (f: number) => dolly(P(KX + 0.3, 1.7, YARD[2] + 5.4), P(KX, 1.05, YARD[2] - 0.6), pushK(f, 1252, 0.002), { fov: 44 }),
-  y20b: (f: number) => dolly(P(KX - 0.6, 1.55, YARD[2] + 4.2), P(KX, 1.15, YARD[2] - 0.6), pushK(f, 1340, 0.002), { fov: 42, roll: 0.035 }),
+  y20a: (f: number) => dolly(P(KX + 0.3, 1.75, YARD[2] + 6.6), P(KX, 1.05, YARD[2] - 0.5), pushK(f, 1252, 0.002), { fov: 46 }),
+  y20b: (f: number) => dolly(P(KX - 0.6, 1.6, YARD[2] + 5.4), P(KX, 1.15, YARD[2] - 0.6), pushK(f, 1340, 0.002), { fov: 42, roll: 0.035 }),
   y21a: (f: number) => dolly(P(KX + 2.4, 1.55, YARD[2] + 4.4), P(KX + 1.0, 1.25, YARD[2] - 0.3), pushK(f, 1382, 0.0022, 0.006, 25), { fov: 42 }),
-  y21b: (f: number) => dolly(P(KX + 0.9, 1.4, YARD[2] + 3.4), P(KX + 0.4, 1.0, YARD[2]), pushK(f, 1425, 0.0025), { fov: 40, roll: -0.035 }),
+  y21b: (f: number) => dolly(P(KX + 1.5, 1.5, YARD[2] + 5.0), P(KX + 0.35, 1.05, YARD[2] - 0.2), pushK(f, 1425, 0.0025), { fov: 44, roll: -0.035 }),
   // 22 fourteen years at the teahouse (the beard grows)
   t22a: (f: number) => dolly(P(KX - 0.5, 1.5, 83.4), P(KX - 0.3, 1.25, 80.2), pushK(f, 1469, 0.0028), { fov: 38 }),
   // 23 officials + list; the safecracker drilling; 24 the door opens, the gold, the faces
-  v23a: (f: number) => dolly(P(VX + 0.5, 1.6, 2.4), P(VX, 1.5, -3.0), pushK(f, 1548, 0.0022), { fov: 42 }),
-  v23b: (f: number) => dolly(P(VX + 1.6, 1.25, -2.1), P(VX - 0.6, 1.5, -5.6), pushK(f, 1646, 0.003), { fov: 40, roll: 0.035 }),
+  v23a: (f: number) => dolly(P(VX + 0.4, 1.6, 2.9), P(VX, 1.5, -3.0), pushK(f, 1548, 0.0022), { fov: 46 }),
+  v23b: (f: number) => dolly(P(VX + 3.3, 1.4, -1.0), P(VX + 1.1, 1.25, -5.0), pushK(f, 1646, 0.003), { fov: 44, roll: 0.035 }),
   v24a: (f: number) => dolly(P(VX + 0.3, 1.8, -1.2), P(VX, 1.9, -8.5), pushK(f, 1688, 0.0035, 0.006, 25), { fov: 44 }),
   v24b: (f: number) => dolly(P(VX - 0.2, 1.7, -8.6), P(VX, 1.5, -2.6), pushK(f, 1728, 0.0025), { fov: 42, roll: -0.03 }),
   // 25 the museum at golden hour, then the plaque by the door
