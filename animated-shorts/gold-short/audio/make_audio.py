@@ -13,11 +13,19 @@ import sfx_gen as G
 
 FPS = 30
 TOTAL = 2067
-DUR = TOTAL / FPS
-N = ns(DUR)
-fr = lambda f: f / FPS
 ROOT = os.path.join(HERE, "..")
+LANG = os.environ.get("LANG_CUT", "fa")   # "fa": Dari narration on the warped picture; "en": the English cut
+fr = lambda f: f / FPS
 words = json.load(open(os.path.join(ROOT, "voice", "words.json")))
+if LANG == "fa":
+    TM = json.load(open(os.path.join(ROOT, "voice_dari", "timemap.json")))
+    _A = [(0.0, 0.0)] + [p for l in TM["lines"] for p in ((l["en"][0], l["fa"][0]), (l["en"][1], l["fa"][1]))] + [(TM["en_total"], TM["fa_total"])]
+    W = lambda t: float(np.interp(t, [a for a, _ in _A], [b for _, b in _A]))   # story time -> output time
+    DUR = round(TM["fa_total"] * FPS) / FPS
+else:
+    W = lambda t: t
+    DUR = TOTAL / FPS
+N = ns(DUR)
 R = rng(1978)
 rr = lambda: rng(int(R.integers(1 << 30)))
 
@@ -29,9 +37,9 @@ deg = lambda k, base=62: base + HIJAZ[k % 7] + 12 * (k // 7)
 mus = {k: np.zeros((2, N)) for k in ("drone", "rubab", "tabla", "perc", "pad", "bell")}
 
 
-def put(bus, x, t, g=1.0, p=0.0):
+def put(bus, x, t, g=1.0, p=0.0, warp=True):
     x = np.asarray(x)
-    place(mus[bus], pan(x, p) if x.ndim == 1 else x, t, g)
+    place(mus[bus], pan(x, p) if x.ndim == 1 else x, W(t) if warp else t, g)
 
 
 def rubab(m, t, vel=0.7, dur=0.9, p=0.15, bright=0.65):
@@ -76,12 +84,12 @@ def groove(t0, t1, vel=0.7, sparse=False):
 
 
 def drone(t0, t1, notes=(38, 45), vel=0.35, warm=600):
-    d = t1 - t0
-    put("drone", I.pad([I.m2f(n) for n in notes], d, vel, rr(), att=min(1.0, d / 3), rel=0.8, warm=warm, detune=5), t0)
+    d = W(t1) - W(t0)
+    put("drone", I.pad([I.m2f(n) for n in notes], d, vel, rr(), att=min(1.0, d / 3), rel=0.8, warm=warm, detune=5), W(t0), warp=False)
 
 
 def padc(t0, t1, notes, vel=0.3, warm=1400, att=0.5):
-    put("pad", I.pad([I.m2f(n) for n in notes], t1 - t0, vel, rr(), att=att, rel=1.0, warm=warm), t0)
+    put("pad", I.pad([I.m2f(n) for n in notes], W(t1) - W(t0), vel, rr(), att=att, rel=1.0, warm=warm), W(t0), warp=False)
 
 
 def phrase(t0, notes, step=BEAT / 2, vel=0.7, p=0.15, dur=0.8):
@@ -188,9 +196,9 @@ def build_music():
 sfx = np.zeros((2, N))
 
 
-def S(t, x, g_db=0.0, p=0.0):
+def S(t, x, g_db=0.0, p=0.0, warp=True):
     x = np.asarray(x, float)
-    place(sfx, pan(x, p) if x.ndim == 1 else x, t, dbg(g_db))
+    place(sfx, pan(x, p) if x.ndim == 1 else x, W(t) if warp else t, dbg(g_db))
 
 
 def cat(*xs):
@@ -258,6 +266,7 @@ def keys_jingle(r, n=4):
 
 
 def amb(t0, t1, kind, level_db=0.0):
+    t0, t1 = W(t0), W(t1)
     d = t1 - t0
     r = rr()
     if kind == "desert":
@@ -280,7 +289,7 @@ def amb(t0, t1, kind, level_db=0.0):
     else:
         x = np.zeros((2, ns(d)))
     x = x * np.minimum(1, np.minimum(tt(d) / 0.3, (d - tt(d)) / 0.3))[None, :]
-    S(t0, x, level_db)
+    S(t0, x, level_db, warp=False)
 
 
 def build_sfx():
@@ -311,11 +320,11 @@ def build_sfx():
     amb(20.4, 25.3, "war", 0)
     S(20.6, lp(explosion(rr(), 2.0), 400), -10, -0.7)
     S(21.3, lp(explosion(rr(), 2.0), 300), -12, 0.6)
-    S(fr(649), rocket(fr(ROCKET := 671) - fr(649), rr()), -2, -0.6)
+    S(fr(649), rocket(W(fr(ROCKET := 671)) - W(fr(649)), rr()), -2, -0.6)
     S(fr(ROCKET), explosion(rr(), 2.8), 0, 0.0)
     for k in range(8):
         S(fr(ROCKET) + 0.25 + k * 0.17, G.clink(rr(), R.uniform(900, 2500), 0.15, 0.6) * 0.4, -8, R.uniform(-0.6, 0.6))
-    S(fr(ROCKET) + 0.2, st(crackle(25.2 - 22.6, rr())), -14)
+    S(fr(ROCKET) + 0.2, st(crackle(W(25.2) - W(22.6), rr())), -14)
     for k in range(14):
         S(22.8 + k * 0.19, G.stroll_step(rr(), 0.6), -10, 0.4)
     # ---- Gone (gallery) + gossip (teahouse)
@@ -365,8 +374,8 @@ def build_sfx():
     for k in range(5):
         S(54.6 + k * 0.32, G.stroll_step(rr(), 0.6), -10, 0.4)
     S(55.0, modal(0.4, [(95, 1, 0.1), (210, 0.5, 0.05)], rr()), -8, 0.4)
-    S(fr(1660), drill(fr(1688) - fr(1660), rr()), -6, 0.3)
-    S(fr(1660), crackle(fr(1688) - fr(1660), rr(), 60), -10, 0.3)
+    S(fr(1660), drill(W(fr(1688)) - W(fr(1660)), rr()), -6, 0.3)
+    S(fr(1660), crackle(W(fr(1688)) - W(fr(1660)), rr(), 60), -10, 0.3)
     S(fr(1688), cat(G.clink(rr(), 1900, 0.4, 0.8), slam(rr(), 0.4)), -4)
     S(fr(1690), G.creak(0.9, rr(), 40, 90, rough=0.25), -4, -0.2)
     S(fr(1690), G.whoosh(0.9, rr(), 0.5, 200, 1500, 1.0, 0.3, 0.2), -8)
@@ -378,8 +387,8 @@ def build_sfx():
     amb(64.2, DUR, "gallery", -2)
     S(64.6, cat(G.whoa(rr(), 180, 0.9) * 0.4, G.whoa(rr(), 260, 0.8) * 0.3), -10, -0.2)
     S(fr(2024), G.whoosh(1.3, rr(), 0.6, 250, 1800, 0.9, 0.3, 0.15), -10)
-    env = np.minimum(1, tt(DUR - 67.6) / 0.4)
-    S(67.6, G.applause(DUR - 67.6, rr(), 30, env) * 0.6, -6)
+    ta = W(67.6); env = np.minimum(1, tt(DUR - ta) / 0.4)
+    S(ta, G.applause(DUR - ta, rr(), 30, env) * 0.6, -6, warp=False)
 
 
 # ================================================================ mix
@@ -397,7 +406,7 @@ def limiter(x, ceil_db=-1.2, look=0.003, rel=0.08):
 
 
 def main():
-    v, sr = read_wav(os.path.join(ROOT, "voice", "voice.wav"))
+    v, sr = read_wav(os.path.join(ROOT, "voice_dari" if LANG == "fa" else "voice", "voice.wav"))
     from scipy import signal
     v = signal.resample_poly(v, SR, sr, axis=-1)
     v = st(v[0])[:, :N]
@@ -412,8 +421,9 @@ def main():
     sx = norm_to(sx, -27.0, "integrated")
     # duck the music ~3 dB while the voice speaks
     duck = np.zeros(N)
-    for wd in words:
-        a, b = ns(wd["start"] - 0.08), ns(wd["end"] + 0.15)
+    spans = [(l["fa"][0], l["fa"][1]) for l in TM["lines"]] if LANG == "fa" else [(wd["start"], wd["end"]) for wd in words]
+    for s0, s1 in spans:
+        a, b = ns(s0 - 0.08), ns(s1 + 0.15)
         duck[max(0, a):min(N, b)] = 1
     k = np.exp(-1 / (0.12 * SR)); env = np.empty(N); cur = 0.0
     for i in range(N):
@@ -425,9 +435,10 @@ def main():
     mix = mix * dbg(-15.0 - integrated(mix))
     mix = limiter(mix)
     out = os.path.join(ROOT, "audio")
-    write_wav(os.path.join(out, "mix.wav"), mix)
+    sfx_ = "" if LANG == "en" else "_fa"
+    write_wav(os.path.join(out, f"mix{sfx_}.wav"), mix)
     for nm, x in (("stem_voice", v), ("stem_music", music), ("stem_sfx", sx)):
-        write_wav(os.path.join(out, nm + ".wav"), x)
+        write_wav(os.path.join(out, nm + sfx_ + ".wav"), x)
     print("mix", round(integrated(mix), 2), "LUFS, true peak", round(true_peak(mix), 2), "dBTP, length", mix.shape[1] / SR, "s")
 
 

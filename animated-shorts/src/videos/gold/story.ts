@@ -6,6 +6,23 @@ export const TOTAL = 2067; // voice.wav = 68.90 s
 export const D0 = 0; // ground height of every set (build.ts house() default)
 export type V3 = [number, number, number];
 
+// ---------------- Dari cut: time warp ----------------
+// The picture is timed to the English narration (TOTAL frames). The Dari narration (Google Gemini TTS via Speko) is
+// longer, so the output timeline is warped: every English line start/end maps onto its Dari line start/end, piecewise
+// linear in between. Output frame F shows story frame srcFrame(F) (fractional: motion slows down smoothly).
+import TM from "./timemap.json";
+const ANCH: [number, number][] = [[0, 0], ...TM.lines.flatMap((l) => [[l.en[0], l.fa[0]], [l.en[1], l.fa[1]]] as [number, number][]), [TM.en_total, TM.fa_total]];
+export const OUT_FRAMES = Math.round(TM.fa_total * 30);
+/** output time (s) -> story time (s) */
+export const srcTime = (tn: number) => {
+  for (let i = 1; i < ANCH.length; i++) if (tn <= ANCH[i][1]) {
+    const [e0, f0] = ANCH[i - 1], [e1, f1] = ANCH[i];
+    return e0 + ((e1 - e0) * (tn - f0)) / Math.max(1e-6, f1 - f0);
+  }
+  return TM.en_total;
+};
+export const srcFrame = (F: number) => Math.min(2066, srcTime(F / 30) * 30);
+
 export const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 export const smooth = (x: number) => { const u = clamp01(x); return u * u * (3 - 2 * u); };
 export const easeOut = (u: number) => 1 - (1 - clamp01(u)) ** 4;
