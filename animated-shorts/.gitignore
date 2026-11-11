@@ -5,3 +5,4 @@ __pycache__/
 bridge-short/audio/_cache/
 *.mp4
 *.wav
+.tts/
