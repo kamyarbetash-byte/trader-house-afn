@@ -134,7 +134,7 @@ const Bh: V3 = [BT[0], 1.48, BT[2]], Fh: V3 = [FT[0], 1.42, FT[2]], tmid: V3 = [
 const [YX, , YZ] = YARD, KH: V3 = [YX - 0.1, 0.95, YZ - 1.0];
 const S = {
   // teahouse, late golden afternoon
-  t1a: (f: number) => dolly(P(TEA[0] + 2.5, 1.45, TEA[2] + 4.6), P(TEA[0] + 2.1 - 0.35 * glide(f / 75), 1.15, TEA[2] + 1.0), pushK(f, 0, 0.002), { fov: 40 }),
+  t1a: (f: number) => dolly(P(TEA[0] + 2.0, 1.45, TEA[2] + 5.0), P(TEA[0] + 2.4 - 0.6 * glide(f / 75), 1.15, TEA[2] + 1.3), pushK(f, 0, 0.002), { fov: 40 }),
   t1b: (f: number) => dolly(P(TEA[0] + 0.85, 1.5, TEA[2] + 6.2), P(TEA[0] + 0.75, 1.1, TEA[2] - 0.1), pushK(f, 75, 0.002), { fov: 42 }),
   t2a: (f: number) => dolly(P(BT[0] + 0.25, 1.5, BT[2] + 2.6), Bh, pushK(f, 125, 0.0022), { fov: 36 }),
   t3a: (f: number) => dolly(P(FT[0] - 0.1, 1.45, FT[2] + 2.0), Fh, pushK(f, 300, 0.0025, 0.007, 25), { fov: 34, roll: -0.025 }),
@@ -152,13 +152,13 @@ const S = {
   // Baghdad: the House of Wisdom (courtyard with book walls)
   y5a: (f: number) => dolly(P(YX + 1.2, 2.4, YZ + 7.0), P(YX, 1.1, YZ - 1.2), pushK(f, 800, 0.0022), { fov: 44 }),
   y5b: (f: number) => dolly(P(YX + 0.2, 1.15, YZ + 2.2), KH, pushK(f, 900, 0.002), { fov: 38 }),
-  y7a: (f: number) => dolly(P(YX + 0.6, 1.4, YZ + 4.2), P(YX + 0.3, 1.0, YZ - 0.6), pushK(f, 1195, 0.0015), { fov: 42 }),
+  y7a: (f: number) => dolly(P(YX + 0.05, 1.45, YZ + 5.6), P(YX + 0.0, 1.0, YZ - 0.6), pushK(f, 1195, 0.0015), { fov: 46 }),
   y7b: (f: number) => dolly(P(YX - 0.05, 1.1, YZ + 1.7), KH, pushK(f, 1385, 0.003, 0.007, 25), { fov: 36 }),
   y8a: (f: number) => dolly(P(YX + 0.15, 1.45, YZ + 2.6), P(YX + 0.0, 1.35, YZ - 1.0), pushK(f, 1470, 0.0018), { fov: 40 }),
-  y9a: (f: number) => dolly(P(YX + 0.9, 1.4, YZ + 3.4), P(YX + 0.7, 1.05, YZ - 0.4), pushK(f, 1635, 0.0018), { fov: 40 }),
+  y9a: (f: number) => dolly(P(YX + 0.2, 1.4, YZ + 4.4), P(YX + 0.15, 1.05, YZ - 0.5), pushK(f, 1635, 0.0018), { fov: 42 }),
   // the field before the city wall: the quarrel
-  f6a: (f: number) => zoom(P(FIELD[0] + 2.5, 1.6, FIELD[2] + 6.0), P(FIELD[0], 1.2, FIELD[2] - 0.5), 42, pushK(f, 1000, 0.002)),
-  f6b: (f: number) => dolly(P(FIELD[0] + 0.1, 1.45, FIELD[2] + 2.8), P(FIELD[0], 1.35, FIELD[2]), pushK(f, 1100, 0.003, 0.007, 25), { fov: 38, roll: 0.02 }),
+  f6a: (f: number) => zoom(P(FIELD[0] + 1.2, 1.7, FIELD[2] + 7.5), P(FIELD[0], 1.2, FIELD[2] - 0.8), 44, pushK(f, 1000, 0.002)),
+  f6b: (f: number) => dolly(P(FIELD[0] + 0.15, 1.4, FIELD[2] + 4.4), P(FIELD[0], 1.25, FIELD[2]), pushK(f, 1100, 0.003, 0.007, 25), { fov: 40, roll: 0.02 }),
   // Europe (madrasa set) and today (library set)
   k12a: (f: number) => zoom(P(KX - 1.8, 1.25, -3.8), P(KX + 0.1, 3.2, -14), 50, pushK(f, 2100, 0.002)),
   l13a: (f: number) => dolly(P(GAL[0] + 0.2, 3.2, GAL[2] + 8.0), P(GAL[0], 1.4, GAL[2]), pushK(f, 2225, 0.0016), { fov: 44 }),

@@ -220,7 +220,7 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
     flatHouse(b, x, z - 5.5, 0, 9, 6, 4.2, 3, 0, true);
     b.add(boxGeo(V(x - 1.6, 0, z - 1.1), V(x + 1.6, 0.48, z + 0.9)), wood);
     b.add(quad(V(x - 1.5, 0.49, z + 0.8), V(x + 1.5, 0.49, z + 0.8), V(x + 1.5, 0.49, z - 1.0), V(x - 1.5, 0.49, z - 1.0)), lam("carpet", () => ({ map: carpetTex() })));
-    for (const [px, pz] of [[-2.2, -2.2], [2.2, -2.2], [-2.2, 1.6], [2.2, 1.6]]) b.add(boxGeo(V(x + px - 0.06, 0, z + pz - 0.06), V(x + px + 0.06, 2.9, z + pz + 0.06)), wood);
+    for (const [px, pz] of [[-2.2, -2.2], [2.2, -2.2], [-2.2, 1.6]]) b.add(boxGeo(V(x + px - 0.06, 0, z + pz - 0.06), V(x + px + 0.06, 2.9, z + pz + 0.06)), wood);
     b.add(quad(V(x - 2.6, 2.75, z + 1.9), V(x + 2.6, 2.75, z + 1.9), V(x + 2.6, 3.2, z - 2.5), V(x - 2.6, 3.2, z - 2.5)), lam("awning", () => ({ color: "#3f7f6a", side: THREE.DoubleSide })));
     b.add(new THREE.CylinderGeometry(0.16, 0.2, 0.55, 14), lam("samovar", () => ({ color: "#c98f3a" })), new THREE.Matrix4().makeTranslation(x + 1.2, 0.76, z - 0.75));
     for (const [px, pz, s] of [[-4, 2, 1.1], [4.5, 1.5, 0.9]] as const) prop(b, kit, "plant_bushLarge", x + px, 0, z + pz, s);
@@ -268,8 +268,8 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
       b.add(quad(V(x - 7, 0.012, z + 8), V(x + 7, 0.012, z + 8), V(x + 7, 0.012, z + 2), V(x - 7, 0.012, z + 2), 4, 2), soil);
       for (let i = 0; i < 9; i++) b.add(boxGeo(V(x - 6.6, 0, z + 2.4 + i * 0.6), V(x + 6.6, 0.32 + (i % 2) * 0.06, z + 2.62 + i * 0.6)), i % 2 ? crop : crop2);
       const stake = lam("stake", () => ({ color: "#7a5a3c" })), rope = lam("rope", () => ({ color: "#e8dcc0" }));
-      for (let k = 0; k < 7; k++) b.add(boxGeo(V(x - 0.04, 0, z + 1.6 + k * 1.2), V(x + 0.04, 0.9, z + 1.68 + k * 1.2)), stake);
-      b.add(boxGeo(V(x - 0.015, 0.78, z + 1.6), V(x + 0.015, 0.81, z + 9.0)), rope);
+      for (let k = 0; k < 5; k++) b.add(boxGeo(V(x - 0.04, 0, z + 1.6 + k * 1.4), V(x + 0.04, 0.9, z + 1.68 + k * 1.4)), stake);
+      b.add(boxGeo(V(x - 0.015, 0.78, z + 1.6), V(x + 0.015, 0.81, z + 7.3)), rope);
     }
     prop(b, kit, "tree-high-round", x - 9, 0, z + 4, 9); prop(b, kit, "tree-high-round", x + 10, 0, z + 5, 10);
     range(b, x, z - 40, 303, 240);

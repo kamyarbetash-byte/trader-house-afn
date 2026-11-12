@@ -315,7 +315,7 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
   switch (s.set) {
     case "attar": { // the teahouse
       if (id === 1) { // Farid walks in from the street, head down, the exam paper in his hand
-        const w = walk(t, 0.0, 2.5, [TEA[0] + 2.75, TEA[2] + 1.9], [TEA[0] + 1.75, TEA[2] + 0.75]);
+        const w = walk(t, 0.0, 2.5, [TEA[0] + 2.9, TEA[2] + 2.5], [TEA[0] + 1.75, TEA[2] + 0.75]);
         const talk = talkOf("F", f);
         who(cam, out, 1, FARID, w.x, D0, w.z, { mode: w.mode, phase: w.phase, expr: "sad", prop: "list", blink: lidAt(t, 1), facing: -1, look: -1,
           headTilt: w.mode === "stroll" ? -4 : q2(-3 + 1.5 * Math.sin(t * 3)), talk }, 1, true);
@@ -354,7 +354,7 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
         }
         if (id === 11) digits(out, f, 1945, 12, 9, [BT[0] + 0.15, 1.45, BT[2] + 0.2], 0.55, 0.22);
         if (id === 14 && f >= 2500) digits(out, f, 2500, 6, 8, [FT[0] - 0.05, 1.3, FT[2] + 0.25], 0.3, 0.14, 2.0);
-        if (id === 17) steps(out, t, [101.6, 102.4, 103.2], [FT[0] - 0.05, 1.95, FT[2] + 0.1], 0.2, 0.15);
+        if (id === 17) steps(out, t, [101.6, 102.4, 103.2], [FT[0] - 0.02, 1.185, FT[2] + 0.4], 0.11, 0.07);
       }
       break;
     }
@@ -372,8 +372,8 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
         who(cam, out, 31, KHW, kx, D0, kz, { mode: "sit", expr: pick(t, [[0, "neutral"], [44.6, "smile"]]), prop: pick<Prop>(t, [[0, "book"], [44.6, "gesture"], [47.2, "point"]]),
           blink: lidAt(t, 31, [44.6]), facing: 1, look: 0, talk: t > 45.3 && t < 48.9 ? flap(t, 31) : 0, ...life(t, 31, t > 45.3 && t < 48.9 ? 1 : 0) });
         const bt1 = !calm ? flap(t, 1) * (Math.sin(t * 1.7) > 0 ? 1 : 0) : 0, bt2 = !calm ? flap(t, 2) * (Math.sin(t * 1.7) <= 0 ? 1 : 0) : 0;
-        who(cam, out, 41, BRO1, x - 0.95, D0, z + 0.1, { mode: "stand", expr: calm ? "worried" : "angry", prop: calm ? null : "point", blink: lidAt(t, 41), facing: 1, look: 1, talk: bt1, ...life(t, 41, bt1, 1.8) });
-        who(cam, out, 42, BRO2, x + 1.0, D0, z + 0.15, { mode: "stand", expr: calm ? "worried" : "angry", prop: calm ? null : "point", blink: lidAt(t, 42), facing: -1, look: -1, talk: bt2, ...life(t, 42, bt2, 1.8) }, 1, true);
+        who(cam, out, 41, BRO1, x - 0.72, D0, z + 0.1, { mode: "stand", expr: calm ? "worried" : "angry", prop: calm ? null : "point", blink: lidAt(t, 41), facing: 1, look: 1, talk: bt1, ...life(t, 41, bt1, 1.8) });
+        who(cam, out, 42, BRO2, x + 0.75, D0, z + 0.15, { mode: "stand", expr: calm ? "worried" : "angry", prop: calm ? null : "point", blink: lidAt(t, 42), facing: -1, look: -1, talk: bt2, ...life(t, 42, bt2, 1.8) }, 1, true);
         // the onlookers: "too hard!" (shaking heads)
         for (let i = 0; i < 2; i++) who(cam, out, 34 + i, SCHOLARS[i + 1], x + (i ? 2.0 : -2.1), D0, z - 1.8, { mode: "stand", expr: at(t, 45.5) ? "shock" : "nervous", prop: "book", blink: lidAt(t, 34 + i),
           headTilt: at(t, 45.5) ? 0 : q2(5 * Math.sin(t * 6 + i)), facing: i ? -1 : 1 });
@@ -383,12 +383,12 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
         steps(out, t, [50.0, 51.3, 52.6], [kx + 0.05, 1.7, kz + 0.3], 0.34, 0.26);
       } else { // peace: the brothers hug; a new science is born
         who(cam, out, 31, KHW, kx, D0, kz, { mode: "sit", expr: "relief", prop: "gesture", blink: lidAt(t, 31), facing: 1, look: 1, ...life(t, 31, 0) });
-        const k = smooth((t - 55.0) / 1.2), lx = x - 0.95 + 0.62 * k, rx = x + 1.65 - 0.62 * k;
+        const k = smooth((t - 55.0) / 1.2), lx = x - 0.7 + 0.5 * k, rx = x + 1.0 - 0.5 * k;
         who(cam, out, 41, BRO1, lx, D0, z - 0.2, { mode: k < 1 && k > 0 ? "stroll" : "stand", phase: q((t * 1.6) % 1, 60), expr: at(t, 56.0) ? "laugh" : "smile", prop: at(t, 56.0) ? "gesture" : null, blink: lidAt(t, 41), facing: 1, look: 1, tilt: at(t, 56.0) ? 6 : 0, headTilt: at(t, 56) ? 8 : 0 });
         who(cam, out, 42, BRO2, rx, D0, z - 0.15, { mode: k < 1 && k > 0 ? "stroll" : "stand", phase: q((t * 1.6 + 0.5) % 1, 60), expr: at(t, 56.0) ? "grin" : "smile", prop: at(t, 56.0) ? "gesture" : null, blink: lidAt(t, 42), facing: -1, look: -1, tilt: at(t, 56.0) ? -6 : 0, headTilt: at(t, 56) ? -8 : 0 }, 1, true);
-        if (f >= 1690) { const g = smooth((f - 1690) / 25); card(out, "peaceGlow", 256, 256, (p) => fxGlow(p, "#ffd98a"), x + 0.35, 1.2, z - 0.1, 1.4 * g, 1.0 * g, { soft: true, glow: 0.7 }); }
-        glyphs(out, f, 1745, 8, 6, [x + 0.35, 1.5, z - 0.1], [0.0, 0.9, 0.15], 0.34);
-        if (f >= 1745) for (let i = 0; i < 3; i++) glint(out, t, x + 0.1 + i * 0.25, 1.7 + i * 0.12, z, 0.15, i * 0.5);
+        if (f >= 1690) { const g = smooth((f - 1690) / 25); card(out, "peaceGlow", 256, 256, (p) => fxGlow(p, "#ffd98a"), x + 0.15, 1.0, z - 0.5, 1.2 * g, 0.8 * g, { soft: true, glow: 0.7 }); }
+        glyphs(out, f, 1745, 8, 6, [x + 0.15, 1.6, z - 0.1], [0.0, 0.9, 0.15], 0.34);
+        if (f >= 1745) for (let i = 0; i < 3; i++) glint(out, t, x - 0.1 + i * 0.25, 1.75 + i * 0.12, z, 0.15, i * 0.5);
       }
       break;
     }
@@ -396,8 +396,8 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
       const [x, , z] = FIELD;
       const on1 = Math.sin(t * 1.6) > 0;
       const t1 = on1 ? flap(t, 1) : 0, t2 = !on1 ? flap(t, 2) : 0;
-      who(cam, out, 41, BRO1, x - 0.65, D0, z, { mode: "stand", expr: "angry", prop: on1 ? "point" : "gesture", blink: lidAt(t, 41), facing: 1, look: 1, talk: t1, ...life(t, 41, t1, 2.2) });
-      who(cam, out, 42, BRO2, x + 0.65, D0, z + 0.05, { mode: "stand", expr: on1 ? "angry" : "angry", prop: !on1 ? "point" : "gesture", blink: lidAt(t, 42), facing: -1, look: -1, talk: t2, ...life(t, 42, t2, 2.2) }, 1, true);
+      who(cam, out, 41, BRO1, x - 0.48, D0, z, { mode: "stand", expr: "angry", prop: on1 ? "point" : "gesture", blink: lidAt(t, 41), facing: 1, look: 1, talk: t1, ...life(t, 41, t1, 2.2) });
+      who(cam, out, 42, BRO2, x + 0.48, D0, z + 0.05, { mode: "stand", expr: on1 ? "angry" : "angry", prop: !on1 ? "point" : "gesture", blink: lidAt(t, 42), facing: -1, look: -1, talk: t2, ...life(t, 42, t2, 2.2) }, 1, true);
       break;
     }
     case "konya": { // Europe: students come out of the university with his book - "Algoritmi"
