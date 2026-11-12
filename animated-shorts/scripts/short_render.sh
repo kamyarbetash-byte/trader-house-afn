@@ -10,7 +10,7 @@ for ((a=0; a<TOTAL; a+=STEP)); do
   f=$OUT/c_$(printf %04d $a).mp4
   [ -s $f ] && continue
   echo "chunk $a-$b start $(date +%T)"
-  npx remotion render src/index.ts $COMP $f.tmp.mp4 --codec h264 --crf 16 --scale $SCALE --frames $a-$b --concurrency 4 --timeout 300000 --log=error \
+  npx remotion render src/index.ts $COMP $f.tmp.mp4 --codec h264 --crf 16 --scale $SCALE --frames $a-$b --concurrency ${CONC:-4} --timeout 300000 --log=error \
     && mv $f.tmp.mp4 $f && echo "chunk $a-$b done $(date +%T)" || echo "chunk $a-$b FAILED"
   rm -rf $REMOTION_TMP/remotion-webpack-bundle-* 2>/dev/null
 done
