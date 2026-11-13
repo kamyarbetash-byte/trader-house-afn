@@ -167,7 +167,7 @@ const S = {
   h18c: (f: number) => zoom(P(HX + 4, 6.5, BT[2] + 15), P(HX, 0.6, BT[2] - 3), 44, pushK(f, 3560, 0.0008)),
   // Ghazni: the citadel gate (palace set)
   g5a: (f: number) => zoom(P(PX + 0.4, 1.6, PZ + 9.5), P(PX - 0.9, 1.9, PZ + 2.5), 44, pushK(f, 850, 0.0015)),
-  g5b: (f: number) => dolly(P(GW.x1 + 0.3, 1.5, GW.z + 2.6), [GW.x1, 1.45, GW.z], pushK(f, 965, 0.0025), { fov: 36 }),
+  g5b: (f: number) => { const bx = GW.x0 + (GW.x1 - GW.x0) * clamp01((f / 30 - 28.9) / 4.7); return dolly(P(bx + 0.3, 1.5, GW.z + 2.6), [bx, 1.45, GW.z], pushK(f, 965, 0.0025), { fov: 36 }); },
   // the caliph's party in the desert
   d6a: (f: number): Shot => ({ pos: P(crewLead(f / FPS) - 3.4, 2.0, ROPE.z + 8.5), look: P(crewLead(f / FPS) - 2.0, 0.95, ROPE.z - 0.5), fov: 46 }),
   d6b: (f: number): Shot => ({ pos: P(crewLead(f / FPS) + 1.2, 1.45, ROPE.z + 4.0), look: P(crewLead(f / FPS) - 0.6, 1.2, ROPE.z + 0.75), fov: 40 }),
@@ -238,7 +238,7 @@ export const DOF: Dof[] = [
   { f: 505, cInf: 7, focus: () => hmid },
   { f: 690, cInf: 10, focus: () => Bh },
   { f: 855, cInf: 4, focus: () => [GW.x0 + 1.5, 1.4, GW.z] },
-  { f: 965, cInf: 9, focus: () => [GW.x1, 1.45, GW.z] },
+  { f: 965, cInf: 9 },
   { f: 1070, cInf: 4, focus: (f) => [crewLead(f / FPS) - 1.5, 1.0, ROPE.z + 0.75] },
   { f: 1205, cInf: 8, focus: (f) => [crewLead(f / FPS) - 0.6, 1.2, ROPE.z + 0.75] },
   { f: 1325, cInf: 4, focus: () => [NX - 2.5, 1.4, NW.z] },
