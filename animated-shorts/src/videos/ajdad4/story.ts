@@ -176,7 +176,7 @@ const S = {
   n7b: (f: number) => dolly(P(NW.x1 + 0.25, 1.5, NW.z + 2.4), [NW.x1, 1.45, NW.z], pushK(f, 1455, 0.003, 0.007, 30), { fov: 34 }),
   n8a: (f: number) => zoom(P(NX - 23, 2.4, 31), P(NX - 7, 9.5, -20), 52, pushK(f, 1570, 0.001)),
   n9a: (f: number) => dolly(P(SUM[0] + 3.4, SUM[1] + 1.7, SUM[2] + 3.4), [SUM[0] + 0.3, SUM[1] + 1.2, SUM[2]], pushK(f, 1735, 0.0018), { fov: 46 }),
-  n9b: (_f: number): Shot => ({ pos: P(SUM[0] + 1.7, SUM[1] + 1.8, SUM[2] + 2.7), look: P(SUM[0] - 3.5, SUM[1] - 0.5, SUM[2] - 30), fov: 50 }),
+  n9b: (_f: number): Shot => ({ pos: P(SUM[0] + 1.25, SUM[1] + 1.85, SUM[2] + 4.8), look: P(SUM[0] - 4, SUM[1] - 0.6, SUM[2] - 30), fov: 50 }),
   n12a: (f: number) => dolly(P(SUM[0] + 0.3, SUM[1] + 1.5, SUM[2] + 2.9), [SUM[0], SUM[1] + 1.35, SUM[2]], pushK(f, 2315, 0.002), { fov: 42 }),
   // today: the night sky over Kabul (rooftop set), a satellite passing
   r13a: (f: number) => zoom(P(RX + 0.5, 1.4, 3.5), P(RX + 6, 26, -60), 52, pushK(f, 2485, 0.0012)),

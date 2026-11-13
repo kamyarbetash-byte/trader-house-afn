@@ -383,8 +383,8 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
     for (let i = 0; i < 26; i++) { const a = r4() * 6.28, d = 20 + r4() * 140, s = 0.3 + r4() * 1.2; b.add(new THREE.DodecahedronGeometry(s, 0), lam("rockS", () => ({ color: "#b9a68b" })), new THREE.Matrix4().compose(V(NX + Math.cos(a) * d, s * 0.3, Math.sin(a) * d), new THREE.Quaternion().setFromEuler(new THREE.Euler(r4(), r4(), r4())), V(1, 0.6, 1))); }
     const rm = rng(808); // the salt range, low and long, on the far side
     for (let i = 0; i < 22; i++) {
-      const a = -Math.PI * (0.05 + 0.9 * (i / 21)), d = 260 + rm() * 120, h = 40 + rm() * 50;
-      mountain(b, NX + Math.cos(a) * d, Math.sin(a) * d, h, h * 1.9, 900 + i, false, ["#b39478", "#a88c74", "#c0a082"][i % 3]);
+      const a = -Math.PI * (0.05 + 0.9 * (i / 21)), d = 330 + rm() * 120, h = 40 + rm() * 50;
+      mountain(b, NX + Math.cos(a) * d, Math.sin(a) * d, h, h * 1.4, 900 + i, false, ["#b39478", "#a88c74", "#c0a082"][i % 3]);
     }
   }
 
