@@ -45,7 +45,7 @@ for l in TIM["lines"]:
     t = a
     for p, k in zip(parts, w):
         d = (b - a) * k / sum(w)
-        ev.append((st_, t, t + d + 0.12, r"{\fad(60,60)}" + p))
+        ev.append((st_, t, t + d, r"{\fad(60,60)}" + p))
         t += d
 
 # name at top, whole video
@@ -63,7 +63,7 @@ ev.append(("Ep", MAIN - 1.3, MAIN, r"{\fad(300,0)\pos(540,850)}قسمت ۴: مر
 # gold fact labels over the story
 POP = r"{\fad(150,250)\t(0,180,\fscx100\fscy100)\fscx70\fscy70\pos(540,560)}"
 for a, b, txt in [(1.2, 4.0, "\u200f۳۰ از ۱۰۰"), (24.3, 26.6, "محمد خوارزمی"), (27.4, 31.8, "بغداد — «خانهٔ حکمت»"),
-                  (58.5, 60.6, "الجبر — Algebra"), (65.0, 69.7, "\u200f۱ ۲ ۳ ۴ ۵ ۶ ۷ ۸ ۹ ۰"), (71.5, 74.3, "Algoritmi"), (76.2, 80.9, "Algorithm")]:
+                  (58.5, 60.6, "الجبر — Algebra"), (65.0, 69.7, "\u200f" + "\u2003".join("۱۲۳۴۵۶۷۸۹۰")), (71.5, 74.3, "Algoritmi"), (76.2, 80.9, "Algorithm")]:
     ev.append(("Lab", a, b, (POP.replace("540,560", "540,1250") if a < 5 else POP) + txt))
 
 ass = f"""[Script Info]
@@ -75,15 +75,15 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Sub,Vazirmatn ExtraBold,104,&H00FFFFFF,&H00FFFFFF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,6,2,2,70,70,440,1
-Style: Poem,Vazirmatn ExtraBold,100,&H0045C8FF,&H0045C8FF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,6,2,2,70,70,440,1
-Style: Title,Vazirmatn Black,104,&H0045C8FF,&H0045C8FF,&H00101010,&HA0000000,0,0,0,0,100,100,0,0,1,8,4,5,40,40,0,1
-Style: Ep,Vazirmatn ExtraBold,70,&H00FFFFFF,&H00FFFFFF,&H00101010,&HA0000000,0,0,0,0,100,100,0,0,1,6,3,5,40,40,0,1
-Style: Name,Vazirmatn Black,80,&H0045C8FF,&H0045C8FF,&H70000000,&H00000000,0,0,0,0,100,100,0,0,3,16,0,8,60,60,110,1
-Style: Big,Vazirmatn Black,118,&H0045C8FF,&H0045C8FF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,7,3,5,60,60,0,1
-Style: Mid,Vazirmatn ExtraBold,96,&H00FFFFFF,&H00FFFFFF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,5,2,5,60,60,0,1
-Style: Lab,Vazirmatn Black,120,&H0045C8FF,&H0045C8FF,&H00101010,&HA0000000,0,0,0,0,100,100,0,0,1,9,4,5,40,40,0,1
-Style: Btn,Vazirmatn Black,140,&H00FFFFFF,&H00FFFFFF,&H002A2ADC,&H00000000,0,0,0,0,100,100,0,0,3,26,0,5,60,60,0,1
+Style: Sub,Vazirmatn ExtraBold,104,&H00FFFFFF,&H00FFFFFF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,6,2,2,70,70,440,-1
+Style: Poem,Vazirmatn ExtraBold,100,&H0045C8FF,&H0045C8FF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,6,2,2,70,70,440,-1
+Style: Title,Vazirmatn Black,104,&H0045C8FF,&H0045C8FF,&H00101010,&HA0000000,0,0,0,0,100,100,0,0,1,8,4,5,40,40,0,-1
+Style: Ep,Vazirmatn ExtraBold,70,&H00FFFFFF,&H00FFFFFF,&H00101010,&HA0000000,0,0,0,0,100,100,0,0,1,6,3,5,40,40,0,-1
+Style: Name,Vazirmatn Black,80,&H0045C8FF,&H0045C8FF,&H70000000,&H00000000,0,0,0,0,100,100,0,0,3,16,0,8,60,60,110,-1
+Style: Big,Vazirmatn Black,118,&H0045C8FF,&H0045C8FF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,7,3,5,60,60,0,-1
+Style: Mid,Vazirmatn ExtraBold,96,&H00FFFFFF,&H00FFFFFF,&H00101010,&H80000000,0,0,0,0,100,100,0,0,1,5,2,5,60,60,0,-1
+Style: Lab,Vazirmatn Black,120,&H0045C8FF,&H0045C8FF,&H00101010,&HA0000000,0,0,0,0,100,100,0,0,1,9,4,5,40,40,0,-1
+Style: Btn,Vazirmatn Black,140,&H00FFFFFF,&H00FFFFFF,&H002A2ADC,&H00000000,0,0,0,0,100,100,0,0,3,26,0,5,60,60,0,-1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
