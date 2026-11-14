@@ -72,7 +72,7 @@ export const JUI = { x: GX + 3.2, w: 1.0, z0: 30, z1: -110 };
 /** the bath-house cell (Balkh, 10th c.): a small domed stone room, light from star holes in the dome */
 export const CX = 7000;
 export const CELL = { x: CX, z: 0, r: 3.2, h: 3.4 };
-export const WALLPOS: V3 = [CX + 0.2, 1.55, -CELL.r + 0.05];
+export const WALLPOS: V3 = [CX + 0.1, 2.15, -CELL.r + 0.05];
 /** today: Rabia's tomb in Balkh (blue-tiled dome on a plinth) */
 export const SX = 6000;
 export const TOMB = { x: SX, z: -12, r: 4.2, h: 5.0 };
@@ -164,7 +164,7 @@ const S = {
   g1a: (f: number) => zoom(P(GX + 4.6, 2.4, 6.5), P(GX + 1.4, 1.0, -6.5), 46, pushK(f, 0, 0.0016)),
   g1b: (f: number) => dolly(P(FE[0] - 0.55, 1.5, FE[2] + 2.4), Feh, pushK(f, 105, 0.0025, 0.006, 25), { fov: 36 }),
   g2a: (f: number) => dolly(P(BT[0] + 0.3, 1.5, BT[2] + 2.6), Bh, pushK(f, 200, 0.0022), { fov: 36 }),
-  g2b: (f: number) => dolly(P(GX + 1.4, 1.75, BT[2] + 5.0), P(GX + 0.9, 1.0, BT[2] - 0.6), pushK(f, 300, 0.0015), { fov: 42 }),
+  g2b: (f: number) => dolly(P(GX + 0.9, 1.75, BT[2] + 5.2), P(GX + 0.35, 1.0, BT[2] - 0.6), pushK(f, 300, 0.0015), { fov: 44 }),
   g3a: (f: number) => dolly(P(FT[0] - 0.1, 1.45, FT[2] + 2.0), Fh, pushK(f, 430, 0.0025, 0.007, 25), { fov: 34, roll: -0.025 }),
   g4a: (f: number) => dolly(P(GX + 0.1, 1.45, BT[2] + 3.6), hmid, pushK(f, 535, 0.0015), { fov: 42 }),
   g4b: (f: number) => dolly(P(BT[0] + 0.2, 1.5, BT[2] + 2.0), Bh, pushK(f, 700, 0.003, 0.006, 40), { fov: 34, roll: 0.02 }),
@@ -184,12 +184,12 @@ const S = {
   c9a: (f: number) => zoom(P(PX + 0.3, 1.6, PZ + 9.0), P(PX, 1.5, PZ + 3.2), 40, pushK(f, 1465, 0.0015)),
   c9b: (f: number) => dolly(P(RUD[0] + 0.25, 1.5, RUD[2] + 2.2), [RUD[0], 1.45, RUD[2]], pushK(f, 1565, 0.004, 0.01, 20), { fov: 34 }),
   // the bath-house cell
-  x11a: (f: number) => dolly(P(CX + 0.4, 1.6, 2.4), [CX + 0.1, 1.3, -1.0], pushK(f, 1850, 0.0018), { fov: 46 }),
-  x11b: (f: number) => dolly(P(CX - 0.1, 1.4, 1.1), [CX - 0.5, 1.35, -0.9], pushK(f, 1950, 0.0035), { fov: 36, roll: -0.02 }),
-  x13a: (f: number) => dolly(P(CX + 1.2, 1.5, 0.6), [CX + 0.1, 1.45, -CELL.r + 0.3], pushK(f, 2130, 0.0022), { fov: 42 }),
-  x14a: (f: number) => dolly(P(WALLPOS[0] + 0.1, 1.55, WALLPOS[2] + 2.6), [WALLPOS[0], 1.6, WALLPOS[2]], pushK(f, 2300, 0.0016), { fov: 40 }),
+  x11a: (f: number) => dolly(P(CX + 0.2, 1.5, 2.8), [CX + 0.15, 1.2, -1.0], pushK(f, 1850, 0.0018), { fov: 52 }),
+  x11b: (f: number) => dolly(P(CX - 0.4, 1.4, 0.4), [CX - 0.6, 1.35, -1.6], pushK(f, 1950, 0.0035), { fov: 36, roll: -0.02 }),
+  x13a: (f: number) => dolly(P(CX + 0.9, 1.4, 0.8), [CX + 0.05, 1.75, -2.6], pushK(f, 2130, 0.0022), { fov: 50 }),
+  x14a: (f: number) => dolly(P(CX + 0.15, 1.35, 0.3), [CX + 0.1, 1.85, -2.7], pushK(f, 2300, 0.0018), { fov: 48 }),
   // the ruins at sunset: the poem flies up
-  r15a: (f: number) => zoom(P(-6, 3.2, 24), P(2, 6.5, -20), 50, pushK(f, 2550, 0.001)),
+  r15a: (f: number) => zoom(P(-3, 2.6, 13), P(0.5, 4.8, -3), 50, pushK(f, 2550, 0.001)),
   // today: Balkh, the tomb; Kabul, the school
   s16a: (f: number) => zoom(P(SX + 3.5, 1.7, TOMB.z + 18), P(SX, 4.2, TOMB.z), 48, pushK(f, 2745, 0.0016)),
   k17a: (f: number): Shot => ({ pos: P(1000 + 2.0 - 0.006 * (f - 2870), 1.6, 12), look: P(1000 - 0.5, 2.6, -20), fov: 50 }),
@@ -259,11 +259,11 @@ export const DOF: Dof[] = [
   { f: 1465, cInf: 4, focus: () => [PX, 1.4, PZ + 3.3] },
   { f: 1565, cInf: 9, focus: () => [RUD[0], 1.45, RUD[2]] },
   { f: 1665, cInf: 10, focus: () => Bh },
-  { f: 1850, cInf: 5, focus: () => [CX, 1.3, -0.6] },
-  { f: 1950, cInf: 8, focus: () => [CX - 0.5, 1.35, -0.9] },
+  { f: 1850, cInf: 5, focus: () => [CX, 1.2, -1.0] },
+  { f: 1950, cInf: 8, focus: () => [CX - 0.6, 1.35, -1.6] },
   { f: 2020, cInf: 10, focus: () => Fh },
-  { f: 2130, cInf: 6, focus: () => [CX + 0.1, 1.45, -CELL.r + 0.5] },
-  { f: 2300, cInf: 6, focus: () => [WALLPOS[0], 1.6, WALLPOS[2]] },
+  { f: 2130, cInf: 5, focus: () => [CX + 0.1, 1.5, -2.25] },
+  { f: 2300, cInf: 5, focus: () => [CX + 0.1, 1.6, -2.3] },
   { f: 2550, cInf: 0 },
   { f: 2745, cInf: 3, focus: () => [SX, 2.5, TOMB.z + 6] },
   { f: 2870, cInf: 3, focus: () => [1000, 1.4, 4] },

@@ -494,8 +494,8 @@ export const buildSets = (root: THREE.Object3D, kit: Kit, rays: Ray[]) => {
     b.add(boxGeo(V(tx - 1.3, 0.47, tz - 0.98), V(tx + 1.3, 0.8, tz - 0.7)), lam("bolster2", () => ({ color: "#2f4a7a" })));
     // trees: cypresses along the water, round mulberry / plane trees, rose bushes
     const trunk = lam("trunk", () => ({ color: "#6a4a32" }));
-    const leafs = ["#4f8a3a", "#5d9a44", "#46803a"].map((c, i) => lam("leaf" + i, () => ({ color: c })));
-    const cypM = lam("cypress", () => ({ color: "#2f5f36" }));
+    const leafs = ["#6aa84a", "#7ab552", "#5e9c44"].map((c, i) => lam("leaf" + i, () => ({ color: c })));
+    const cypM = lam("cypress", () => ({ color: "#4f8f45" }));
     const roundTree = (x: number, z: number, h: number, seed: number) => {
       const rr = rng(seed);
       b.add(new THREE.CylinderGeometry(0.16 * h / 6, 0.24 * h / 6, h * 0.5, 8), trunk, new THREE.Matrix4().makeTranslation(x, h * 0.25, z));

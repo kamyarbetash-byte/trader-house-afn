@@ -374,7 +374,7 @@ const shafts = (out: Stage, t: number) => [[-0.7, -0.6], [0.5, -1.2], [0.1, 0.4]
 /** the poem written on the cell wall, a wall-aligned card (k 0..1 written) */
 const script = (out: Stage, k: number, glow: number) => {
   if (k <= 0) return;
-  card(out, `script${q(k, 48)}`, 1024, 512, (p) => fxScript(p, k), WALLPOS[0], WALLPOS[1], WALLPOS[2] + 0.3, 1.9, 0.95, { yaw: 0, glow });
+  card(out, `script${q(k, 48)}`, 1024, 512, (p) => fxScript(p, k), WALLPOS[0], WALLPOS[1], WALLPOS[2] + 0.32, 1.5, 0.75, { yaw: 0, glow });
 };
 
 export const stage = (id: number, t: number, cam: CamInfo): Stage => {
@@ -437,11 +437,11 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
       const L: V3 = [1000, 0, 150];
       if (id === 5) { // a girl reading at the book stand
         who(cam, out, 31, RABIA_KID, L[0] + 0.2, D0, L[2] - 1.0, { mode: "stand", expr: pick(t, [[0, "smile_closed"], [31.2, "smile"], [33.0, "grin"]]), prop: "book", blink: lidAt(t, 31), facing: 0, look: pick(t, [[0, 0], [31.2, 1]]), ...life(t, 31, 0) });
-        if (t > 32.0) glyphs(out, f, 965, 5, 11, [L[0] + 0.3, 1.0, L[2] - 0.85], [0.05, 0.4, 0.05], 0.2);
+        if (t > 32.0) glyphs(out, f, 965, 5, 11, [L[0] + 0.55, 0.95, L[2] - 0.8], [0.08, 0.38, 0.05], 0.18);
       } else { // grown up: she writes, and the words rise
         who(cam, out, 32, RABIA, L[0] + 0.1, D0, L[2] - 0.9, { mode: "stand", expr: pick(t, [[0, "smile_closed"], [35.6, "smile"], [37.4, "grin"]]), prop: "book", blink: lidAt(t, 32, [35.6]), facing: 0, look: 0, ...life(t, 32, 0) });
-        glyphs(out, f, 1040, 8, 12, [L[0] + 0.25, 1.35, L[2] - 0.75], [0.07, 0.45, 0.06], 0.24);
-        card(out, "rGlow", 256, 256, (p) => fxGlow(p, "#ffd98a"), L[0] + 0.2, 1.3, L[2] - 0.7, 0.9, 0.9, { soft: true, glow: 0.6 });
+        glyphs(out, f, 1040, 8, 12, [L[0] + 0.62, 1.15, L[2] - 0.7], [0.1, 0.42, 0.05], 0.22);
+        card(out, "rGlow", 256, 256, (p) => fxGlow(p, "#ffd98a"), L[0] + 0.3, 0.95, L[2] - 0.6, 0.7, 0.7, { soft: true, glow: 0.5 });
       }
       break;
     }
@@ -457,25 +457,25 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
     case "cell": { // the bath-house cell
       shafts(out, t);
       if (id === 11) { // Harith points her in and leaves; she stays alone
-        const R: V3 = [CX - 0.5, 0, -0.9];
+        const R: V3 = [CX - 0.6, 0, -1.6];
         who(cam, out, 32, RABIA, R[0], D0, R[2], { mode: "stand", expr: pick(t, [[0, "worried"], [64.2, "sad"], [66.0, "cry"]]), prop: null, blink: lidAt(t, 32, [64.2, 66.0]), facing: 1, look: pick(t, [[0, 1], [65.8, 0]]), ...life(t, 32, 0) });
         if (t < 66.2) {
-          const w = walk(t, 64.4, 66.2, [CX + 1.6, 1.3], [CX + 2.6, 2.2]);
+          const w = walk(t, 64.4, 66.2, [CX + 0.8, -0.4], [CX + 2.4, 2.0]);
           who(cam, out, 45, HARITH, w.x, D0, w.z, { mode: w.mode, phase: w.phase, expr: "angry", prop: pick<Prop>(t, [[0, "point"], [64.4, null]]), blink: lidAt(t, 45), facing: -1, look: -1, ...life(t, 45, 0, 1.5) }, 1, true);
         }
       } else { // she writes her last poem on the wall
-        const R: V3 = id === 13 ? [CX - 0.75, 0, -CELL.r + 0.85] : [CX - 1.05, 0, -CELL.r + 1.0];
+        const R: V3 = id === 13 ? [CX - 0.15, 0, -2.25] : [CX + 0.1, 0, -2.3];
         const ex = id === 13 ? pick<FrontOpts["expr"]>(t, [[0, "sad"], [72.0, "stern"], [74.5, "smile_closed"]]) : pick<FrontOpts["expr"]>(t, [[0, "smile_closed"], [80.5, "relief"], [83.0, "smile_closed"]]);
         who(cam, out, 32, RABIA, R[0], D0, R[2], { mode: "stand", expr: ex, prop: id === 13 && t > 73.0 ? "point" : null, blink: lidAt(t, 32, [72.0, 74.5]), facing: 1, look: 1, ...life(t, 32, 0) });
         const k = id === 13 ? 0.55 * prog(t, 73.0, 76.4) : 0.55 + 0.45 * prog(t, 76.9, 82.5);
         script(out, k, 1.25 + 0.15 * Math.sin(t * 2.2));
-        if (id === 14 && t > 80.0) glyphs(out, f, 2400, 6, 14, [WALLPOS[0], 1.9, WALLPOS[2] + 0.4], [0.03, 0.35, 0.08], 0.2);
+        if (id === 14 && t > 80.0) glyphs(out, f, 2400, 6, 14, [WALLPOS[0] + 0.5, 2.3, WALLPOS[2] + 0.45], [0.03, 0.3, 0.08], 0.2);
       }
       break;
     }
     case "ruins": { // the wall is gone; the poem flies up into the sunset sky
-      glyphs(out, f, 2556, 18, 7, [0.5, 3.2, -3], [0.25, 1.5, -1.2], 1.1);
-      card(out, "ruinGlow", 256, 256, (p) => fxGlow(p, "#ffd98a"), 0.5, 3.0, -3, 3.2, 3.2, { soft: true, glow: 0.7 });
+      glyphs(out, f, 2556, 20, 7, [0.5, 2.6, -2], [0.35, 1.25, -0.35], 0.75);
+      card(out, "ruinGlow", 256, 256, (p) => fxGlow(p, "#ffd98a"), 0.5, 2.6, -2, 2.4, 2.4, { soft: true, glow: 0.7 });
       break;
     }
     case "shrine": { // today: visitors at Rabia's tomb in Balkh
