@@ -47,7 +47,7 @@ Dialogue: 0,0:00:00.00,0:00:05.00,Btn,,0,0,0,,{{\\pos(540,1745)}}قسمت {epf}
 open("t.ass", "w").write(ass)
 # official channel avatar (brand/avatar_small.png) as a badge left of the channel name
 av = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "brand", "avatar_small.png")
-AX, AY = int(os.environ.get("AX", 236)), int(os.environ.get("AY", 40))
+AX, AY = int(os.environ.get("AX", 318)), int(os.environ.get("AY", 40))
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", "bg.png", "-i", av, "-filter_complex",
                 f"[0:v]ass=t.ass:fontsdir=/home/user/trader-house-afn/animated-shorts/gold-short/fonts[b];[b][1:v]overlay={AX}:{AY}",
                 "-frames:v", "1", out], check=True)
