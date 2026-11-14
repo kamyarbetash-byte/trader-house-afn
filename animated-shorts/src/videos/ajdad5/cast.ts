@@ -474,7 +474,7 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
       break;
     }
     case "ruins": { // the wall is gone; the poem flies up into the sunset sky
-      glyphs(out, f, 2556, 20, 7, [0.5, 2.6, -2], [0.35, 1.25, -0.35], 0.75);
+      glyphs(out, f, 2556, 22, 6, [0.4, 2.4, -1.5], [0.4, 0.95, 0.1], 0.6);
       card(out, "ruinGlow", 256, 256, (p) => fxGlow(p, "#ffd98a"), 0.5, 2.6, -2, 2.4, 2.4, { soft: true, glow: 0.7 });
       break;
     }

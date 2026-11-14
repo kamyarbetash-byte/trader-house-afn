@@ -189,7 +189,7 @@ const S = {
   x13a: (f: number) => dolly(P(CX + 0.9, 1.4, 0.8), [CX + 0.05, 1.75, -2.6], pushK(f, 2130, 0.0022), { fov: 50 }),
   x14a: (f: number) => dolly(P(CX + 0.15, 1.35, 0.3), [CX + 0.1, 1.85, -2.7], pushK(f, 2300, 0.0018), { fov: 48 }),
   // the ruins at sunset: the poem flies up
-  r15a: (f: number) => zoom(P(-3, 2.6, 13), P(0.5, 4.8, -3), 50, pushK(f, 2550, 0.001)),
+  r15a: (f: number) => zoom(P(-1.2, 2.5, 6.5), P(0.6, 4.6, -2), 52, pushK(f, 2550, 0.0012)),
   // today: Balkh, the tomb; Kabul, the school
   s16a: (f: number) => zoom(P(SX + 3.5, 1.7, TOMB.z + 18), P(SX, 4.2, TOMB.z), 48, pushK(f, 2745, 0.0016)),
   k17a: (f: number): Shot => ({ pos: P(1000 + 2.0 - 0.006 * (f - 2870), 1.6, 12), look: P(1000 - 0.5, 2.6, -20), fov: 50 }),
