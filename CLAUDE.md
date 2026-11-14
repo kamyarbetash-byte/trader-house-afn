@@ -33,3 +33,9 @@ CPU only: render in resumable 150-frame chunks (`animated-shorts/scripts/gold_re
 
 `animated-shorts/src/videos/gold/` + `animated-shorts/gold-short/` — "طلای باختر" (Bactrian gold),
 the first finished short with all of the above.
+
+## Official channel avatar (since ep5 of «اجداد ما»)
+
+`animated-shorts/brand/profile.jpg` is the owner's official profile/logo photo. `scripts/brand_avatar.py` makes
+`brand/avatar_small.png` (badge left of «عمران راهبر» the whole video) and `brand/avatar_big.png` (above the outro text).
+`ajdad-ep5/subs/make_final.py` shows how to overlay both — use them in every new video and thumbnail.

@@ -99,12 +99,19 @@ fonts = f"{G}/../gold-short/fonts"
 music = f"{G}/audio/stem_music.wav"
 vo = f"{G}/voice/t21.wav"
 mix = f"{G}/audio/mix.wav"
+brand = f"{G}/../brand"     # official channel avatar (scripts/brand_avatar.py)
+AX, AY = int(os.environ.get("AX", 268)), int(os.environ.get("AY", 80))   # small badge beside the channel name
 fc = (
     # outro background: last frame, blurred and darkened
     f"[0:v]trim=start={MAIN-0.04},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration={OUTRO},"
     f"trim=duration={OUTRO},gblur=sigma=18,eq=brightness=-0.18:saturation=0.8,setpts=PTS-STARTPTS[ob];"
     f"[0:v]trim=duration={MAIN},setpts=PTS-STARTPTS[mv];"
-    f"[mv][ob]concat=n=2:v=1:a=0,fps=30,ass='{assf}':fontsdir='{fonts}'[v];"
+    f"[mv][ob]concat=n=2:v=1:a=0,fps=30,ass='{assf}':fontsdir='{fonts}'[vs];"
+    # channel avatar: small badge next to the name all video, big with a pop in the outro
+    f"[4:v]format=rgba,fade=t=in:st=0:d=0.4:alpha=1[sm];"
+    f"[5:v]format=rgba,fade=t=in:st={MAIN+0.1:.2f}:d=0.45:alpha=1[bg];"
+    f"[vs][sm]overlay=x={AX}:y={AY}:shortest=1[v1];"
+    f"[v1][bg]overlay=x=(W-w)/2:y=303:enable='gte(t,{MAIN:.3f})':shortest=1[v];"
     # audio: main mix, then a soft music bed from the opening + outro voice
     f"[3:a]atrim=duration={MAIN},asetpts=PTS-STARTPTS[ma];"
     f"[1:a]atrim=start=106.8:duration={OUTRO},asetpts=PTS-STARTPTS,volume=0.55,afade=t=in:d=0.6,afade=t=out:st={OUTRO-1.6}:d=1.6[bed];"
@@ -113,6 +120,8 @@ fc = (
     f"[ma][oa]concat=n=2:v=0:a=1,aresample=48000[a]"
 )
 cmd = ["ffmpeg", "-v", "error", "-y", "-i", src, "-i", music, "-i", vo, "-i", mix,
+       "-loop", "1", "-framerate", "30", "-t", f"{TOTAL}", "-i", f"{brand}/avatar_small.png",
+       "-loop", "1", "-framerate", "30", "-t", f"{TOTAL}", "-i", f"{brand}/avatar_big.png",
        "-filter_complex", fc, "-map", "[v]", "-map", "[a]",
        "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p",
        "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", dst]
